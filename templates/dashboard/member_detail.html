@@ -1,0 +1,159 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_members %}active{% endblock %}
+{% block dash_title %}{{ member.get_full_name|default:member.username }}{% endblock %}
+{% block dash_h1 %}{{ member.get_full_name|default:member.username }}{% endblock %}
+{% block dash_sub %}{{ member.role_badge }} · {{ member.email|default:"No email" }} · {{ member.location|default:"No location" }}{% endblock %}
+{% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:members' %}">All members</a>{% endblock %}
+{% block dash_content %}
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ stats.registrations|intcomma }}</div><div class="l">Event registrations</div></div>
+  <div class="kpi olive"><div class="v">GHS {{ stats.raised|floatformat:0|intcomma }}</div><div class="l">Confirmed giving</div></div>
+  <div class="kpi gold"><div class="v">{{ stats.applications|intcomma }}</div><div class="l">Applications</div></div>
+  <div class="kpi ink"><div class="v">{{ stats.gifts|intcomma }}</div><div class="l">Paystack records</div></div>
+</div>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-member-detail-tab="overview">Overview</button>
+  <button class="prog-tab" type="button" data-member-detail-tab="engagement">Engagement</button>
+  <button class="prog-tab" type="button" data-member-detail-tab="paystack">Paystack giving</button>
+  <button class="prog-tab" type="button" data-member-detail-tab="admin">Admin</button>
+</div>
+
+<div class="tab-panel active" id="member-detail-tab-overview">
+<div class="detail-grid">
+  <div class="dash-section detail-panel">
+    <div class="member-profile-hero">
+      <div class="member-profile-photo">
+        {% if member.avatar %}
+        <img src="{{ member.avatar.url }}" alt="{{ member.get_full_name|default:member.username }}">
+        {% else %}
+        <span>{% if member.first_name %}{{ member.first_name|first|upper }}{% else %}{{ member.username|first|upper }}{% endif %}</span>
+        {% endif %}
+      </div>
+      <div class="member-profile-copy">
+        <span>{{ member.role_badge }}</span>
+        <h2>{{ member.get_full_name|default:member.username }}</h2>
+        <p>{{ member.title|default:"No title added" }}{% if member.location %} · {{ member.location }}{% endif %}</p>
+        <div class="member-profile-actions">
+          {% if member.avatar %}<a class="btn-sm ghost" href="{{ member.avatar.url }}">Open picture</a>{% endif %}
+          {% if member.is_public_profile %}<span class="badge green">Public profile</span>{% else %}<span class="badge grey">Private profile</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <dl class="meta-list">
+      <div><dt>Username</dt><dd>{{ member.username }}</dd></div>
+      <div><dt>Email</dt><dd>{{ member.email|default:"—" }}</dd></div>
+      <div><dt>Phone</dt><dd>{{ member.phone|default:"—" }}</dd></div>
+      <div><dt>Role</dt><dd>{{ member.role_badge }}</dd></div>
+      <div><dt>Status</dt><dd>{% if member.is_active %}Active{% else %}Inactive{% endif %}</dd></div>
+      <div><dt>Joined</dt><dd>{{ member.date_joined|date:"M j, Y" }}</dd></div>
+    </dl>
+    <p class="detail-copy">{{ member.bio|default:"No bio has been added." }}</p>
+  </div>
+  <div class="dash-section detail-panel">
+    <h2>Paystack health</h2>
+    <div class="chart-box" id="memberPaymentStatusChart"></div>
+  </div>
+</div>
+</div>
+
+<div class="tab-panel" id="member-detail-tab-engagement">
+<div class="dash-section">
+  <h2>Event registrations</h2>
+	  {% if registrations.object_list %}
+	  <table class="dtable">
+	    <thead><tr><th>Event</th><th>When</th><th>Status</th><th>Registered</th></tr></thead>
+	    <tbody>{% for r in registrations %}<tr><td>{{ r.event.title }}</td><td>{{ r.event.starts_at|date:"M j, Y" }}</td><td>{{ r.get_status_display }}</td><td>{{ r.created_at|date:"M j, Y" }}</td></tr>{% endfor %}</tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=registrations page_param="registrations_page" fragment="member-detail-tab-engagement" %}
+	  {% else %}<div class="empty compact">No event registrations.</div>{% endif %}
+
+	  <h2 style="margin-top:28px;">Applications</h2>
+	  {% if applications.object_list %}
+	  <table class="dtable">
+	    <thead><tr><th>Type</th><th>Status</th><th>Area</th><th>Submitted</th></tr></thead>
+	    <tbody>{% for app in applications %}<tr><td>{{ app.get_kind_display }}</td><td>{{ app.get_status_display }}</td><td>{{ app.area_of_interest|default:"—" }}</td><td>{{ app.created_at|date:"M j, Y" }}</td></tr>{% endfor %}</tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=applications page_param="applications_page" fragment="member-detail-tab-engagement" %}
+	  {% else %}<div class="empty compact">No applications.</div>{% endif %}
+
+  <h2 style="margin-top:28px;">Mentorship</h2>
+  {% if mentorships_as_mentee or mentorships_as_mentor %}
+  <table class="dtable">
+    <thead><tr><th>Relationship</th><th>Person</th><th>Wing</th><th>Phase</th><th>Progress</th></tr></thead>
+    <tbody>
+    {% for m in mentorships_as_mentee %}<tr><td>Mentee</td><td>{{ m.mentor.get_full_name|default:m.mentor.username|default:"Unassigned" }}</td><td>{{ m.program.get_wing_display|default:"—" }}</td><td>{{ m.get_phase_display }}</td><td>{{ m.progress_pct }}%</td></tr>{% endfor %}
+    {% for m in mentorships_as_mentor %}<tr><td>Mentor</td><td>{{ m.mentee.get_full_name|default:m.mentee.username }}</td><td>{{ m.program.get_wing_display|default:"—" }}</td><td>{{ m.get_phase_display }}</td><td>{{ m.progress_pct }}%</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="empty compact">No mentorship records.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="member-detail-tab-paystack">
+<div class="dash-section tabbed-section">
+  <h2>Paystack-linked giving</h2>
+  <div class="chart-grid" style="margin-bottom:24px;">
+    <div class="chart-card full"><h3>Confirmed giving over time</h3><div class="chart-box" id="memberGivingChart"></div></div>
+  </div>
+	  {% if donations.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Reference</th><th>Amount</th><th>Channel</th><th>Campaign</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.get_channel_display }}</td><td>{{ d.campaign }}</td><td>{% if d.status == 'SUCCESS' %}<span class="badge green">Success</span>{% elif d.status == 'PENDING' %}<span class="badge amber">Pending</span>{% else %}<span class="badge red">Failed</span>{% endif %}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Open payment</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=donations page_param="donations_page" fragment="member-detail-tab-paystack" %}
+	  {% else %}<div class="empty">No Paystack donation records found for this member.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="member-detail-tab-admin">
+<div class="form-card wide dash-form-card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="form-row"><label>Role</label>{{ form.role }}</div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Title</label>{{ form.title }}</div>
+      <div class="form-row"><label>Location</label>{{ form.location }}</div>
+    </div>
+    <div class="form-row member-avatar-upload"><label>Member picture</label>{{ form.avatar }}{{ form.avatar.errors }}</div>
+    <div class="check-grid">
+      <label class="check-card">{{ form.is_active }}<span>Active account</span></label>
+      <label class="check-card">{{ form.is_staff }}<span>Django admin access</span></label>
+      <label class="check-card">{{ form.is_public_profile }}<span>Public profile</span></label>
+    </div>
+    <div class="form-actions"><button class="btn-sm" type="submit">Save member</button></div>
+  </form>
+</div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"memberDetailChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var memberDetailChartsReady = false;
+  var memberDetailCharts = [];
+  function initMemberDetailCharts() {
+    if (memberDetailChartsReady || typeof echarts === 'undefined') return;
+    memberDetailChartsReady = true;
+    var data = JSON.parse(document.getElementById('memberDetailChartsData').textContent);
+    [['memberPaymentStatusChart', OIFCharts.pie(data.payments)], ['memberGivingChart', OIFCharts.line(data.giving)]].forEach(function(item){ var el=document.getElementById(item[0]); if(!el) return; var chart=OIFCharts.init(el, item[1]); memberDetailCharts.push(chart); });
+    window.addEventListener('resize', function(){ memberDetailCharts.forEach(function(chart){ chart.resize(); }); });
+  }
+  initMemberDetailCharts();
+  document.querySelectorAll('[data-member-detail-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.memberDetailTab;
+      document.querySelectorAll('[data-member-detail-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="member-detail-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'member-detail-tab-' + name); });
+      memberDetailCharts.forEach(function(chart){ chart.resize(); });
+    });
+  });
+</script>
+{% endblock %}

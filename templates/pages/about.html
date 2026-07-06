@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block nav_about %}active{% endblock %}
+{% block title %}About · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Meet the Onesimus Impact Foundation: a youth-led Ghanaian NGO building leaders through conferences, mentorship, humanitarian outreach, partnerships, and digital systems.{% endblock %}
+{% block content %}
+<section class="page active about-premium">
+  <div class="about-hero-premium">
+    <div class="container">
+      <div class="about-hero-shell">
+        <div class="about-hero-copy">
+          <div class="eyebrow">About {{ ORG_SHORT }}</div>
+          <h1 class="display">A complete formation platform for <em>African youth leadership.</em></h1>
+          <p class="about-lead">Onesimus Impact Foundation is a youth-led NGO in Accra building the people, programs, partnerships, and digital systems that help emerging leaders grow with clarity, courage, and service.</p>
+          <div class="about-hero-actions">
+            <a class="btn-primary" href="{% url 'pages:programs' %}">Explore programs</a>
+            <a class="btn-primary about-ghost-btn" href="{% url 'pages:involved' %}">Join the work</a>
+          </div>
+        </div>
+        <div class="about-visual-board" aria-label="OIF project areas">
+          <div class="about-photo about-photo-large">
+            <span>Conferences</span>
+          </div>
+          <div class="about-photo about-photo-mentorship">
+            <span>Mentorship</span>
+          </div>
+          <div class="about-photo about-photo-outreach">
+            <span>Outreach</span>
+          </div>
+          <div class="about-photo about-photo-digital">
+            <span>Dashboard</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-fact-bar">
+        <div><span>Founded</span><strong>{{ ORG_FOUNDED }}</strong></div>
+        <div><span>Headquarters</span><strong>Accra, Ghana</strong></div>
+        <div><span>Model</span><strong>Virtual + in-person</strong></div>
+        <div><span>Focus</span><strong>Leadership, mentoring, service</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-system-section">
+    <div class="container">
+      <div class="about-section-head">
+        <div>
+          <div class="eyebrow">The full project</div>
+          <h2 class="display">One foundation, five connected engines.</h2>
+        </div>
+        <p>Every part of OIF has a job: gather the youth, form them deeply, send them into service, fund the mission responsibly, and manage the work with accountable digital tools.</p>
+      </div>
+      <div class="about-system-grid">
+        <article class="system-card system-card-conference">
+          <div class="system-image"></div>
+          <div class="system-body">
+            <span>01</span>
+            <h3>Virtual Conferences</h3>
+            <p>Flagship gatherings with accomplished speakers, practical teaching, and conversations that open new imagination for young leaders.</p>
+          </div>
+        </article>
+        <article class="system-card system-card-mentorship">
+          <div class="system-image"></div>
+          <div class="system-body">
+            <span>02</span>
+            <h3>Mentorship Pipeline</h3>
+            <p>Structured cohorts, recorded sessions, live mentor conversations, and progress tracking for sustained formation.</p>
+          </div>
+        </article>
+        <article class="system-card system-card-outreach">
+          <div class="system-image"></div>
+          <div class="system-body">
+            <span>03</span>
+            <h3>Humanitarian Outreach</h3>
+            <p>Service moments that connect leadership to real community needs, dignity, and measurable impact.</p>
+          </div>
+        </article>
+        <article class="system-card system-card-giving">
+          <div class="system-image"></div>
+          <div class="system-body">
+            <span>04</span>
+            <h3>Giving and Partnerships</h3>
+            <p>Donations, sponsorship interest, and partnership pathways that help resource the mission with transparency.</p>
+          </div>
+        </article>
+        <article class="system-card system-card-digital">
+          <div class="system-image"></div>
+          <div class="system-body">
+            <span>05</span>
+            <h3>Digital Operations</h3>
+            <p>A role-based dashboard for content, members, applications, events, donations, enquiries, analytics, and audit records.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-numbers-section">
+    <div class="container">
+      <div class="about-number-grid">
+        {% for s in site_stats %}
+        <div class="about-number-card">
+          <strong>{{ s.value }}<sup>{{ s.suffix }}</sup></strong>
+          <span>{{ s.label }}</span>
+        </div>
+        {% endfor %}
+        <div class="about-number-card muted">
+          <strong>{{ about_metrics.events }}</strong>
+          <span>Published events</span>
+        </div>
+        <div class="about-number-card muted">
+          <strong>{{ about_metrics.mentorships }}</strong>
+          <span>Mentorship records</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-story-section">
+    <div class="container">
+      <div class="about-story-grid">
+        <div class="about-story-image"></div>
+        <div class="about-story-copy">
+          <div class="eyebrow">Our story</div>
+          <h2 class="display">Built by young leaders for young leaders.</h2>
+          <p>OIF began with a conviction that the next generation does not only need inspiration. They need access, mentorship, structure, accountability, and communities that call out their best.</p>
+          <p>That conviction now lives across public programs, mentorship cohorts, outreach, partner relationships, donor stewardship, and a secure member dashboard that keeps the work organized.</p>
+          <div class="about-story-points">
+            <div><span>Vision</span><p>Teaching, mentoring, and training youth in leadership and entrepreneurship.</p></div>
+            <div><span>Mission</span><p>Creating platforms where accomplished personalities meet, mentor, and guide emerging leaders.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-values-premium">
+    <div class="container">
+      <div class="about-section-head">
+        <div>
+          <div class="eyebrow">What holds us</div>
+          <h2 class="display">Values with operational weight.</h2>
+        </div>
+        <p>These are not decorative words. They shape how programs are designed, how leaders serve, and how the foundation handles trust.</p>
+      </div>
+      <div class="about-values-grid">
+        <div class="about-value-card"><span>i.</span><h3>Excellence</h3><p>Careful preparation, elegant delivery, and thoughtful follow-through.</p></div>
+        <div class="about-value-card"><span>ii.</span><h3>Community</h3><p>Formation happens through relationship, shared courage, and consistent support.</p></div>
+        <div class="about-value-card"><span>iii.</span><h3>Integrity</h3><p>Transparent stewardship, role-based accountability, and respect for people.</p></div>
+        <div class="about-value-card"><span>iv.</span><h3>Impact</h3><p>Success is measured in lives strengthened and communities served.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="people-gateway-section">
+    <div class="container">
+      <div class="about-section-head">
+        <div>
+          <div class="eyebrow">People of OIF</div>
+          <h2 class="display">Leadership and speakers now have their own rooms.</h2>
+        </div>
+        <p>Meet the team stewarding the foundation, and explore the voices who have served OIF gatherings and formation spaces.</p>
+      </div>
+      <div class="people-gateway-grid">
+        <a class="people-gateway-card leadership-card" href="{% url 'pages:leadership' %}">
+          <span>Leadership</span>
+          <h3>The people carrying the work</h3>
+          <p>Governance, operations, and executive leadership serving the OIF mission.</p>
+        </a>
+        <a class="people-gateway-card speakers-card" href="{% url 'pages:speakers' %}">
+          <span>Speakers</span>
+          <h3>Voices that expand the room</h3>
+          <p>Conference speakers, facilitators, and mentors shaping young leaders.</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-program-strip">
+    <div class="container">
+      <div class="about-section-head compact">
+        <div>
+          <div class="eyebrow">Program wings</div>
+          <h2 class="display">Distinct rooms, one house.</h2>
+        </div>
+      </div>
+      <div class="about-program-grid">
+        {% for p in programs %}
+        <a class="about-program-card" href="{% url 'pages:program_detail' p.wing|lower %}">
+          <div class="about-program-image about-program-image-{{ forloop.counter }}">
+            {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">{% endif %}
+          </div>
+          <span>{{ p.get_wing_display }}</span>
+          <h3>{{ p.headline }}</h3>
+          <p>{{ p.tagline }}</p>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="about-cta-premium">
+    <div class="container">
+      <div class="about-cta-panel">
+        <div>
+          <div class="eyebrow">Your place in the story</div>
+          <h2 class="display">Support the next generation with more than applause.</h2>
+          <p>Give, mentor, volunteer, partner, or join the member community. The system is built. The work is moving.</p>
+        </div>
+        <div class="about-cta-buttons">
+          <a class="btn-primary" href="{% url 'pages:donate' %}">Donate now</a>
+          <a class="btn-primary about-ghost-btn" href="{% url 'pages:involved' %}">Get involved</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "dashboard/base.html" %}
+{% block n_content %}active{% endblock %}
+{% block dash_title %}{{ mode }} {{ config.label }}{% endblock %}
+{% block dash_h1 %}{{ mode }} {{ config.label }}{% endblock %}
+{% block dash_sub %}{{ config.description }}{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'dashboard:content' %}">Back to CMS</a>
+  {% if object %}
+  <span class="badge grey">Editing #{{ object.pk }}</span>
+  {% else %}
+  <span class="badge grey">New {{ config.add_label|default:"item" }}</span>
+  {% endif %}
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="cms-form-layout">
+  <aside class="cms-form-aside">
+    <span>{{ section }}</span>
+    <h2>{{ config.label }}</h2>
+    <p>{{ config.description }}</p>
+  </aside>
+  <div class="form-card wide dash-form-card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      {% if field.field.widget.input_type == "checkbox" %}
+        <div class="form-row check">{{ field }}<label style="margin:0;">{{ field.label }}</label>{{ field.errors }}</div>
+      {% else %}
+        <div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
+      {% endif %}
+    {% endfor %}
+    <div class="form-actions">
+      <button class="btn-sm" type="submit">Save changes</button>
+      <a class="btn-sm ghost" href="{% url 'dashboard:content' %}">Cancel</a>
+    </div>
+  </form>
+  </div>
+</div>
+{% endblock %}

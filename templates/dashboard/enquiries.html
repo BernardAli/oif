@@ -1,0 +1,111 @@
+{% extends "dashboard/base.html" %}
+{% block n_enquiries %}active{% endblock %}
+{% block dash_title %}Enquiries{% endblock %}
+{% block dash_h1 %}Enquiries{% endblock %}
+{% block dash_sub %}Contact form messages, partner &amp; sponsor interest, and newsletter subscribers.{% endblock %}
+{% block dash_content %}
+
+<div class="stat-row">
+  <div class="mini-stat"><div class="v">{{ totals.new_messages }}</div><div class="k">New messages</div></div>
+  <div class="mini-stat"><div class="v">{{ totals.new_partners }}</div><div class="k">New partner enquiries</div></div>
+  <div class="mini-stat"><div class="v">{{ totals.subscribers }}</div><div class="k">Newsletter subscribers</div></div>
+</div>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-enquiry-tab="messages">Contact messages</button>
+  <button class="prog-tab" type="button" data-enquiry-tab="partners">Partners</button>
+  <button class="prog-tab" type="button" data-enquiry-tab="subscribers">Subscribers</button>
+</div>
+
+<div class="tab-panel active" id="enquiry-tab-messages">
+<div class="dash-section tabbed-section">
+  <h2>Contact messages</h2>
+  {% if messages_list.object_list %}
+  <table class="dtable">
+    <thead><tr><th>From</th><th>Subject</th><th>Message</th><th>Status</th><th>Received</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for m in messages_list %}
+      <tr>
+        <td>{{ m.name }}<br><span style="font-size:12px;color:var(--ink-soft);">{{ m.email }} {{ m.phone }}</span></td>
+        <td>{{ m.subject|default:"—" }}</td>
+        <td style="max-width:320px;font-size:13px;color:var(--ink-soft);">{{ m.message|truncatewords:28 }}</td>
+        <td>{% if m.status == 'NEW' %}<span class="badge amber">New</span>{% elif m.status == 'READ' %}<span class="badge">Read</span>{% else %}<span class="badge green">Resolved</span>{% endif %}</td>
+        <td>{{ m.created_at|date:"M j, Y" }}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            {% if m.status != 'READ' %}<form method="post" action="{% url 'dashboard:message_action' m.pk 'read' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Mark read</button></form>{% endif %}
+            {% if m.status != 'RESOLVED' %}<form method="post" action="{% url 'dashboard:message_action' m.pk 'resolve' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Resolve</button></form>
+            {% else %}<form method="post" action="{% url 'dashboard:message_action' m.pk 'reopen' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Reopen</button></form>{% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=messages_list page_param="messages_page" fragment="enquiry-tab-messages" %}
+	  {% else %}<div class="empty">No contact messages yet.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="enquiry-tab-partners">
+<div class="dash-section tabbed-section">
+  <h2>Partner &amp; sponsor interest</h2>
+  {% if partners.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Organisation</th><th>Contact</th><th>Interest</th><th>Message</th><th>Status</th><th>Received</th>{% if can_manage_partners %}<th>Action</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for p in partners %}
+      <tr>
+        <td><b>{{ p.organisation }}</b></td>
+        <td>{{ p.contact_name }}<br><span style="font-size:12px;color:var(--ink-soft);">{{ p.email }} {{ p.phone }}</span></td>
+        <td>{{ p.get_kind_display }}</td>
+        <td style="max-width:280px;font-size:13px;color:var(--ink-soft);">{{ p.message|truncatewords:22|default:"—" }}</td>
+        <td>{% if p.status == 'NEW' %}<span class="badge amber">New</span>{% elif p.status == 'IN_REVIEW' %}<span class="badge">In review</span>{% elif p.status == 'ENGAGED' %}<span class="badge green">Engaged</span>{% else %}<span class="badge red">Closed</span>{% endif %}</td>
+        <td>{{ p.created_at|date:"M j, Y" }}</td>
+        {% if can_manage_partners %}
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <form method="post" action="{% url 'dashboard:partner_action' p.pk 'review' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Review</button></form>
+            <form method="post" action="{% url 'dashboard:partner_action' p.pk 'engage' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Engage</button></form>
+            <form method="post" action="{% url 'dashboard:partner_action' p.pk 'close' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Close</button></form>
+          </div>
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=partners page_param="partners_page" fragment="enquiry-tab-partners" %}
+	  {% else %}<div class="empty">No partner enquiries yet.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="enquiry-tab-subscribers">
+<div class="dash-section tabbed-section">
+  <h2>Newsletter subscribers <span style="font-size:13px;color:var(--ink-soft);">· {{ totals.subscribers }} active</span></h2>
+  {% if subscribers.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Email</th><th>Name</th><th>Active</th><th>Joined</th></tr></thead>
+    <tbody>
+    {% for s in subscribers %}
+      <tr><td>{{ s.email }}</td><td>{{ s.name|default:"—" }}</td><td>{% if s.is_active %}<span class="badge green">Yes</span>{% else %}<span class="badge">No</span>{% endif %}</td><td>{{ s.created_at|date:"M j, Y" }}</td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=subscribers page_param="subscribers_page" fragment="enquiry-tab-subscribers" %}
+	  {% else %}<div class="empty">No subscribers yet.</div>{% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  document.querySelectorAll('[data-enquiry-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.enquiryTab;
+      document.querySelectorAll('[data-enquiry-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="enquiry-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'enquiry-tab-' + name); });
+    });
+  });
+</script>
+{% endblock %}

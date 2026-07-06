@@ -1,0 +1,293 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{% block title %}{{ ORG_NAME }} — {{ ORG_TAGLINE }}{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}Onesimus Impact Foundation is a youth-led NGO in Accra, Ghana equipping the next generation of leaders through conferences, mentorship, and humanitarian action.{% endblock %}" />
+<meta name="robots" content="index, follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="{{ google_fonts_url }}" rel="stylesheet">
+{% if site_branding.favicon %}<link rel="icon" href="{{ site_branding.favicon.url }}">{% endif %}
+<style>
+  :root {
+    --font-title: "{{ site_branding.title_font }}", Georgia, serif;
+    --font-body: "{{ site_branding.body_font }}", system-ui, sans-serif;
+  }
+</style>
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+{% block head_extra %}{% endblock %}
+</head>
+<body>
+
+{% block chrome %}
+<div class="announce">
+  <span>{{ ORG_NAME }} · Established {{ ORG_FOUNDED }} · {{ ORG_LOCATION }}</span>
+  <a href="{% url 'pages:donate' %}">Support our work →</a>
+</div>
+
+<nav class="main" aria-label="Primary navigation">
+  <div class="nav-inner">
+    <a href="{% url 'pages:home' %}" class="logo">
+      {% if site_branding.logo_mark %}
+      <img class="logo-mark logo-mark-img" src="{{ site_branding.logo_mark.url }}" alt="{{ ORG_SHORT }} logo">
+      {% else %}
+      <div class="logo-mark">{{ ORG_SHORT|slice:":1" }}</div>
+      {% endif %}
+      {% if site_branding.logo %}
+      <img class="logo-full-img" src="{{ site_branding.logo.url }}" alt="{{ ORG_NAME }}">
+      {% else %}
+      <div class="logo-text">{{ ORG_NAME }}<small>{{ ORG_TAGLINE }}</small></div>
+      {% endif %}
+    </a>
+    <button class="mobile-toggle" id="mobileToggle" onclick="toggleMenu()" aria-label="Menu" aria-controls="navLinks" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links mega-nav" id="navLinks">
+      <a href="{% url 'pages:home' %}" class="nav-link {% block nav_home %}{% endblock %}">Home</a>
+
+      <div class="nav-item mega-item">
+        <button type="button" class="nav-link mega-trigger {% block nav_about %}{% endblock %}" aria-expanded="false">
+          About OIF <span aria-hidden="true"></span>
+        </button>
+        <div class="mega-panel">
+          <div class="mega-feature">
+            <span>Our Foundation</span>
+            <strong>Formation, mentorship, service, and faith-rooted leadership.</strong>
+            <a href="{% url 'pages:about' %}">Read the story</a>
+          </div>
+          <div class="mega-link-grid">
+            <a href="{% url 'pages:about' %}"><span>About OIF</span><small>Mission, story, values, and structure</small></a>
+            <a href="{% url 'pages:leadership' %}"><span>Leadership</span><small>Governance and executive stewardship</small></a>
+            <a href="{% url 'pages:speakers' %}"><span>Speakers</span><small>Conference voices and facilitators</small></a>
+            <a href="{% url 'pages:gallery' %}"><span>Gallery</span><small>Moments from the work on the ground</small></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item mega-item">
+        <button type="button" class="nav-link mega-trigger {% block nav_programs %}{% endblock %}" aria-expanded="false">
+          Programs <span aria-hidden="true"></span>
+        </button>
+        <div class="mega-panel mega-panel-wide">
+          <div class="mega-feature program-feature">
+            <span>Program Ecosystem</span>
+            <strong>Five connected pathways for leadership formation and community impact.</strong>
+            <a href="{% url 'pages:programs' %}">Explore programs</a>
+          </div>
+          <div class="mega-link-grid program-mega-grid">
+            <a href="{% url 'pages:programs' %}"><span>All Programs</span><small>Browse the complete OIF program house</small></a>
+            <a href="{% url 'pages:programs' %}#program-wings"><span>The Forge</span><small>Leadership and entrepreneurship formation</small></a>
+            <a href="{% url 'pages:programs' %}#program-wings"><span>The Hadassah Project</span><small>Purpose and dignity for young women</small></a>
+            <a href="{% url 'pages:programs' %}#program-wings"><span>Humanitarian Wing</span><small>Service connected to real needs</small></a>
+            <a href="{% url 'pages:programs' %}#program-wings"><span>Virtual Conferences</span><small>Digital teaching and global access</small></a>
+            <a href="{% url 'pages:programs' %}#open-events"><span>Open Events</span><small>Upcoming gatherings and registrations</small></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item mega-item">
+        <button type="button" class="nav-link mega-trigger {% block nav_impact %}{% endblock %}" aria-expanded="false">
+          Impact <span aria-hidden="true"></span>
+        </button>
+        <div class="mega-panel">
+          <div class="mega-feature impact-feature">
+            <span>Results & Stories</span>
+            <strong>Track the people, events, and stories shaped through OIF.</strong>
+            <a href="{% url 'pages:impact' %}">View impact</a>
+          </div>
+          <div class="mega-link-grid">
+            <a href="{% url 'pages:impact' %}"><span>Impact Overview</span><small>Numbers, testimonials, and outcomes</small></a>
+            <a href="{% url 'pages:speakers' %}"><span>Speaker Archive</span><small>People who have served OIF rooms</small></a>
+            <a href="{% url 'pages:donate' %}"><span>Give</span><small>Fuel mentorship, events, and outreach</small></a>
+            <a href="{% url 'pages:contact' %}"><span>Contact</span><small>Invite, partner, sponsor, or enquire</small></a>
+          </div>
+        </div>
+      </div>
+
+      <a href="{% url 'pages:involved' %}" class="nav-link {% block nav_involved %}{% endblock %}">Get Involved</a>
+      <a href="{% url 'pages:contact' %}" class="nav-link {% block nav_contact %}{% endblock %}">Contact</a>
+
+      <div class="nav-account">
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard:home' %}" class="nav-link account-link">Dashboard</a>
+          <a href="{% url 'accounts:logout' %}" class="nav-link account-link" onclick="event.preventDefault();document.getElementById('logoutForm').submit();">Log out</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="nav-link account-link">Sign in</a>
+        {% endif %}
+        <a href="{% url 'pages:donate' %}" class="donate-btn">Donate</a>
+      </div>
+    </div>
+  </div>
+</nav>
+{% if user.is_authenticated %}
+<form id="logoutForm" method="post" action="{% url 'accounts:logout' %}" style="display:none;">{% csrf_token %}</form>
+{% endif %}
+{% endblock %}
+
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% block footer %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-cta">
+      <div>
+        <span>Join the movement</span>
+        <h2 class="display">Help raise leaders who serve with conviction.</h2>
+      </div>
+      <div class="footer-cta-actions">
+        <a href="{% url 'pages:involved' %}">Get involved</a>
+        <a href="{% url 'pages:donate' %}">Donate</a>
+      </div>
+    </div>
+
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="{% url 'pages:home' %}" class="footer-logo">
+          {% if site_branding.logo_mark %}
+          <img class="logo-mark logo-mark-img" src="{{ site_branding.logo_mark.url }}" alt="{{ ORG_SHORT }} logo">
+          {% else %}
+          <div class="logo-mark">{{ ORG_SHORT|slice:":1" }}</div>
+          {% endif %}
+          {% if site_branding.logo %}
+          <img class="logo-full-img" src="{{ site_branding.logo.url }}" alt="{{ ORG_NAME }}">
+          {% else %}
+          <div class="logo-text">{{ ORG_NAME }}<small>{{ ORG_TAGLINE }}</small></div>
+          {% endif %}
+        </a>
+        <p>{{ site_branding.footer_blurb }}</p>
+        <div class="footer-meta">
+          <div><span>Established</span><strong>{{ ORG_FOUNDED }}</strong></div>
+          <div><span>Base</span><strong>{{ ORG_LOCATION }}</strong></div>
+        </div>
+      </div>
+
+      <nav class="footer-col" aria-label="Explore">
+        <h4>Explore</h4>
+        <a href="{% url 'pages:about' %}">About OIF</a>
+        <a href="{% url 'pages:leadership' %}">Leadership</a>
+        <a href="{% url 'pages:speakers' %}">Speakers</a>
+        <a href="{% url 'pages:programs' %}">Programs</a>
+        <a href="{% url 'pages:impact' %}">Impact</a>
+        <a href="{% url 'pages:contact' %}">Contact</a>
+      </nav>
+
+      <nav class="footer-col" aria-label="Programs">
+        <h4>Programs</h4>
+        <a href="{% url 'pages:programs' %}">The Forge</a>
+        <a href="{% url 'pages:programs' %}">The Hadassah Project</a>
+        <a href="{% url 'pages:programs' %}">Humanitarian Wing</a>
+        <a href="{% url 'pages:programs' %}">Virtual Conferences</a>
+        <a href="{% url 'pages:programs' %}">Mentorship</a>
+      </nav>
+
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="footer-contact-list">
+          <a href="mailto:{{ ORG_EMAIL }}">{{ ORG_EMAIL }}</a>
+          <a href="tel:{{ ORG_PHONE }}">{{ ORG_PHONE }}</a>
+        </div>
+        <div class="socials footer-socials">
+          {% if site_branding.instagram_url %}<a href="{{ site_branding.instagram_url }}" title="Instagram">IG</a>{% endif %}
+          {% if site_branding.linkedin_url %}<a href="{{ site_branding.linkedin_url }}" title="LinkedIn">in</a>{% endif %}
+          {% if site_branding.twitter_url %}<a href="{{ site_branding.twitter_url }}" title="Twitter/X">X</a>{% endif %}
+          {% if site_branding.youtube_url %}<a href="{{ site_branding.youtube_url }}" title="YouTube">YT</a>{% endif %}
+          {% if site_branding.facebook_url %}<a href="{{ site_branding.facebook_url }}" title="Facebook">FB</a>{% endif %}
+        </div>
+        <form class="newsletter" method="post" action="{% url 'engagement:newsletter_signup' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <label>Get OIF updates</label>
+          <div class="newsletter-row">
+            <input type="email" name="email" placeholder="Your email" required>
+            <button type="submit">Join</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© {% now "Y" %} {{ ORG_NAME }}. All rights reserved.</div>
+      <div class="footer-policy-links">
+        <a href="{% url 'pages:policy' 'privacy' %}">Privacy</a>
+        <a href="{% url 'pages:policy' 'terms' %}">Terms</a>
+        <a href="{% url 'pages:policy' 'donation' %}">Donation Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+<script>
+  function toggleMenu() {
+    var nav = document.getElementById('navLinks');
+    var toggle = document.getElementById('mobileToggle');
+    var isOpen = nav.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  (function initMegaNavigation() {
+    var triggers = document.querySelectorAll('.mega-trigger');
+    triggers.forEach(function(trigger) {
+      trigger.addEventListener('click', function(event) {
+        event.stopPropagation();
+        var item = trigger.closest('.mega-item');
+        var isOpen = item.classList.contains('open');
+        document.querySelectorAll('.mega-item.open').forEach(function(openItem) {
+          if (openItem !== item) {
+            openItem.classList.remove('open');
+            openItem.querySelector('.mega-trigger').setAttribute('aria-expanded', 'false');
+          }
+        });
+        item.classList.toggle('open', !isOpen);
+        trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.mega-item.open').forEach(function(item) {
+        item.classList.remove('open');
+        item.querySelector('.mega-trigger').setAttribute('aria-expanded', 'false');
+      });
+    });
+    document.addEventListener('keydown', function(event) {
+      if (event.key !== 'Escape') return;
+      document.querySelectorAll('.mega-item.open').forEach(function(item) {
+        item.classList.remove('open');
+        item.querySelector('.mega-trigger').setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+  (function initPasswordToggles() {
+    document.querySelectorAll('input[type="password"]').forEach(function(input) {
+      if (input.closest('.password-toggle-wrap')) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'password-toggle-wrap';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'password-toggle-btn';
+      btn.setAttribute('aria-label', 'Show password');
+      btn.setAttribute('aria-pressed', 'false');
+      btn.textContent = 'Show';
+      btn.addEventListener('click', function() {
+        var showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? 'Show' : 'Hide';
+        btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+        btn.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      });
+      wrap.appendChild(btn);
+    });
+  })();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends "dashboard/base.html" %}
+{% block n_mentor %}active{% endblock %}
+{% block dash_title %}Mentorship{% endblock %}
+{% block dash_h1 %}Mentorship{% endblock %}
+{% block dash_sub %}The OIF journey runs across two phases — 8 recorded sessions, then 4 live sessions.{% endblock %}
+{% block dash_actions %}{% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:mentorship_create' %}">+ New enrollment</a>{% endif %}{% endblock %}
+{% block dash_content %}
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-mentor-tab="journey">My journey</button>
+	  {% if mentees.object_list %}<button class="prog-tab" type="button" data-mentor-tab="mentees">My mentees</button>{% endif %}
+  {% if can_manage %}
+  <button class="prog-tab" type="button" data-mentor-tab="enrollments">All enrollments</button>
+  <button class="prog-tab" type="button" data-mentor-tab="pending">Awaiting enrollment</button>
+  {% endif %}
+</div>
+
+<div class="tab-panel active" id="mentor-tab-journey">
+{% if my_enrollment %}
+<div class="dash-section tabbed-section">
+  <h2>My mentorship journey</h2>
+  <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="kpi"><div class="v">{{ my_enrollment.get_phase_display|truncatewords:2 }}</div><div class="l">Current phase</div></div>
+    <div class="kpi olive"><div class="v">{{ my_enrollment.sessions_completed }}/{{ my_enrollment.sessions_total }}</div><div class="l">Sessions completed</div></div>
+    <div class="kpi gold"><div class="v">{{ my_enrollment.progress_pct }}%</div><div class="l">Overall progress</div></div>
+  </div>
+  <div style="background:var(--cream);border-radius:6px;padding:24px;margin-top:18px;">
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-bottom:8px;">
+      <span>{{ my_enrollment.get_phase_display }}</span><span>{{ my_enrollment.progress_pct }}%</span></div>
+    <div class="progress"><span style="width:{{ my_enrollment.progress_pct }}%;"></span></div>
+    <p style="margin-top:16px;font-size:14px;">Mentor:
+      <b>{% if my_enrollment.mentor %}{{ my_enrollment.mentor.get_full_name|default:my_enrollment.mentor.username }}{% else %}To be assigned{% endif %}</b>
+      {% if my_enrollment.program %} · Wing: <b>{{ my_enrollment.program.get_wing_display }}</b>{% endif %}</p>
+  </div>
+</div>
+{% else %}
+<div class="dash-section tabbed-section">
+  <h2>My mentorship journey</h2>
+  <div class="empty">You are not enrolled in a mentorship cohort yet. Apply to be matched with a mentor through the
+    <a href="{% url 'engagement:apply' %}">applications</a> page, or contact your wing lead.</div>
+</div>
+{% endif %}
+</div>
+
+{% if mentees.object_list %}
+<div class="tab-panel" id="mentor-tab-mentees">
+<div class="dash-section tabbed-section">
+  <h2>My mentees</h2>
+  <table class="dtable">
+    <thead><tr><th>Mentee</th><th>Wing</th><th>Phase</th><th>Progress</th></tr></thead>
+    <tbody>
+    {% for m in mentees %}
+      <tr>
+        <td>{{ m.mentee.get_full_name|default:m.mentee.username }}</td>
+        <td>{{ m.program.get_wing_display|default:"—" }}</td>
+        <td>{{ m.get_phase_display }}</td>
+        <td style="min-width:160px;">
+          <div class="progress"><span style="width:{{ m.progress_pct }}%;"></span></div>
+          <span style="font-size:12px;color:var(--ink-soft);">{{ m.sessions_completed }}/{{ m.sessions_total }} · {{ m.progress_pct }}%</span>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=mentees page_param="mentees_page" fragment="mentor-tab-mentees" %}
+</div>
+</div>
+{% endif %}
+
+{% if can_manage %}
+<div class="tab-panel" id="mentor-tab-enrollments">
+<div class="dash-section tabbed-section">
+  <h2>All enrollments <span style="font-size:13px;color:var(--ink-soft);">· staff view</span></h2>
+  {% if all_enrollments.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Mentee</th><th>Mentor</th><th>Wing</th><th>Phase</th><th>Progress</th><th></th></tr></thead>
+    <tbody>
+    {% for m in all_enrollments %}
+      <tr>
+        <td>{{ m.mentee.get_full_name|default:m.mentee.username }}</td>
+        <td>{{ m.mentor.get_full_name|default:m.mentor.username|default:"Unassigned" }}</td>
+        <td>{{ m.program.get_wing_display|default:"—" }}</td>
+        <td>{{ m.get_phase_display }}</td>
+        <td style="min-width:160px;">
+          <div class="progress"><span style="width:{{ m.progress_pct }}%;"></span></div>
+          <span style="font-size:12px;color:var(--ink-soft);">{{ m.sessions_completed }}/{{ m.sessions_total }}</span>
+        </td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:mentorship_edit' m.pk %}">Edit</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=all_enrollments page_param="enrollments_page" fragment="mentor-tab-enrollments" %}
+	  {% else %}<div class="empty">No enrollments yet.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="mentor-tab-pending">
+<div class="dash-section tabbed-section">
+  <h2>Members awaiting enrollment</h2>
+  {% if pending_members.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th></th></tr></thead>
+    <tbody>
+    {% for m in pending_members %}
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.email|default:"—" }}</td><td>{{ m.date_joined|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:mentorship_create' %}">Assign</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=pending_members page_param="pending_members_page" fragment="mentor-tab-pending" %}
+	  {% else %}<div class="empty compact">No unassigned members found.</div>{% endif %}
+</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  document.querySelectorAll('[data-mentor-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.mentorTab;
+      document.querySelectorAll('[data-mentor-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="mentor-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'mentor-tab-' + name); });
+    });
+  });
+</script>
+{% endblock %}

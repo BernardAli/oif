@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Donate · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Support Onesimus Impact Foundation programs, mentorship, virtual conferences, and humanitarian outreach through secure giving.{% endblock %}
+{% block content %}
+<section class="page active premium-page donate-premium">
+  <div class="premium-hero donate-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Stand with us</div>
+          <h1 class="display">Fuel leadership formation that outlives the moment.</h1>
+          <p>Your financial support helps fund conferences, mentorship, humanitarian outreach, communications, and the systems that keep OIF accountable.</p>
+          <div class="premium-actions">
+            <a class="btn-primary" href="{% url 'donations:give' %}">Make a donation</a>
+            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:policy' 'donation' %}">Donation policy</a>
+          </div>
+        </div>
+        <div class="donate-hero-photo"><span>Give with purpose</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="premium-band">
+    <div class="container">
+      <div class="giving-method-grid">
+        <article><span>01</span><h3>Mobile Money</h3><p>Quick Ghana-friendly giving through MTN MoMo, Telecel Cash, or AirtelTigo via Paystack.</p></article>
+        <article><span>02</span><h3>Card</h3><p>Secure Visa and Mastercard donations through Paystack checkout.</p></article>
+        <article><span>03</span><h3>Bank or sponsor gifts</h3><p>For larger gifts and institutional sponsorships, contact the partnerships team for next steps.</p></article>
+      </div>
+      <div class="donate-assurance">
+        <div><strong>Receipts</strong><span>Donation confirmations are generated for successful gifts.</span></div>
+        <div><strong>Stewardship</strong><span>Dashboard records support internal follow-up and reconciliation.</span></div>
+        <div><strong>Purpose</strong><span>Every gift supports youth leadership, mentorship, and outreach.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "dashboard/base.html" %}
+{% block n_profile %}active{% endblock %}
+{% block dash_title %}My Profile{% endblock %}
+{% block dash_h1 %}My Profile{% endblock %}
+{% block dash_sub %}Keep your account identity, contact details, and public profile presentation up to date.{% endblock %}
+{% block dash_content %}
+<div class="profile-layout">
+  <aside class="profile-card">
+    <div class="profile-cover"></div>
+    <div class="profile-avatar-wrap">
+      {% if user.avatar %}
+      <img class="profile-avatar-img" src="{{ user.avatar.url }}" alt="{{ user.get_full_name|default:user.username }}">
+      {% else %}
+      <div class="profile-avatar-fallback">{% if user.first_name %}{{ user.first_name|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}</div>
+      {% endif %}
+    </div>
+    <div class="profile-summary">
+      <h2>{{ user.get_full_name|default:user.username }}</h2>
+      <p>{{ user.title|default:user.role_badge }}</p>
+      <span class="role-pill">{{ user.role_badge }}</span>
+    </div>
+    <dl class="profile-meta">
+      <div><dt>Email</dt><dd>{{ user.email|default:"Not added" }}</dd></div>
+      <div><dt>Phone</dt><dd>{{ user.phone|default:"Not added" }}</dd></div>
+      <div><dt>Location</dt><dd>{{ user.location|default:"Not added" }}</dd></div>
+      <div><dt>Visibility</dt><dd>{% if user.is_public_profile %}<span class="badge green">Public</span>{% else %}<span class="badge grey">Private</span>{% endif %}</dd></div>
+    </dl>
+  </aside>
+
+  <section class="profile-editor">
+    <div class="profile-editor-head">
+      <div>
+        <h2>Profile Details</h2>
+        <p>Your profile image is shown here and can be updated with a JPG, PNG, or WebP image.</p>
+      </div>
+      {% if user.avatar %}
+      <a class="btn-sm ghost" href="{{ user.avatar.url }}">Open image</a>
+      {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="profile-form">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="profile-form-grid">
+        <div class="form-row"><label>First name</label>{{ form.first_name }}{{ form.first_name.errors }}</div>
+        <div class="form-row"><label>Last name</label>{{ form.last_name }}{{ form.last_name.errors }}</div>
+        <div class="form-row"><label>Email</label>{{ form.email }}{{ form.email.errors }}</div>
+        <div class="form-row"><label>Phone</label>{{ form.phone }}{{ form.phone.errors }}</div>
+        <div class="form-row"><label>Title / role</label>{{ form.title }}{{ form.title.errors }}</div>
+        <div class="form-row"><label>Location</label>{{ form.location }}{{ form.location.errors }}</div>
+        <div class="form-row full profile-upload"><label>Profile image</label>{{ form.avatar }}{{ form.avatar.errors }}</div>
+        <div class="form-row full"><label>Bio</label>{{ form.bio }}{{ form.bio.errors }}</div>
+        <div class="form-row full check profile-visibility">{{ form.is_public_profile }}<label>Show my profile publicly</label>{{ form.is_public_profile.errors }}</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" type="submit">Save changes</button>
+        <a class="btn-sm ghost" href="{% url 'dashboard:home' %}">Back to dashboard</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

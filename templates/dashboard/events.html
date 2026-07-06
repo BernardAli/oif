@@ -1,0 +1,153 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_events %}active{% endblock %}
+{% block dash_title %}Events{% endblock %}
+{% block dash_h1 %}Events &amp; Registrations{% endblock %}
+{% block dash_sub %}{% if can_manage %}Manage upcoming and archived events, registrations, and event performance.{% else %}Register for upcoming events and manage your spots.{% endif %}{% endblock %}
+{% block dash_actions %}{% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:event_create' %}">+ New event</a>{% endif %}{% endblock %}
+{% block dash_content %}
+
+{% if can_manage %}
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ event_totals.upcoming|intcomma }}</div><div class="l">Upcoming events</div></div>
+  <div class="kpi olive"><div class="v">{{ event_totals.open|intcomma }}</div><div class="l">Open registration</div></div>
+  <div class="kpi gold"><div class="v">{{ event_totals.archived|intcomma }}</div><div class="l">Archived events</div></div>
+  <div class="kpi ink"><div class="v">{{ event_totals.drafts|intcomma }}</div><div class="l">Draft events</div></div>
+</div>
+{% endif %}
+
+<div class="event-tabs" data-tabs>
+  {% if can_manage %}
+  <button class="prog-tab active" type="button" data-event-tab="manage">Management</button>
+  {% endif %}
+  <button class="prog-tab {% if not can_manage %}active{% endif %}" type="button" data-event-tab="mine">My registrations</button>
+  {% if can_manage %}
+  <button class="prog-tab" type="button" data-event-tab="archived">Archived</button>
+  {% endif %}
+  <button class="prog-tab" type="button" data-event-tab="open">Open registration</button>
+</div>
+
+{% if can_manage %}
+<div class="tab-panel active" id="event-tab-manage">
+<div class="dash-section tabbed-section">
+  <h2>Upcoming management</h2>
+  {% if upcoming_managed.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Event</th><th>Wing</th><th>When</th><th>Registration</th><th>Seats</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for e in upcoming_managed %}
+      <tr>
+        <td><b>{{ e.title }}</b><br><span style="font-size:12px;color:var(--ink-soft);">{{ e.get_kind_display }}</span></td>
+        <td>{% if e.program %}{{ e.program.get_wing_display }}{% else %}General{% endif %}</td>
+        <td>{{ e.starts_at|date:"M j, Y · g:i A" }}</td>
+        <td>{% if e.registration_open %}<span class="badge green">Open</span>{% else %}<span class="badge grey">Closed</span>{% endif %}</td>
+        <td>{% if e.seats_left is None %}Unlimited{% else %}{{ e.active_registration_count }}/{{ e.capacity }}{% endif %}</td>
+        <td>{% if e.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge amber">Draft</span>{% endif %}</td>
+	        <td class="table-actions">{% if e.is_published %}<a class="btn-sm ghost" href="{% url 'pages:event_detail' e.slug %}">Public</a>{% endif %}<a class="btn-sm ghost" href="{% url 'dashboard:event_detail' e.pk %}">Details</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=upcoming_managed page_param="upcoming_page" fragment="event-tab-manage" %}
+	  {% else %}<div class="empty">No upcoming events have been created yet.</div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+<div class="tab-panel {% if not can_manage %}active{% endif %}" id="event-tab-mine">
+<div class="dash-section tabbed-section">
+  <h2>My registrations</h2>
+  {% if my_regs.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Event</th><th>When</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for r in my_regs %}
+      <tr>
+	        <td><a href="{% url 'pages:event_detail' r.event.slug %}">{{ r.event.title }}</a></td>
+        <td>{{ r.event.starts_at|date:"M j, Y · g:i A" }}</td>
+        <td>
+          {% if r.status == 'REGISTERED' %}<span class="badge green">Registered</span>
+          {% elif r.status == 'ATTENDED' %}<span class="badge grey">Attended</span>
+          {% else %}<span class="badge red">Cancelled</span>{% endif %}
+        </td>
+        <td>{% if r.status == 'REGISTERED' %}
+          <form method="post" action="{% url 'engagement:cancel_registration' r.pk %}">{% csrf_token %}
+            <button class="btn-sm red" type="submit">Cancel</button></form>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=my_regs page_param="my_regs_page" fragment="event-tab-mine" %}
+	  {% else %}<div class="empty">You haven't registered for any events yet.</div>{% endif %}
+</div>
+</div>
+
+{% if can_manage %}
+<div class="tab-panel" id="event-tab-archived">
+<div class="dash-section tabbed-section">
+  <h2>Archived events</h2>
+  {% if archived_events.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Event</th><th>Wing</th><th>Held</th><th>Registrations</th><th>Attendance</th><th></th></tr></thead>
+    <tbody>
+    {% for e in archived_events %}
+      <tr>
+        <td><b>{{ e.title }}</b><br><span style="font-size:12px;color:var(--ink-soft);">{{ e.get_kind_display }}</span></td>
+        <td>{% if e.program %}{{ e.program.get_wing_display }}{% else %}General{% endif %}</td>
+        <td>{{ e.starts_at|date:"M j, Y" }}</td>
+        <td>{{ e.active_registration_count|intcomma }}</td>
+        <td>{{ e.registrations.count|intcomma }} total records</td>
+	        <td class="table-actions">{% if e.is_published %}<a class="btn-sm ghost" href="{% url 'pages:event_detail' e.slug %}">Public</a>{% endif %}<a class="btn-sm ghost" href="{% url 'dashboard:event_detail' e.pk %}">Analytics</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=archived_events page_param="archived_page" fragment="event-tab-archived" %}
+	  {% else %}<div class="empty">No archived events yet.</div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+<div class="tab-panel" id="event-tab-open">
+<div class="dash-section tabbed-section">
+  <h2>Open for registration</h2>
+  {% if available.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Event</th><th>Type</th><th>When</th><th>Seats</th><th></th></tr></thead>
+    <tbody>
+    {% for e in available %}
+      <tr>
+	        <td><a href="{% url 'pages:event_detail' e.slug %}">{{ e.title }}</a></td><td>{{ e.get_kind_display }}</td>
+        <td>{{ e.starts_at|date:"M j, Y · g:i A" }}</td>
+        <td>{% if e.seats_left is None %}Unlimited{% else %}{{ e.seats_left }}{% endif %}</td>
+        <td>
+          {% if e.is_full %}<span class="badge red">Full</span>
+          {% else %}
+	          <form method="post" action="{% url 'engagement:register_event' e.slug %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'dashboard:events' %}">
+	            <button class="btn-sm" type="submit">Register</button></form>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=available page_param="available_page" fragment="event-tab-open" %}
+	  {% else %}<div class="empty">No events open for registration right now.</div>{% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  document.querySelectorAll('[data-event-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var name = tab.dataset.eventTab;
+      document.querySelectorAll('[data-event-tab]').forEach(function (item) {
+        item.classList.toggle('active', item === tab);
+      });
+      document.querySelectorAll('[id^="event-tab-"]').forEach(function (panel) {
+        panel.classList.toggle('active', panel.id === 'event-tab-' + name);
+      });
+    });
+  });
+</script>
+{% endblock %}

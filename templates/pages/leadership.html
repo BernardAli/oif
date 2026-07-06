@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block nav_about %}active{% endblock %}
+{% block title %}Leadership · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Meet the governance and operations leadership carrying the work of Onesimus Impact Foundation in Ghana and beyond.{% endblock %}
+{% block content %}
+<section class="page active premium-page people-page leadership-page">
+  <div class="premium-hero people-hero leadership-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Leadership</div>
+          <h1 class="display">The people carrying the work.</h1>
+          <p>A governance and operations team serving a movement larger than any single program.</p>
+          <div class="premium-actions">
+            <a class="btn-primary" href="{% url 'pages:involved' %}">Work with us</a>
+            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:about' %}">About OIF</a>
+          </div>
+        </div>
+        <div class="people-hero-photo leadership-hero-photo"><span>Governance · Formation · Service</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-section about-team-premium people-section">
+    <div class="container">
+      <div class="team-intro">
+        <div class="eyebrow">Executive leadership</div>
+        <h2 class="display">Formation needs stewardship.</h2>
+        <p>OIF leadership keeps the mission aligned, accountable, and ready for the next generation.</p>
+      </div>
+
+      <div class="about-leadership-grid">
+        {% if team_lead %}
+        <article class="about-leader-card">
+          {% if team_lead.photo %}
+          <img src="{{ team_lead.photo.url }}" alt="{{ team_lead.name }}">
+          {% else %}
+          <div class="about-leader-photo lead-photo-one"></div>
+          {% endif %}
+          <div>
+            <span>{{ team_lead.get_position_display }}</span>
+            <h3>{{ team_lead.name }}</h3>
+            <p class="leader-credential">{{ team_lead.credential }}</p>
+            <p>{{ team_lead.bio }}</p>
+          </div>
+        </article>
+        {% endif %}
+        {% if team_ed %}
+        <article class="about-leader-card">
+          {% if team_ed.photo %}
+          <img src="{{ team_ed.photo.url }}" alt="{{ team_ed.name }}">
+          {% else %}
+          <div class="about-leader-photo lead-photo-two"></div>
+          {% endif %}
+          <div>
+            <span>{{ team_ed.get_position_display }}</span>
+            <h3>{{ team_ed.name }}</h3>
+            <p class="leader-credential">{{ team_ed.credential }}</p>
+            <p>{{ team_ed.bio }}</p>
+          </div>
+        </article>
+        {% endif %}
+      </div>
+
+      {% if directors %}
+      <div class="directors-label">Directors</div>
+      <div class="directors-grid about-directors-grid">
+        {% for d in directors %}
+        <div class="director-card">
+          {% if d.photo %}
+          <img class="director-photo" src="{{ d.photo.url }}" alt="{{ d.name }}">
+          {% else %}
+          <div class="director-photo"></div>
+          {% endif %}
+          <div><h4>{{ d.name }}</h4><div class="director-title">{{ d.title }}</div><p>{{ d.bio }}</p></div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if secretary %}
+      <div class="secretary-card">
+        {% if secretary.photo %}
+        <img class="director-photo" src="{{ secretary.photo.url }}" alt="{{ secretary.name }}">
+        {% else %}
+        <div class="director-photo"></div>
+        {% endif %}
+        <div><h4>{{ secretary.name }}</h4><div class="director-title">Company Secretary</div><p>{{ secretary.bio }}</p></div>
+        <div class="gov-badge">Governance</div>
+      </div>
+      {% endif %}
+
+      {% if not team_members %}
+      <div class="premium-empty">Leadership profiles will be published soon.</div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

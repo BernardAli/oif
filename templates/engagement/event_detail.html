@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}{{ event.summary|default:event.description|default:"View event details, agenda, registration information, and participation notes for this Onesimus Impact Foundation event."|truncatechars:155 }}{% endblock %}
+{% block content %}
+<section class="page active event-detail-page">
+  <div class="event-detail-hero">
+    <div class="container">
+      <div class="event-detail-hero-grid">
+        <div class="event-detail-copy">
+          <div class="eyebrow">{{ event.get_kind_display }}{% if event.program %} · {{ event.program.get_wing_display }}{% endif %}</div>
+          <h1 class="display">{{ event.title }}</h1>
+          {% if event.summary %}
+          <p class="event-detail-lede">{{ event.summary }}</p>
+          {% else %}
+          <p class="event-detail-lede">{{ event.description|default:"A structured OIF gathering for leadership, mentorship, service, and practical next steps." }}</p>
+          {% endif %}
+          <div class="event-detail-actions">
+	            {% if user.is_authenticated %}
+	            <a class="btn-primary" href="#event-registration">Register or update details</a>
+	            {% else %}
+	            <a class="btn-primary" href="{% url 'accounts:login' %}?next={{ request.path }}">Sign in to register</a>
+	            {% endif %}
+	            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">Explore programs</a>
+	          </div>
+	          <div class="calendar-action-row" aria-label="Add event to calendar">
+	            <span>Add to calendar</span>
+	            <a href="{{ calendar_links.google }}" target="_blank" rel="noopener">Google Calendar</a>
+	            <a href="{{ calendar_links.apple }}">Apple Calendar</a>
+	          </div>
+	          <div class="share-action-row" aria-label="Share event">
+	            <span>Share event</span>
+	            <button type="button" data-share-event data-share-title="{{ share_links.title }}" data-share-text="{{ share_links.text }}" data-share-url="{{ share_links.url }}">Share</button>
+	            <a href="{{ share_links.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>
+	            <a href="{{ share_links.x }}" target="_blank" rel="noopener">X</a>
+	            <a href="{{ share_links.facebook }}" target="_blank" rel="noopener">Facebook</a>
+	            <a href="{{ share_links.email }}">Email</a>
+	          </div>
+	        </div>
+        <div class="event-detail-media">
+          {% if event.flyer %}
+          <img src="{{ event.flyer.url }}" alt="{{ event.title }} flyer">
+          {% else %}
+          <div class="event-detail-fallback">
+            <span>{{ event.get_kind_display }}</span>
+            <strong>{{ event.starts_at|date:"M j" }}</strong>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-facts-band">
+    <div class="container">
+      <div class="event-facts-grid">
+        <div><span>Date</span><strong>{{ event.starts_at|date:"l, F j, Y" }}</strong></div>
+        <div><span>Time</span><strong>{{ event.starts_at|date:"g:i A" }} GMT</strong></div>
+        <div><span>Format</span><strong>{% if event.is_virtual %}Virtual{% else %}In person{% endif %}</strong></div>
+        <div><span>Seats</span><strong>{% if event.seats_left is None %}Unlimited{% else %}{{ event.seats_left }} left{% endif %}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-detail-body">
+    <div class="container">
+      <div class="event-detail-layout">
+        <main class="event-story">
+          <section>
+            <div class="premium-section-head compact">
+              <div>
+                <div class="eyebrow">About the gathering</div>
+                <h2 class="display">Everything participants need to know.</h2>
+              </div>
+            </div>
+            <div class="event-rich-copy">
+              {{ event.description|default:"Full details will be announced soon."|linebreaks }}
+            </div>
+          </section>
+
+          <div class="event-info-grid">
+            <section class="event-info-panel">
+              <span>Who it is for</span>
+              {{ event.audience|default:"Young leaders, mentors, volunteers, students, professionals, and friends of OIF who want to learn, serve, or connect."|linebreaks }}
+            </section>
+            <section class="event-info-panel">
+              <span>Outcomes</span>
+              {{ event.outcomes|default:"Clarity, practical tools, meaningful relationships, and a clear next step into leadership or service."|linebreaks }}
+            </section>
+          </div>
+
+          <section class="event-info-panel wide">
+            <span>Agenda</span>
+            {{ event.agenda|default:"Arrival and welcome\nCore teaching or panel conversation\nInteractive discussion or breakout\nNext steps and closing"|linebreaks }}
+          </section>
+
+          <div class="event-info-grid">
+            <section class="event-info-panel">
+              <span>Speakers & facilitators</span>
+              {{ event.speakers|default:"OIF facilitators and invited contributors will guide this experience."|linebreaks }}
+            </section>
+            <section class="event-info-panel">
+              <span>Preparation</span>
+              {{ event.preparation|default:"Come ready to participate, take notes, ask thoughtful questions, and connect with other participants."|linebreaks }}
+            </section>
+          </div>
+
+          {% if related_events %}
+          <section class="related-events">
+            <div class="premium-section-head compact">
+              <div>
+                <div class="eyebrow">More opportunities</div>
+                <h2 class="display">Upcoming OIF gatherings.</h2>
+              </div>
+            </div>
+            <div class="event-list-premium">
+              {% for item in related_events %}
+              <article class="event-row-premium">
+                <div>
+                  <span>{{ item.get_kind_display }}</span>
+                  <h3>{{ item.title }}</h3>
+                  <p>{{ item.starts_at|date:"l, F j, Y · g:i A" }} GMT · {{ item.location }}</p>
+                </div>
+                <a class="btn-sm ghost" href="{% url 'pages:event_detail' item.slug %}">Details</a>
+              </article>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
+        </main>
+
+	        <aside class="event-registration-panel" id="event-registration">
+	          <div class="event-reg-card">
+	            <h2>Registration</h2>
+	            <dl>
+	              <div><dt>Location</dt><dd>{{ event.location }}</dd></div>
+	              {% if event.venue_address %}<div><dt>Address</dt><dd>{{ event.venue_address }}</dd></div>{% endif %}
+	              {% if event.online_url %}<div><dt>Online access</dt><dd><a href="{{ event.online_url }}">Open link</a></dd></div>{% endif %}
+	              {% if event.contact_email %}<div><dt>Contact</dt><dd><a href="mailto:{{ event.contact_email }}">{{ event.contact_email }}</a></dd></div>{% endif %}
+	            </dl>
+	            <div class="calendar-card">
+	              <span>Add this event</span>
+	              <div>
+	                <a href="{{ calendar_links.google }}" target="_blank" rel="noopener">Google</a>
+	                <a href="{{ calendar_links.apple }}">Apple</a>
+	              </div>
+	            </div>
+	            <div class="share-card">
+	              <span>Share with others</span>
+	              <button type="button" data-share-event data-share-title="{{ share_links.title }}" data-share-text="{{ share_links.text }}" data-share-url="{{ share_links.url }}">Copy or share link</button>
+	              <div>
+	                <a href="{{ share_links.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>
+	                <a href="{{ share_links.email }}">Email</a>
+	              </div>
+	            </div>
+	            {% if event.registration_note %}
+            <p class="registration-note">{{ event.registration_note }}</p>
+            {% endif %}
+            {% if event.accessibility %}
+            <div class="access-note"><span>Access notes</span>{{ event.accessibility|linebreaks }}</div>
+            {% endif %}
+
+            {% if registration and registration.status != "CANCELLED" %}
+            <div class="registered-banner">
+              <strong>You are registered</strong>
+              <span>{{ registration.get_status_display }} · {{ registration.get_attendance_mode_display }}</span>
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+              {% if event.registration_open and not event.is_full %}
+              <form class="event-register-form" method="post" action="{% url 'engagement:register_event' event.slug %}">{% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <div class="form-row"><label>Attendance mode</label>{{ registration_form.attendance_mode }}</div>
+                <div class="form-row"><label>Organisation</label>{{ registration_form.organisation }}</div>
+                <div class="form-row"><label>Role / title</label>{{ registration_form.role_title }}</div>
+                <div class="form-row"><label>Accessibility needs</label>{{ registration_form.accessibility_needs }}</div>
+                <div class="form-row"><label>Dietary needs</label>{{ registration_form.dietary_needs }}</div>
+                <div class="form-row"><label>Question or note</label>{{ registration_form.question }}</div>
+                <button class="btn-primary" type="submit">{% if registration %}Update registration{% else %}Register for this event{% endif %}</button>
+              </form>
+              {% elif event.is_full %}
+              <div class="premium-empty">This event is currently full.</div>
+              {% else %}
+              <div class="premium-empty">Registration is currently closed.</div>
+              {% endif %}
+            {% else %}
+            <a class="btn-primary" href="{% url 'accounts:login' %}?next={{ request.path }}">Sign in to register</a>
+            {% endif %}
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function initEventShare() {
+    document.querySelectorAll('[data-share-event]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var title = button.dataset.shareTitle;
+        var text = button.dataset.shareText;
+        var url = button.dataset.shareUrl;
+        var original = button.textContent;
+        if (navigator.share) {
+          navigator.share({ title: title, text: text, url: url }).catch(function() {});
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function() {
+            button.textContent = 'Link copied';
+            window.setTimeout(function() { button.textContent = original; }, 1800);
+          });
+          return;
+        }
+        window.prompt('Copy this event link', url);
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_donations %}active{% endblock %}
+{% block dash_title %}Donation {{ donation.reference }}{% endblock %}
+{% block dash_h1 %}Donation {{ donation.reference }}{% endblock %}
+{% block dash_sub %}{{ donation.donor_name|default:"Anonymous donor" }} · {{ donation.currency }} {{ donation.amount|intcomma }} · {{ donation.get_status_display }}{% endblock %}
+{% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:donations' %}">All donations</a>{% endblock %}
+{% block dash_content %}
+<div class="event-toolbar">
+  <div>
+    {% if donation.status == 'SUCCESS' %}<span class="badge green">Successful</span>
+    {% elif donation.status == 'PENDING' %}<span class="badge amber">Pending</span>
+    {% else %}<span class="badge red">Failed</span>{% endif %}
+    {% if donation.is_recurring %}<span class="badge green">Recurring</span>{% endif %}
+  </div>
+  {% if can_manage %}
+  <div class="action-row">
+    <form method="post" action="{% url 'dashboard:donation_action' donation.pk 'verify' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Verify Paystack</button></form>
+    <form method="post" action="{% url 'dashboard:donation_action' donation.pk 'mark-success' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Mark success</button></form>
+    <form method="post" action="{% url 'dashboard:donation_action' donation.pk 'mark-pending' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Mark pending</button></form>
+    <form method="post" action="{% url 'dashboard:donation_action' donation.pk 'mark-failed' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Mark failed</button></form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="detail-grid">
+  <div class="dash-section detail-panel">
+    <h2>Donation details</h2>
+    <dl class="meta-list">
+      <div><dt>Reference</dt><dd>{{ donation.reference }}</dd></div>
+      <div><dt>Donor</dt><dd>{{ donation.donor_name|default:"—" }}</dd></div>
+      <div><dt>Email</dt><dd>{{ donation.donor_email|default:"—" }}</dd></div>
+      <div><dt>Amount</dt><dd>{{ donation.currency }} {{ donation.amount|intcomma }}</dd></div>
+      <div><dt>Channel</dt><dd>{{ donation.get_channel_display }}</dd></div>
+      <div><dt>Campaign</dt><dd>{{ donation.campaign }}</dd></div>
+      <div><dt>Date</dt><dd>{{ donation.created_at|date:"M j, Y · g:i A" }}</dd></div>
+    </dl>
+  </div>
+  <div class="dash-section detail-panel">
+    <h2>Payment handling</h2>
+    <div class="mini-bars">
+      <div><span>Processor</span><b style="font-size:16px;">{% if paystack_configured %}Paystack{% else %}Demo mode{% endif %}</b></div>
+      <div><span>Current status</span><b style="font-size:16px;">{{ donation.get_status_display }}</b></div>
+      <div><span>Member account</span><b style="font-size:16px;">{% if donation.donor %}Linked{% else %}Guest{% endif %}</b></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

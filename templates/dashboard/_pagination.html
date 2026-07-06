@@ -1,0 +1,13 @@
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="pager" aria-label="Pagination">
+  <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  <div>
+    {% if page_obj.has_previous %}
+    <a class="btn-sm ghost" href="?{{ page_obj.query_prefix }}{{ page_param }}={{ page_obj.previous_page_number }}{% if fragment %}#{{ fragment }}{% endif %}">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a class="btn-sm ghost" href="?{{ page_obj.query_prefix }}{{ page_param }}={{ page_obj.next_page_number }}{% if fragment %}#{{ fragment }}{% endif %}">Next</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

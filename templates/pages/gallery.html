@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Gallery · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Photo gallery from Onesimus Impact Foundation conferences, mentorship cohorts, and humanitarian outreach.{% endblock %}
+{% block content %}
+<section class="page active premium-page gallery-premium">
+  <div class="premium-hero gallery-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Media</div>
+          <h1 class="display">A visual archive of the work.</h1>
+          <p>Moments from conferences, mentorship cohorts, humanitarian outreaches, and the people who make the movement real.</p>
+        </div>
+        <div class="gallery-hero-photo"><span>OIF in motion</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="premium-band">
+    <div class="container">
+      {% if images %}
+      <div class="gallery-grid premium-gallery-grid">
+        {% for g in images %}
+        <figure class="gcard">
+          {% if g.image %}
+          <button class="gallery-lightbox-trigger" type="button" data-gallery-index="{{ forloop.counter0 }}" data-gallery-src="{{ g.image.url }}" data-gallery-caption="{{ g.caption|default:'OIF gallery image' }}" aria-label="Open {{ g.caption|default:'gallery image' }}">
+            <img src="{{ g.image.url }}" alt="{{ g.caption }}">
+            <span>Expand</span>
+          </button>
+          {% else %}
+          <div class="gimg-ph tall">{{ g.caption|default:"OIF" }}</div>
+          {% endif %}
+          {% if g.caption %}<figcaption>{{ g.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endfor %}
+      </div>
+      <div class="gallery-lightbox" id="galleryLightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Expanded gallery image">
+        <button class="gallery-lightbox-close" type="button" aria-label="Close expanded image">&times;</button>
+        <button class="gallery-lightbox-nav gallery-lightbox-prev" type="button" aria-label="Previous image">‹</button>
+        <figure class="gallery-lightbox-stage">
+          <img id="galleryLightboxImage" src="" alt="">
+          <figcaption id="galleryLightboxCaption"></figcaption>
+        </figure>
+        <button class="gallery-lightbox-nav gallery-lightbox-next" type="button" aria-label="Next image">›</button>
+      </div>
+      {% else %}
+      <div class="gallery-empty-premium">
+        <h2>Gallery coming soon.</h2>
+        <p>Uploaded conference, mentorship, and outreach photos will appear here.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+  (function initGalleryLightbox() {
+    var triggers = Array.prototype.slice.call(document.querySelectorAll('.gallery-lightbox-trigger'));
+    var lightbox = document.getElementById('galleryLightbox');
+    if (!triggers.length || !lightbox) return;
+
+    var image = document.getElementById('galleryLightboxImage');
+    var caption = document.getElementById('galleryLightboxCaption');
+    var closeBtn = lightbox.querySelector('.gallery-lightbox-close');
+    var prevBtn = lightbox.querySelector('.gallery-lightbox-prev');
+    var nextBtn = lightbox.querySelector('.gallery-lightbox-next');
+    var activeIndex = 0;
+
+    function show(index) {
+      activeIndex = (index + triggers.length) % triggers.length;
+      var item = triggers[activeIndex];
+      image.src = item.dataset.gallerySrc;
+      image.alt = item.dataset.galleryCaption || 'Expanded gallery image';
+      caption.textContent = item.dataset.galleryCaption || '';
+    }
+
+    function open(index) {
+      show(index);
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('gallery-lightbox-active');
+      closeBtn.focus();
+    }
+
+    function close() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('gallery-lightbox-active');
+      image.removeAttribute('src');
+      triggers[activeIndex].focus();
+    }
+
+    triggers.forEach(function(trigger, index) {
+      trigger.addEventListener('click', function() { open(index); });
+    });
+
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', function() { show(activeIndex - 1); });
+    nextBtn.addEventListener('click', function() { show(activeIndex + 1); });
+    lightbox.addEventListener('click', function(event) {
+      if (event.target === lightbox) close();
+    });
+    document.addEventListener('keydown', function(event) {
+      if (!lightbox.classList.contains('open')) return;
+      if (event.key === 'Escape') close();
+      if (event.key === 'ArrowLeft') show(activeIndex - 1);
+      if (event.key === 'ArrowRight') show(activeIndex + 1);
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block nav_home %}active{% endblock %}
+{% block content %}
+<section class="page active premium-page home-premium">
+  <div class="premium-hero home-hero-premium">
+    <div class="home-hero-image" aria-hidden="true"></div>
+    <div class="home-hero-shade" aria-hidden="true"></div>
+    <div class="container home-hero-container">
+      <div class="home-hero-copy">
+        <div class="eyebrow">Established {{ ORG_FOUNDED }} · Accra, Ghana</div>
+        <h1 class="display">Raising young leaders who serve with clarity, courage, and conviction.</h1>
+        <p>Onesimus Impact Foundation equips emerging leaders through conferences, mentorship, humanitarian action, and digital systems built for lasting impact.</p>
+        <div class="premium-actions home-hero-actions">
+          <a class="btn-primary" href="{% url 'pages:involved' %}">Get involved</a>
+          <a class="btn-primary premium-ghost-btn home-hero-ghost" href="{% url 'pages:donate' %}">Support the mission</a>
+        </div>
+      </div>
+      <div class="home-hero-proof">
+        <div>
+          <span>Formation</span>
+          <strong>Conferences, mentorship, and outreach</strong>
+        </div>
+        <div>
+          <span>Base</span>
+          <strong>Accra, Ghana · Global vision</strong>
+        </div>
+        {% if upcoming_event %}
+        <a href="{% url 'pages:event_detail' upcoming_event.slug %}">
+          <span>Next gathering</span>
+          <strong>{{ upcoming_event.title }}</strong>
+        </a>
+        {% else %}
+        <a href="{% url 'pages:programs' %}">
+          <span>Explore</span>
+          <strong>See OIF program wings</strong>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if upcoming_event %}
+  <div class="home-event-feature" id="upcoming-event">
+    <div class="container">
+      <div class="home-event-grid">
+        <div class="home-event-media">
+          {% if upcoming_event.flyer %}
+          <img src="{{ upcoming_event.flyer.url }}" alt="{{ upcoming_event.title }} flyer">
+          {% else %}
+          <div class="premium-flyer">
+            <span>{{ upcoming_event.get_kind_display }}</span>
+            <strong>{{ upcoming_event.theme|default:upcoming_event.title }}</strong>
+          </div>
+          {% endif %}
+        </div>
+          <div class="home-event-copy">
+          <div class="eyebrow">Upcoming</div>
+          <h2 class="display">{{ upcoming_event.title }}</h2>
+          <div class="event-meta-premium">
+            <div><span>Date</span><strong>{{ upcoming_event.starts_at|date:"l, F j, Y" }}</strong></div>
+            <div><span>Time</span><strong>{{ upcoming_event.starts_at|date:"g:i A" }} GMT</strong></div>
+            <div><span>Format</span><strong>{{ upcoming_event.location }}</strong></div>
+          </div>
+          <p>{{ upcoming_event.description|default:"Join us for this upcoming gathering of emerging leaders." }}</p>
+          <div class="countdown-timer premium-countdown" id="countdownTimer" data-target="{{ upcoming_event.starts_at|date:'c' }}">
+            <div><span id="cd-days">--</span><small>Days</small></div>
+            <div><span id="cd-hours">--</span><small>Hours</small></div>
+            <div><span id="cd-mins">--</span><small>Mins</small></div>
+            <div><span id="cd-secs">--</span><small>Secs</small></div>
+          </div>
+          <a class="btn-primary premium-ghost-btn" href="{% url 'pages:event_detail' upcoming_event.slug %}">View event details</a>
+          {% if user.is_authenticated %}
+          <form method="post" action="{% url 'engagement:register_event' upcoming_event.slug %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'pages:event_detail' upcoming_event.slug %}">
+            <button class="btn-primary" type="submit">Register for free</button>
+          </form>
+          {% else %}
+          <a class="btn-primary" href="{% url 'accounts:login' %}?next={% url 'dashboard:events' %}">Register for free</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="impact-metrics-band">
+    <div class="container">
+      <div class="metric-grid-premium home-metrics">
+        {% for s in site_stats %}
+        <div><strong>{{ s.value }}<sup>{{ s.suffix }}</sup></strong><span>{{ s.label }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="premium-band">
+    <div class="container">
+      <div class="premium-section-head">
+        <div>
+          <div class="eyebrow">The OIF ecosystem</div>
+          <h2 class="display">Programs that form the whole leader.</h2>
+        </div>
+        <p>Leadership formation, women's empowerment, humanitarian service, virtual gatherings, and mentorship work together as one system.</p>
+      </div>
+      <div class="about-program-grid home-program-grid">
+        {% for p in programs %}
+        <a class="about-program-card" href="{% url 'pages:program_detail' p.wing|lower %}">
+          <div class="about-program-image about-program-image-{{ forloop.counter }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">{% endif %}</div>
+          <span>{{ p.get_wing_display }}</span>
+          <h3>{{ p.headline }}</h3>
+          <p>{{ p.tagline }}</p>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="home-leadership-band">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Leadership</div>
+          <h2 class="display">Led by an emerging generation.</h2>
+        </div>
+      </div>
+      <div class="about-leadership-grid">
+        {% if team_lead %}
+        <article class="about-leader-card">
+          <div class="about-leader-photo lead-photo-one"></div>
+          <div><span>{{ team_lead.get_position_display }}</span><h3>{{ team_lead.name }}</h3><p>{{ team_lead.bio|default:team_lead.credential }}</p></div>
+        </article>
+        {% endif %}
+        {% if team_ed %}
+        <article class="about-leader-card">
+          <div class="about-leader-photo lead-photo-two"></div>
+          <div><span>{{ team_ed.get_position_display }}</span><h3>{{ team_ed.name }}</h3><p>{{ team_ed.bio|default:team_ed.credential }}</p></div>
+        </article>
+        {% endif %}
+      </div>
+      <div class="center-action"><a class="btn-sm ghost" href="{% url 'pages:leadership' %}">Meet the full team</a></div>
+    </div>
+  </div>
+
+  {% if speakers %}
+  <div class="about-speakers-premium home-speakers-premium">
+    <div class="container">
+      <div class="speakers-head">
+        <div class="eyebrow">Voices who have stood with us</div>
+        <h2 class="display">Leaders shaping leaders.</h2>
+      </div>
+      <div class="speakers-grid">
+        {% for sp in speakers %}
+        <div class="speaker"><div class="speaker-photo"{% if sp.photo %} style="background-image:url({{ sp.photo.url }});filter:grayscale(0);"{% endif %}></div><div class="speaker-name">{{ sp.name }}</div><div class="speaker-role">{{ sp.role }}</div></div>
+        {% endfor %}
+      </div>
+      <div class="center-action"><a class="btn-sm ghost" href="{% url 'pages:speakers' %}">View all speakers</a></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="about-cta-premium">
+    <div class="container">
+      <div class="about-cta-panel">
+        <div>
+          <div class="eyebrow">Support the mission</div>
+          <h2 class="display">Help us shape the next generation of African leadership.</h2>
+          <p>Your gift, time, network, or expertise can strengthen the platform young leaders need.</p>
+        </div>
+        <div class="about-cta-buttons">
+          <a class="btn-primary" href="{% url 'pages:donate' %}">Support our work</a>
+          <a class="btn-primary about-ghost-btn" href="{% url 'pages:involved' %}">Get involved</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var el = document.getElementById('countdownTimer');
+    if (!el) return;
+    var target = new Date(el.dataset.target);
+    function tick() {
+      var diff = target - new Date();
+      var d = document.getElementById('cd-days'), h = document.getElementById('cd-hours'),
+          m = document.getElementById('cd-mins'), s = document.getElementById('cd-secs');
+      if (diff <= 0) { d.textContent=h.textContent=m.textContent=s.textContent='00'; return; }
+      var days=Math.floor(diff/86400000), hrs=Math.floor(diff%86400000/3600000),
+          mins=Math.floor(diff%3600000/60000), secs=Math.floor(diff%60000/1000);
+      d.textContent=String(days).padStart(2,'0'); h.textContent=String(hrs).padStart(2,'0');
+      m.textContent=String(mins).padStart(2,'0'); s.textContent=String(secs).padStart(2,'0');
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+{% endblock %}

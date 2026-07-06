@@ -1,0 +1,26 @@
+{% extends "dashboard/base.html" %}
+{% block n_audit %}active{% endblock %}
+{% block dash_title %}Audit Trail{% endblock %}
+{% block dash_h1 %}Audit Trail{% endblock %}
+{% block dash_sub %}A record of significant administrative actions ({{ total }} total).{% endblock %}
+{% block dash_content %}
+<div class="dash-section">
+  {% if logs.object_list %}
+  <table class="dtable">
+    <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Detail</th></tr></thead>
+    <tbody>
+    {% for l in logs %}
+      <tr>
+        <td style="white-space:nowrap;">{{ l.created_at|date:"M j, Y H:i" }}</td>
+        <td>{{ l.actor.get_full_name|default:l.actor.username|default:"system" }}</td>
+        <td><span class="badge">{{ l.action }}</span></td>
+        <td>{{ l.target|default:"—" }}</td>
+        <td style="font-size:13px;color:var(--ink-soft);">{{ l.detail|default:"—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=logs page_param="logs_page" %}
+	  {% else %}<div class="empty">No audit records yet.</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block nav_impact %}active{% endblock %}
+{% block title %}Speakers · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Explore the speakers, facilitators, and voices who have served Onesimus Impact Foundation conferences, mentorship, and leadership gatherings.{% endblock %}
+{% block content %}
+<section class="page active premium-page people-page speakers-page">
+  <div class="premium-hero people-hero speakers-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Speaker archive</div>
+          <h1 class="display">Voices that expand the room.</h1>
+          <p>OIF gatherings are shaped by speakers and facilitators who bring practical wisdom, spiritual depth, professional excellence, and service-minded imagination.</p>
+          <div class="premium-actions">
+            <a class="btn-primary" href="{% url 'pages:involved' %}">Apply to speak</a>
+            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:impact' %}">See impact</a>
+          </div>
+        </div>
+        <div class="people-hero-photo speakers-hero-photo"><span>Conferences · Panels · Mentorship</span></div>
+      </div>
+    </div>
+  </div>
+
+  {% if featured_speakers %}
+  <div class="premium-band featured-speakers-band">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Featured voices</div>
+          <h2 class="display">Leaders shaping leaders.</h2>
+        </div>
+      </div>
+      <div class="speakers-grid">
+        {% for sp in featured_speakers %}
+        <div class="speaker">
+          <div class="speaker-photo"{% if sp.photo %} style="background-image:url({{ sp.photo.url }});filter:grayscale(0);"{% endif %}></div>
+          <div class="speaker-name">{{ sp.name }}</div>
+          <div class="speaker-role">{{ sp.role }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="about-speakers-premium speaker-archive-page">
+    <div class="container">
+      <div class="speakers-head">
+        <div class="eyebrow">Archive</div>
+        <h2 class="display">Every speaker profile in one place.</h2>
+      </div>
+      {% if speakers %}
+      <div class="speakers-grid">
+        {% for sp in speakers %}
+        <div class="speaker">
+          <div class="speaker-photo"{% if sp.photo %} style="background-image:url({{ sp.photo.url }});filter:grayscale(0);"{% endif %}></div>
+          <div class="speaker-name">{{ sp.name }}</div>
+          <div class="speaker-role">{{ sp.role }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="premium-empty">Speaker profiles will be published soon.</div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

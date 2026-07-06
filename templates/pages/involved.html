@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block nav_involved %}active{% endblock %}
+{% block title %}Get Involved · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Get involved with the Onesimus Impact Foundation as a mentor, volunteer, mentee, speaker, donor, sponsor, or partner supporting youth leadership in Ghana and beyond.{% endblock %}
+{% block content %}
+<section class="page active involved-premium">
+  <div class="involved-hero">
+    <div class="container">
+      <div class="involved-hero-grid">
+        <div class="involved-hero-copy">
+          <div class="eyebrow">Join the movement</div>
+          <h1 class="display">There is a meaningful place for you in <em>the work.</em></h1>
+          <p>Whether you mentor, volunteer, speak, give, sponsor, or join a cohort, your contribution helps build a complete ecosystem for emerging African leaders.</p>
+          <div class="involved-hero-actions">
+            {% if user.is_authenticated %}
+            <a class="btn-primary" href="{% url 'engagement:apply' %}">Start an application</a>
+            {% else %}
+            <a class="btn-primary" href="{% url 'accounts:signup' %}?next={% url 'engagement:apply' %}">Create account to apply</a>
+            {% endif %}
+            <a class="btn-primary involved-ghost-btn" href="#partner">Partner with OIF</a>
+          </div>
+        </div>
+        <div class="involved-hero-visual">
+          <div class="involved-portrait portrait-mentor"><span>Mentor</span></div>
+          <div class="involved-portrait portrait-volunteer"><span>Volunteer</span></div>
+          <div class="involved-portrait portrait-partner"><span>Partner</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="involved-pathways">
+    <div class="container">
+      <div class="involved-section-head">
+        <div>
+          <div class="eyebrow">Choose your path</div>
+          <h2 class="display">Different gifts. One shared mission.</h2>
+        </div>
+        <p>OIF grows through people who bring wisdom, time, networks, generosity, and courage to the table.</p>
+      </div>
+
+      <div class="pathway-grid">
+        <article class="pathway-card pathway-mentor">
+          <div class="pathway-image"></div>
+          <div class="pathway-body">
+            <span>Experienced professionals</span>
+            <h3>Become a Mentor</h3>
+            <p>Guide young leaders through the structured mentorship journey with practical wisdom, accountability, and care.</p>
+            {% if user.is_authenticated %}
+            <a class="btn-sm" href="{% url 'engagement:apply' %}?kind=MENTOR">Apply as a mentor</a>
+            {% else %}
+            <a class="btn-sm" href="{% url 'accounts:signup' %}?next={% url 'engagement:apply' %}">Sign up to apply</a>
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="pathway-card pathway-volunteer">
+          <div class="pathway-image"></div>
+          <div class="pathway-body">
+            <span>Hands-on service</span>
+            <h3>Volunteer With Us</h3>
+            <p>Serve through events, media, operations, partnerships, design, communications, and community outreach.</p>
+            {% if user.is_authenticated %}
+            <a class="btn-sm olive" href="{% url 'engagement:apply' %}?kind=VOLUNTEER">Apply as a volunteer</a>
+            {% else %}
+            <a class="btn-sm olive" href="{% url 'accounts:signup' %}?next={% url 'engagement:apply' %}">Sign up to apply</a>
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="pathway-card pathway-mentee">
+          <div class="pathway-image"></div>
+          <div class="pathway-body">
+            <span>Young leaders</span>
+            <h3>Join as a Mentee</h3>
+            <p>Enter a cohort designed for recorded learning, live mentor sessions, clarity, growth, and guided next steps.</p>
+            {% if user.is_authenticated %}
+            <a class="btn-sm ghost" href="{% url 'engagement:apply' %}?kind=MENTEE">Join a cohort</a>
+            {% else %}
+            <a class="btn-sm ghost" href="{% url 'accounts:signup' %}?next={% url 'engagement:apply' %}">Sign up to apply</a>
+            {% endif %}
+          </div>
+        </article>
+
+        <article class="pathway-card pathway-speaker">
+          <div class="pathway-image"></div>
+          <div class="pathway-body">
+            <span>Thought leaders</span>
+            <h3>Speak at a Gathering</h3>
+            <p>Bring a message, workshop, testimony, or professional lens that expands what young people believe is possible.</p>
+            {% if user.is_authenticated %}
+            <a class="btn-sm ghost" href="{% url 'engagement:apply' %}?kind=SPEAKER">Apply to speak</a>
+            {% else %}
+            <a class="btn-sm ghost" href="{% url 'accounts:signup' %}?next={% url 'engagement:apply' %}">Sign up to apply</a>
+            {% endif %}
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <div class="involved-impact-band">
+    <div class="container">
+      <div class="impact-band-grid">
+        <div>
+          <div class="eyebrow">How your support moves</div>
+          <h2 class="display">From interest to impact, the pathway is clear.</h2>
+        </div>
+        <div class="impact-steps">
+          <div><span>01</span><strong>Apply or enquire</strong><p>Tell us how you want to serve, partner, speak, or support the mission.</p></div>
+          <div><span>02</span><strong>Get matched</strong><p>The team reviews your fit and connects you with the right program, cohort, or partnership lane.</p></div>
+          <div><span>03</span><strong>Build with us</strong><p>You contribute to conferences, mentorship, outreach, giving, and digital operations that strengthen leaders.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="involved-giving-section">
+    <div class="container">
+      <div class="giving-card">
+        <div class="giving-image"></div>
+        <div class="giving-copy">
+          <div class="eyebrow">Resource the mission</div>
+          <h2 class="display">Give toward leadership formation that lasts.</h2>
+          <p>Financial gifts help fund conferences, mentorship infrastructure, humanitarian outreach, communications, and the systems that keep the foundation accountable.</p>
+          <a class="btn-primary" href="{% url 'pages:donate' %}">Donate now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="partner-section" id="partner">
+    <div class="container">
+      <div class="partner-layout">
+        <div class="partner-copy">
+          <div class="eyebrow">Partnerships and resource mobilisation</div>
+          <h2 class="display">Partner or sponsor the next generation.</h2>
+          <p>Organisations, churches, institutions, and donors help OIF reach further. Share your interest and the partnerships team will follow up.</p>
+          <div class="partner-proof">
+            <div><strong>Programs</strong><span>Conference, mentorship, outreach</span></div>
+            <div><strong>Support</strong><span>Sponsorship, donors, institutions</span></div>
+            <div><strong>Stewardship</strong><span>Dashboard records and follow-up</span></div>
+          </div>
+        </div>
+
+        <form class="partner-form premium-partner-form" method="post" action="{% url 'engagement:partner_enquiry' %}">
+          {% csrf_token %}
+          {{ partner_form.website }}
+          <div class="pf-grid">
+            <div class="form-row"><label>Organisation</label>{{ partner_form.organisation }}</div>
+            <div class="form-row"><label>Contact person</label>{{ partner_form.contact_name }}</div>
+            <div class="form-row"><label>Email</label>{{ partner_form.email }}</div>
+            <div class="form-row"><label>Phone</label>{{ partner_form.phone }}</div>
+            <div class="form-row full"><label>Interest</label>{{ partner_form.kind }}</div>
+          </div>
+          <div class="form-row"><label>Message</label>{{ partner_form.message }}</div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Submit interest</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

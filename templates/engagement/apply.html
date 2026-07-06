@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Apply · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<section class="page active premium-page form-page-premium apply-page">
+  <div class="container">
+    <div class="split-form-layout compact">
+      <aside class="split-form-story apply-story">
+        <div class="eyebrow">Application</div>
+        <h1 class="display">Tell us where you want to serve or grow.</h1>
+        <p>Choose the lane that fits your next step. The OIF team will review your application and follow up.</p>
+      </aside>
+      <div class="form-card wide premium-form-card">
+        <h1>Apply to serve</h1>
+        <p class="sub">Tell us how you'd like to be part of the work.</p>
+        <form method="post">{% csrf_token %}
+          <div class="form-row"><label>I'd like to apply as a</label>{{ form.kind }}</div>
+          <div class="form-row"><label>Area of interest</label>{{ form.area_of_interest }}</div>
+          <div class="form-row"><label>Your motivation</label>{{ form.motivation }}</div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Submit application</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  var k = new URLSearchParams(location.search).get('kind');
+  if (k) { var sel = document.querySelector('[name=kind]'); if (sel) sel.value = k; }
+</script>
+{% endblock %}

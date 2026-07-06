@@ -1,0 +1,108 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block dash_title %}Dashboard{% endblock %} · {{ ORG_SHORT }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="{{ google_fonts_url }}" rel="stylesheet">
+{% if site_branding.favicon %}<link rel="icon" href="{{ site_branding.favicon.url }}">{% endif %}
+<style>
+  :root {
+    --font-title: "{{ site_branding.title_font }}", Georgia, serif;
+    --font-body: "{{ site_branding.body_font }}", system-ui, sans-serif;
+  }
+</style>
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+{% block dash_head %}{% endblock %}
+</head>
+<body>
+<div class="dash-wrap">
+	  <aside class="dash-side">
+	    <a href="{% url 'pages:home' %}" class="brand">
+	      {% if site_branding.logo_mark %}
+	      <img class="logo-mark logo-mark-img" src="{{ site_branding.logo_mark.url }}" alt="{{ ORG_SHORT }} logo">
+	      {% else %}
+	      <div class="logo-mark">{{ ORG_SHORT|slice:":1" }}</div>
+	      {% endif %}
+	      <b>{{ ORG_SHORT }}</b>
+	    </a>
+	    <a href="{% url 'pages:home' %}" class="site-switcher" aria-label="Open public website">
+	      <span>
+	        <strong>Public Website</strong>
+	        <small>Open live site</small>
+	      </span>
+	    </a>
+	    <div class="dash-user">
+      <div class="name">{{ user.get_full_name|default:user.username }}</div>
+      <span class="role-pill">{{ user.role_badge }}</span>
+    </div>
+    <nav class="dash-nav">
+      <a href="{% url 'dashboard:home' %}" class="{% block n_home %}{% endblock %}">Overview</a>
+      <a href="{% url 'dashboard:events' %}" class="{% block n_events %}{% endblock %}">Events &amp; Registrations</a>
+      <a href="{% url 'dashboard:donations' %}" class="{% block n_donations %}{% endblock %}">Donations</a>
+      <a href="{% url 'dashboard:applications' %}" class="{% block n_apps %}{% endblock %}">Applications</a>
+      <a href="{% url 'dashboard:mentorship' %}" class="{% block n_mentor %}{% endblock %}">Mentorship</a>
+
+      {% if 'manage_members' in user.capabilities or 'manage_content' in user.capabilities or 'manage_contact' in user.capabilities or 'view_audit' in user.capabilities %}
+      <div class="sep">Administration</div>
+      {% if 'manage_members' in user.capabilities %}
+      <a href="{% url 'dashboard:members' %}" class="{% block n_members %}{% endblock %}">Members</a>
+      {% endif %}
+      {% if 'manage_content' in user.capabilities %}
+      <a href="{% url 'dashboard:content' %}" class="{% block n_content %}{% endblock %}">Site CMS</a>
+      {% endif %}
+      {% if 'manage_contact' in user.capabilities %}
+      <a href="{% url 'dashboard:enquiries' %}" class="{% block n_enquiries %}{% endblock %}">Enquiries</a>
+      {% endif %}
+      {% if 'view_audit' in user.capabilities %}
+      <a href="{% url 'dashboard:audit' %}" class="{% block n_audit %}{% endblock %}">Audit Trail</a>
+      {% endif %}
+      {% if user.is_staff %}<a href="/admin/">Django Admin</a>{% endif %}
+      {% endif %}
+
+      <div class="sep">Account</div>
+      <a href="{% url 'accounts:profile' %}" class="{% block n_profile %}{% endblock %}">My Profile</a>
+      <a href="#" onclick="event.preventDefault();document.getElementById('lf').submit();">Log out</a>
+    </nav>
+    <form id="lf" method="post" action="{% url 'accounts:logout' %}" style="display:none;">{% csrf_token %}</form>
+  </aside>
+
+  <main class="dash-main">
+    {% if messages %}<ul class="messages" style="padding:0;margin:0 0 20px;">
+      {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+    <div class="dash-head">
+      <div><h1>{% block dash_h1 %}{% block dash_title_inner %}Dashboard{% endblock %}{% endblock %}</h1>
+        <p>{% block dash_sub %}{% endblock %}</p></div>
+      <div>{% block dash_actions %}{% endblock %}</div>
+    </div>
+    {% block dash_content %}{% endblock %}
+  </main>
+</div>
+{% block dash_scripts %}{% endblock %}
+<script>
+  (function () {
+    function activateTabFromHash() {
+      var panelId = window.location.hash ? window.location.hash.slice(1) : "";
+      if (!panelId || panelId.indexOf("-tab-") === -1) return;
+      var panel = document.getElementById(panelId);
+      if (!panel) return;
+      var splitAt = panelId.lastIndexOf("-tab-");
+      var prefix = panelId.slice(0, splitAt);
+      var value = panelId.slice(splitAt + 5);
+      var selector = "[data-" + prefix + "-tab]";
+      document.querySelectorAll(selector).forEach(function (tab) {
+        tab.classList.toggle("active", tab.getAttribute("data-" + prefix + "-tab") === value);
+      });
+      document.querySelectorAll('[id^="' + prefix + '-tab-"]').forEach(function (item) {
+        item.classList.toggle("active", item.id === panelId);
+      });
+      window.setTimeout(function () {
+        window.dispatchEvent(new Event("resize"));
+      }, 30);
+    }
+    activateTabFromHash();
+    window.addEventListener("hashchange", activateTabFromHash);
+  })();
+</script>
+</body>
+</html>

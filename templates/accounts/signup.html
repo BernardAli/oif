@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Create account · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<section class="page active premium-page form-page-premium auth-page">
+  <div class="container">
+    <div class="split-form-layout">
+      <aside class="split-form-story signup-story">
+        <div class="eyebrow">Join the movement</div>
+        <h1 class="display">Create your member account.</h1>
+        <p>Register for events, apply to serve, join mentorship pathways, give, and stay connected to the OIF community.</p>
+      </aside>
+      <div class="form-card wide premium-form-card">
+        <h1>Member details</h1>
+        <p class="sub">Create your member account to register for events, give, and apply to serve.</p>
+        <form method="post">{% csrf_token %}
+          <div class="form-grid-2-public">
+            <div class="form-row"><label>First name</label>{{ form.first_name }}{{ form.first_name.errors }}</div>
+            <div class="form-row"><label>Last name</label>{{ form.last_name }}{{ form.last_name.errors }}</div>
+          </div>
+          <div class="form-row"><label>Username</label>{{ form.username }}{{ form.username.errors }}</div>
+          <div class="form-row"><label>Email</label>{{ form.email }}{{ form.email.errors }}</div>
+          <div class="form-row"><label>Phone (optional)</label>{{ form.phone }}</div>
+          <div class="form-row"><label>Password</label>{{ form.password1 }}<span class="helptext">{{ form.password1.help_text|safe }}</span>{{ form.password1.errors }}</div>
+          <div class="form-row"><label>Confirm password</label>{{ form.password2 }}{{ form.password2.errors }}</div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Create account</button></div>
+        </form>
+        <div class="form-foot">Already a member? <a href="{% url 'accounts:login' %}">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

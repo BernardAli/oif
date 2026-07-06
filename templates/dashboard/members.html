@@ -1,0 +1,156 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_members %}active{% endblock %}
+{% block dash_title %}Members{% endblock %}
+{% block dash_h1 %}Members{% endblock %}
+{% block dash_sub %}Member operations, engagement analytics, roles, and Paystack-linked giving.{% endblock %}
+{% block dash_content %}
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.users|intcomma }}</div><div class="l">Total accounts</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.active|intcomma }}</div><div class="l">Active accounts</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Staff leaders</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.paystack_gifts|intcomma }}</div><div class="l">Paystack gifts</div></div>
+</div>
+
+<form method="get" class="filter-bar">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search name, username or email...">
+  <select name="role">
+    <option value="">All roles</option>
+    {% for value, label in roles %}
+      <option value="{{ value }}" {% if value == role %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn-sm" type="submit">Filter</button>
+  {% if q or role %}<a class="btn-sm ghost" href="{% url 'dashboard:members' %}">Clear</a>{% endif %}
+</form>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-member-tab="analytics">Analytics</button>
+  <button class="prog-tab" type="button" data-member-tab="directory">Directory</button>
+  <button class="prog-tab" type="button" data-member-tab="leadership">Leadership</button>
+  <button class="prog-tab" type="button" data-member-tab="engagement">Engagement</button>
+  <button class="prog-tab" type="button" data-member-tab="paystack">Paystack giving</button>
+</div>
+
+<div class="tab-panel active" id="member-tab-analytics">
+<div class="dash-section tabbed-section">
+  <h2>Member analytics</h2>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Role distribution</h3><div class="chart-box" id="memberRoleChart"></div></div>
+    <div class="chart-card"><h3>Paystack payment health</h3><div class="chart-box" id="memberPaymentChart"></div></div>
+    <div class="chart-card full"><h3>Member growth</h3><div class="chart-box" id="memberGrowthChart"></div></div>
+    <div class="chart-card full"><h3>Engagement volume</h3><div class="chart-box" id="memberEngagementChart"></div></div>
+  </div>
+</div>
+</div>
+
+<div class="tab-panel" id="member-tab-directory">
+<div class="dash-section tabbed-section">
+  <h2>Directory</h2>
+	  {% if members.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Location</th><th>Joined</th><th></th></tr></thead>
+    <tbody>
+    {% for m in members %}
+      <tr>
+        <td>{{ m.get_full_name|default:"—" }}{% if m.title %}<br><span style="font-size:12px;color:var(--ink-soft);">{{ m.title }}</span>{% endif %}</td>
+        <td>{{ m.username }}</td>
+        <td>{{ m.email|default:"—" }}</td>
+        <td><span class="badge {% if m.role == 'ADMIN' or m.role == 'DIRECTOR' %}green{% elif m.role == 'MENTOR' %}amber{% elif m.role == 'VOLUNTEER' %}grey{% else %}grey{% endif %}">{{ m.role_badge }}</span></td>
+        <td>{% if m.is_active %}<span class="badge green">Active</span>{% else %}<span class="badge red">Inactive</span>{% endif %}</td>
+        <td>{{ m.location|default:"—" }}</td>
+        <td>{{ m.created_at|date:"M j, Y" }}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=members page_param="members_page" fragment="member-tab-directory" %}
+  <p style="font-size:13px;color:var(--ink-soft);margin-top:12px;">Showing {{ members|length }} of {{ members.paginator.count }} member{{ members.paginator.count|pluralize }}.</p>
+  {% else %}<div class="empty">No members match your search.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="member-tab-leadership">
+<div class="dash-section tabbed-section">
+  <h2>Leadership and mentors</h2>
+	  {% if staff_members.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Name</th><th>Role</th><th>Title</th><th>Email</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for m in staff_members %}
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.role_badge }}</td><td>{{ m.title|default:"—" }}</td><td>{{ m.email|default:"—" }}</td><td>{% if m.is_active %}<span class="badge green">Active</span>{% else %}<span class="badge red">Inactive</span>{% endif %}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Manage</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=staff_members page_param="staff_page" fragment="member-tab-leadership" %}
+	  {% else %}<div class="empty">No leadership accounts found.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="member-tab-engagement">
+<div class="dash-section tabbed-section">
+	  <h2>Engagement leaderboard</h2>
+	  {% if engagement_rows.object_list %}
+	  <table class="dtable">
+    <thead><tr><th>Member</th><th>Role</th><th>Registrations</th><th>Applications</th><th>Paystack gifts</th><th></th></tr></thead>
+    <tbody>
+    {% for m in engagement_rows %}
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.role_badge }}</td><td>{{ m.registrations_count|intcomma }}</td><td>{{ m.applications_count|intcomma }}</td><td>{{ m.gifts_count|intcomma }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Open</a></td></tr>
+    {% endfor %}
+    </tbody>
+		  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=engagement_rows page_param="engagement_page" fragment="member-tab-engagement" %}
+	  {% else %}<div class="empty">No engagement records found.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="member-tab-paystack">
+<div class="dash-section tabbed-section">
+  <h2>Members with Paystack giving</h2>
+	  {% if payment_members.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Gifts</th><th>Total recorded</th><th></th></tr></thead>
+    <tbody>
+    {% for m in payment_members %}
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.email|default:"—" }}</td><td>{{ m.role_badge }}</td><td>{{ m.gifts|intcomma }}</td><td>GHS {{ m.raised|floatformat:0|intcomma }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Paystack records</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=payment_members page_param="payments_page" fragment="member-tab-paystack" %}
+	  {% else %}<div class="empty">No member-linked Paystack gifts yet.</div>{% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"memberChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var memberChartsReady = false;
+  var memberCharts = [];
+  function initMemberCharts() {
+    if (memberChartsReady || typeof echarts === 'undefined') return;
+    memberChartsReady = true;
+    var data = JSON.parse(document.getElementById('memberChartsData').textContent);
+    [
+      ['memberRoleChart', OIFCharts.pie(data.roles)],
+      ['memberPaymentChart', OIFCharts.pie(data.payments)],
+      ['memberGrowthChart', OIFCharts.line(data.growth)],
+      ['memberEngagementChart', OIFCharts.bar(data.engagement)]
+    ].forEach(function(item){ var el=document.getElementById(item[0]); if(!el) return; var chart=OIFCharts.init(el, item[1]); memberCharts.push(chart); });
+    window.addEventListener('resize', function(){ memberCharts.forEach(function(chart){ chart.resize(); }); });
+  }
+  initMemberCharts();
+  document.querySelectorAll('[data-member-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.memberTab;
+      document.querySelectorAll('[data-member-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="member-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'member-tab-' + name); });
+      memberCharts.forEach(function(chart){ chart.resize(); });
+    });
+  });
+</script>
+{% endblock %}

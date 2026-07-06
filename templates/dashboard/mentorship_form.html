@@ -1,0 +1,26 @@
+{% extends "dashboard/base.html" %}
+{% block n_mentor %}active{% endblock %}
+{% block dash_title %}{{ mode }} Mentorship{% endblock %}
+{% block dash_h1 %}{{ mode }} Mentorship Enrollment{% endblock %}
+{% block dash_sub %}Assign mentees to mentors and update phase/session progress from the dashboard.{% endblock %}
+{% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:mentorship' %}">Back to mentorship</a>{% endblock %}
+{% block dash_content %}
+<div class="form-card wide dash-form-card">
+  <form method="post">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid-2">
+      <div class="form-row"><label>Mentee</label>{{ form.mentee }}{{ form.mentee.errors }}</div>
+      <div class="form-row"><label>Mentor</label>{{ form.mentor }}{{ form.mentor.errors }}</div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Program wing</label>{{ form.program }}{{ form.program.errors }}</div>
+      <div class="form-row"><label>Phase</label>{{ form.phase }}{{ form.phase.errors }}</div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Sessions completed</label>{{ form.sessions_completed }}{{ form.sessions_completed.errors }}</div>
+      <div class="form-row"><label>Total sessions</label>{{ form.sessions_total }}{{ form.sessions_total.errors }}</div>
+    </div>
+    <div class="form-actions"><button class="btn-sm" type="submit">Save enrollment</button></div>
+  </form>
+</div>
+{% endblock %}

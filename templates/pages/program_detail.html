@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block nav_programs %}active{% endblock %}
+{% block title %}{{ program.get_wing_display }} · Programs · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}{{ program.tagline }}{% endblock %}
+{% block content %}
+<section class="page active premium-page program-detail-page">
+  <div class="premium-hero program-detail-hero">
+    <div class="container">
+      <div class="program-detail-hero-grid">
+        <div>
+          <div class="eyebrow">Program detail</div>
+          <h1 class="display">{{ program.get_wing_display }}</h1>
+          <p>{{ program.tagline }}</p>
+          <div class="premium-actions">
+            <a class="btn-primary" href="{% url 'pages:involved' %}">Get involved</a>
+            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">All programs</a>
+          </div>
+        </div>
+        <div class="program-detail-photo program-wing-photo-{{ program.order|add:1 }}">
+          {% if program.image %}<img src="{{ program.image.url }}" alt="{{ program.get_wing_display }}">{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="premium-band">
+    <div class="container">
+      <div class="program-detail-layout">
+        <article class="program-detail-main">
+          <span>{{ program.get_wing_display }}</span>
+          <h2>{{ program.headline }}</h2>
+          <p>{{ program.description|linebreaksbr }}</p>
+        </article>
+        <aside class="program-detail-aside">
+          <div>
+            <span>Focus</span>
+            <strong>{{ program.tagline }}</strong>
+          </div>
+          <div>
+            <span>Program status</span>
+            <strong>{% if program.is_active %}Active and open{% else %}Currently hidden{% endif %}</strong>
+          </div>
+          <div>
+            <span>Participation path</span>
+            <strong>Apply, volunteer, partner, or attend a related event.</strong>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  {% if program.resources.all %}
+  <div class="program-detail-resources">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Resources</div>
+          <h2 class="display">Materials for this program.</h2>
+        </div>
+      </div>
+      <div class="program-resource-grid">
+        {% for resource in program.resources.all %}
+        <a class="program-resource-card" href="{{ resource.link }}"{% if resource.file %} download{% endif %}>
+          <span>{% if resource.file %}Download{% else %}Open link{% endif %}</span>
+          <strong>{{ resource.title }}</strong>
+          <p>{{ resource.description|default:"Program resource prepared by the OIF team." }}</p>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="events-premium">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Program events</div>
+          <h2 class="display">Related gatherings and highlights.</h2>
+        </div>
+      </div>
+      {% if upcoming_events %}
+      <div class="event-list-premium">
+        {% for event in upcoming_events %}
+        <article class="event-row-premium">
+          <div>
+            <span>{{ event.get_kind_display }}</span>
+            <h3>{{ event.title }}</h3>
+            <p>{{ event.starts_at|date:"l, F j, Y · g:i A" }} GMT · {{ event.location }}</p>
+          </div>
+          <a class="btn-sm" href="{% url 'pages:event_detail' event.slug %}">View details</a>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="premium-empty">No upcoming events are attached to this program yet.</div>
+      {% endif %}
+
+      {% if past_events %}
+      <div class="past-events-panel">
+        <h3>Past highlights</h3>
+        <div class="past-events-grid">
+          {% for event in past_events %}
+          <div><span>{{ event.get_kind_display }} · {{ event.starts_at|date:"M Y" }}</span><strong>{{ event.title }}</strong></div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if programs %}
+  <div class="program-detail-more">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Explore more</div>
+          <h2 class="display">Other OIF program wings.</h2>
+        </div>
+      </div>
+      <div class="program-more-grid">
+        {% for item in programs %}
+        <a class="program-more-card" href="{% url 'pages:program_detail' item.wing|lower %}">
+          <span>{{ item.get_wing_display }}</span>
+          <strong>{{ item.headline }}</strong>
+          <p>{{ item.tagline }}</p>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

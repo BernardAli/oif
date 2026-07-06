@@ -1,0 +1,7 @@
+Django>=5.2,<6.1
+dj-database-url==2.2.0
+python-dotenv==1.0.1
+# Pillow powers ImageField uploads (speaker/team/program/event/gallery media)
+Pillow>=10.0
+# psycopg[binary] is only required when using PostgreSQL via DATABASE_URL
+psycopg[binary]==3.2.3

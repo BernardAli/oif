@@ -1,0 +1,225 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_events %}active{% endblock %}
+{% block dash_title %}{{ event.title }}{% endblock %}
+{% block dash_h1 %}{{ event.title }}{% endblock %}
+{% block dash_sub %}{{ event.get_kind_display }} · {{ event.starts_at|date:"M j, Y · g:i A" }} · {{ event.location }}{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+	  <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">All events</a>
+	  <a class="btn-sm ghost" href="{% url 'pages:event_detail' event.slug %}">Public page</a>
+	  <a class="btn-sm" href="{% url 'dashboard:event_edit' event.pk %}">Edit event</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+
+<div class="event-toolbar">
+  <div>
+    {% if event.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge amber">Draft</span>{% endif %}
+    {% if event.registration_open %}<span class="badge green">Registration open</span>{% else %}<span class="badge grey">Registration closed</span>{% endif %}
+    {% if event.is_upcoming %}<span class="badge amber">Upcoming</span>{% else %}<span class="badge grey">Archived</span>{% endif %}
+  </div>
+  <div class="action-row">
+    <form method="post" action="{% url 'dashboard:event_action' event.pk 'publish' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Publish</button></form>
+    <form method="post" action="{% url 'dashboard:event_action' event.pk 'unpublish' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Unpublish</button></form>
+    <form method="post" action="{% url 'dashboard:event_action' event.pk 'open' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Open registration</button></form>
+    <form method="post" action="{% url 'dashboard:event_action' event.pk 'close' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Close registration</button></form>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ stats.active|intcomma }}</div><div class="l">Active registrations</div></div>
+  <div class="kpi olive"><div class="v">{{ stats.attended|intcomma }}</div><div class="l">Marked attended</div></div>
+  <div class="kpi gold"><div class="v">{% if stats.fill_rate is None %}∞{% else %}{{ stats.fill_rate }}%{% endif %}</div><div class="l">Capacity filled</div></div>
+  <div class="kpi ink"><div class="v">{{ stats.attendance_rate }}%</div><div class="l">Attendance rate</div></div>
+</div>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-detail-tab="overview">Overview</button>
+  <button class="prog-tab" type="button" data-detail-tab="analytics">Analytics</button>
+  <button class="prog-tab" type="button" data-detail-tab="registrations">Registrations</button>
+  <button class="prog-tab" type="button" data-detail-tab="timeline">Timeline</button>
+</div>
+
+<div class="tab-panel active" id="detail-tab-overview">
+<div class="detail-grid">
+	  <div class="dash-section detail-panel">
+	    <h2>Event details</h2>
+	    <dl class="meta-list">
+	      <div><dt>Wing</dt><dd>{% if event.program %}{{ event.program.get_wing_display }}{% else %}General{% endif %}</dd></div>
+	      <div><dt>Format</dt><dd>{% if event.is_virtual %}Virtual{% else %}In person{% endif %}</dd></div>
+	      <div><dt>Location</dt><dd>{{ event.location }}</dd></div>
+	      {% if event.venue_address %}<div><dt>Address</dt><dd>{{ event.venue_address }}</dd></div>{% endif %}
+	      {% if event.online_url %}<div><dt>Online URL</dt><dd><a href="{{ event.online_url }}">{{ event.online_url|truncatechars:42 }}</a></dd></div>{% endif %}
+	      <div><dt>Capacity</dt><dd>{% if event.capacity %}{{ event.capacity|intcomma }} seats · {{ stats.seats_left|intcomma }} left{% else %}Unlimited{% endif %}</dd></div>
+	      <div><dt>Theme</dt><dd>{{ event.theme|default:"—" }}</dd></div>
+	      {% if event.contact_email %}<div><dt>Contact</dt><dd>{{ event.contact_email }}</dd></div>{% endif %}
+	    </dl>
+	    {% if event.summary %}<p class="detail-copy"><strong>{{ event.summary }}</strong></p>{% endif %}
+	    <p class="detail-copy">{{ event.description|default:"No event description yet." }}</p>
+	  </div>
+	  <div class="dash-section detail-panel">
+    <h2>Registration mix</h2>
+    {% if role_mix %}
+      <div class="mini-bars">
+      {% for row in role_mix %}
+        <div><span>{{ row.label }}</span><b>{{ row.count|intcomma }}</b></div>
+      {% endfor %}
+      </div>
+    {% else %}<div class="empty compact">No active registrations yet.</div>{% endif %}
+    <h2 style="margin-top:24px;">Status breakdown</h2>
+    <div class="mini-bars">
+      <div><span>Registered</span><b>{{ stats.registered|intcomma }}</b></div>
+      <div><span>Attended</span><b>{{ stats.attended|intcomma }}</b></div>
+      <div><span>Cancelled</span><b>{{ stats.cancelled|intcomma }}</b></div>
+	  </div>
+	</div>
+	<div class="event-detail-admin-grid">
+	  <section class="detail-panel">
+	    <h2>Public content</h2>
+	    <div class="event-admin-copy">
+	      <span>Audience</span>{{ event.audience|default:"Not set"|linebreaks }}
+	      <span>Outcomes</span>{{ event.outcomes|default:"Not set"|linebreaks }}
+	      <span>Agenda</span>{{ event.agenda|default:"Not set"|linebreaks }}
+	    </div>
+	  </section>
+	  <section class="detail-panel">
+	    <h2>Participant guidance</h2>
+	    <div class="event-admin-copy">
+	      <span>Speakers</span>{{ event.speakers|default:"Not set"|linebreaks }}
+	      <span>Preparation</span>{{ event.preparation|default:"Not set"|linebreaks }}
+	      <span>Accessibility</span>{{ event.accessibility|default:"Not set"|linebreaks }}
+	      <span>Registration note</span>{{ event.registration_note|default:"Not set"|linebreaks }}
+	    </div>
+	  </section>
+	</div>
+	</div>
+</div>
+
+<div class="tab-panel" id="detail-tab-analytics">
+<div class="dash-section tabbed-section">
+  <h2>Event analytics</h2>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Registration status</h3>
+      <div class="chart-box" id="eventStatusChart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Role mix</h3>
+      <div class="chart-box" id="eventRoleChart"></div>
+    </div>
+    <div class="chart-card full">
+      <h3>Daily registration activity</h3>
+      <div class="chart-box" id="eventTimelineChart"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="tab-panel" id="detail-tab-registrations">
+<div class="dash-section">
+  <h2>Registrations</h2>
+	  {% if registrations.object_list %}
+	  <table class="dtable">
+	    <thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Mode</th><th>Needs / notes</th><th>Status</th><th>Registered</th><th>Update</th></tr></thead>
+    <tbody>
+    {% for r in registrations %}
+      <tr>
+	        <td>{{ r.user.get_full_name|default:r.user.username }}</td>
+	        <td>{{ r.user.email|default:"—" }}</td>
+	        <td>{{ r.user.role_badge }}</td>
+	        <td>{{ r.get_attendance_mode_display }}</td>
+	        <td>
+	          <small>{{ r.organisation|default:"" }}{% if r.role_title %} · {{ r.role_title }}{% endif %}</small>
+	          {% if r.accessibility_needs %}<br><span class="badge amber">Access</span> {{ r.accessibility_needs|truncatechars:42 }}{% endif %}
+	          {% if r.dietary_needs %}<br><span class="badge grey">Diet</span> {{ r.dietary_needs|truncatechars:42 }}{% endif %}
+	          {% if r.question %}<br><span class="badge grey">Question</span> {{ r.question|truncatechars:42 }}{% endif %}
+	        </td>
+	        <td>
+          {% if r.status == 'REGISTERED' %}<span class="badge green">Registered</span>
+          {% elif r.status == 'ATTENDED' %}<span class="badge grey">Attended</span>
+          {% else %}<span class="badge red">Cancelled</span>{% endif %}
+        </td>
+        <td>{{ r.created_at|date:"M j, Y · g:i A" }}</td>
+        <td>
+          <form class="inline-status-form" method="post" action="{% url 'dashboard:update_registration' event.pk r.pk %}">{% csrf_token %}
+            <select class="compact-select" name="status">
+              {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if value == r.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn-sm ghost" type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=registrations page_param="registrations_page" fragment="detail-tab-registrations" %}
+	  {% else %}<div class="empty">No registrations have been recorded for this event yet.</div>{% endif %}
+</div>
+</div>
+
+<div class="tab-panel" id="detail-tab-timeline">
+<div class="dash-section">
+  <h2>Registration timeline</h2>
+  {% if timeline %}
+  <table class="dtable timeline-table">
+    <thead><tr><th>Date</th><th>New registrations</th></tr></thead>
+    <tbody>
+    {% for row in timeline %}
+      <tr><td>{{ row.day|date:"M j, Y" }}</td><td>{{ row.c|intcomma }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="empty">No registration activity yet.</div>{% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"eventChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var eventChartsReady = false;
+  var eventCharts = [];
+
+  function initEventCharts() {
+    if (eventChartsReady || typeof echarts === 'undefined') return;
+    eventChartsReady = true;
+    var data = JSON.parse(document.getElementById('eventChartsData').textContent);
+    [
+      ['eventStatusChart', OIFCharts.pie(data.status)],
+      ['eventRoleChart', OIFCharts.pie(data.roles)],
+      ['eventTimelineChart', OIFCharts.bar(data.timeline)]
+    ].forEach(function (item) {
+      var el = document.getElementById(item[0]);
+      if (!el) return;
+      var chart = OIFCharts.init(el, item[1]);
+      eventCharts.push(chart);
+    });
+    window.addEventListener('resize', function () {
+      eventCharts.forEach(function (chart) { chart.resize(); });
+    });
+  }
+
+  document.querySelectorAll('[data-detail-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var name = tab.dataset.detailTab;
+      document.querySelectorAll('[data-detail-tab]').forEach(function (item) {
+        item.classList.toggle('active', item === tab);
+      });
+      document.querySelectorAll('[id^="detail-tab-"]').forEach(function (panel) {
+        panel.classList.toggle('active', panel.id === 'detail-tab-' + name);
+      });
+      if (name === 'analytics') {
+        initEventCharts();
+        setTimeout(function () {
+          eventCharts.forEach(function (chart) { chart.resize(); });
+        }, 0);
+      }
+    });
+  });
+</script>
+{% endblock %}

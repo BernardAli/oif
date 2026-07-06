@@ -1,0 +1,146 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_donations %}active{% endblock %}
+{% block dash_title %}Donations{% endblock %}
+{% block dash_h1 %}Donations{% endblock %}
+{% block dash_sub %}{% if can_view_all %}Donation operations, Paystack status, and giving analytics.{% else %}Your giving history and donation analytics.{% endif %}{% endblock %}
+{% block dash_actions %}<a class="btn-sm" href="{% url 'donations:give' %}">+ New donation</a>{% endblock %}
+{% block dash_content %}
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">GHS {{ totals.raised|floatformat:0|intcomma }}</div><div class="l">{% if can_view_all %}Total raised{% else %}My confirmed giving{% endif %}</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.count|intcomma }}</div><div class="l">Successful gifts</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.pending|intcomma }}</div><div class="l">Pending review</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.recurring|intcomma }}</div><div class="l">Recurring pledges</div></div>
+</div>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-donation-tab="analytics">Analytics</button>
+  <button class="prog-tab" type="button" data-donation-tab="mine">My giving</button>
+  {% if can_view_all %}
+  <button class="prog-tab" type="button" data-donation-tab="all">All donations</button>
+  <button class="prog-tab" type="button" data-donation-tab="attention">Needs attention</button>
+  {% endif %}
+</div>
+
+<div class="tab-panel active" id="donation-tab-analytics">
+<div class="dash-section tabbed-section">
+  <h2>Giving analytics</h2>
+  <div class="chart-grid">
+    <div class="chart-card full"><h3>Confirmed giving over time</h3><div class="chart-box" id="donationMonthlyChart"></div></div>
+    <div class="chart-card"><h3>Giving by channel</h3><div class="chart-box" id="donationChannelChart"></div></div>
+    <div class="chart-card"><h3>Status health</h3><div class="chart-box" id="donationStatusChart"></div></div>
+    <div class="chart-card full"><h3>Top campaigns</h3><div class="chart-box" id="donationCampaignChart"></div></div>
+  </div>
+</div>
+</div>
+
+<div class="tab-panel" id="donation-tab-mine">
+<div class="dash-section tabbed-section">
+  <h2>My giving</h2>
+  {% if my_donations.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Reference</th><th>Amount</th><th>Channel</th><th>Campaign</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in my_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td>
+        <td>{{ d.get_channel_display }}</td><td>{{ d.campaign }}</td>
+        <td>{% if d.status == 'SUCCESS' %}<span class="badge green">Success</span>
+          {% elif d.status == 'PENDING' %}<span class="badge amber">Pending</span>
+          {% else %}<span class="badge red">Failed</span>{% endif %}</td>
+        <td>{{ d.created_at|date:"M j, Y" }}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Details</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=my_donations page_param="my_page" fragment="donation-tab-mine" %}
+	  {% else %}<div class="empty">You haven't made any donations yet.</div>{% endif %}
+</div>
+</div>
+
+{% if can_view_all %}
+<div class="tab-panel" id="donation-tab-all">
+<div class="dash-section tabbed-section">
+	  <h2>All donations</h2>
+	  {% if all_donations.object_list %}
+	  <table class="dtable">
+    <thead><tr><th>Reference</th><th>Donor</th><th>Email</th><th>Amount</th><th>Channel</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in all_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td>
+        <td>{{ d.donor_email|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.get_channel_display }}</td>
+        <td>{% if d.status == 'SUCCESS' %}<span class="badge green">Success</span>
+          {% elif d.status == 'PENDING' %}<span class="badge amber">Pending</span>
+          {% else %}<span class="badge red">Failed</span>{% endif %}</td>
+        <td>{{ d.created_at|date:"M j, Y" }}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Open</a></td></tr>
+    {% endfor %}
+    </tbody>
+		  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=all_donations page_param="all_page" fragment="donation-tab-all" %}
+	  {% else %}<div class="empty">No donation records yet.</div>{% endif %}
+		</div>
+</div>
+
+<div class="tab-panel" id="donation-tab-attention">
+<div class="dash-section tabbed-section">
+  <h2>Pending Paystack confirmation</h2>
+	  {% if pending_donations.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Reference</th><th>Donor</th><th>Amount</th><th>Campaign</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in pending_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=pending_donations page_param="pending_page" fragment="donation-tab-attention" %}
+	  {% else %}<div class="empty compact">No pending donations.</div>{% endif %}
+
+	  <h2 style="margin-top:28px;">Failed payments</h2>
+	  {% if failed_donations.object_list %}
+  <table class="dtable">
+    <thead><tr><th>Reference</th><th>Donor</th><th>Amount</th><th>Campaign</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for d in failed_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+    {% endfor %}
+    </tbody>
+	  </table>
+	  {% include "dashboard/_pagination.html" with page_obj=failed_donations page_param="failed_page" fragment="donation-tab-attention" %}
+	  {% else %}<div class="empty compact">No failed donations.</div>{% endif %}
+</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"donationChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var donationChartsReady = false;
+  var donationCharts = [];
+  function initDonationCharts() {
+    if (donationChartsReady || typeof echarts === 'undefined') return;
+    donationChartsReady = true;
+    var data = JSON.parse(document.getElementById('donationChartsData').textContent);
+    [
+      ['donationMonthlyChart', OIFCharts.line(data.monthly)],
+      ['donationChannelChart', OIFCharts.pie(data.channels)],
+      ['donationStatusChart', OIFCharts.pie(data.statuses)],
+      ['donationCampaignChart', OIFCharts.bar(data.campaigns)]
+    ].forEach(function(item){ var el=document.getElementById(item[0]); if(!el) return; var chart=OIFCharts.init(el, item[1]); donationCharts.push(chart); });
+    window.addEventListener('resize', function(){ donationCharts.forEach(function(chart){ chart.resize(); }); });
+  }
+  initDonationCharts();
+  document.querySelectorAll('[data-donation-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.donationTab;
+      document.querySelectorAll('[data-donation-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="donation-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'donation-tab-' + name); });
+      donationCharts.forEach(function(chart){ chart.resize(); });
+    });
+  });
+</script>
+{% endblock %}

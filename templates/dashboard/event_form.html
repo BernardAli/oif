@@ -1,0 +1,70 @@
+{% extends "dashboard/base.html" %}
+{% block n_events %}active{% endblock %}
+{% block dash_title %}{{ mode }} Event{% endblock %}
+{% block dash_h1 %}{{ mode }} Event{% endblock %}
+{% block dash_sub %}Configure event details, publication status, registration availability, and capacity.{% endblock %}
+{% block dash_actions %}
+  {% if event %}<a class="btn-sm ghost" href="{% url 'dashboard:event_detail' event.pk %}">Back to details</a>{% else %}<a class="btn-sm ghost" href="{% url 'dashboard:events' %}">Back to events</a>{% endif %}
+{% endblock %}
+{% block dash_content %}
+<div class="form-card wide dash-form-card event-editor-card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="event-editor-section">
+      <span>Core</span>
+      <div class="form-row"><label>Title</label>{{ form.title }}{{ form.title.errors }}</div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Type</label>{{ form.kind }}{{ form.kind.errors }}</div>
+        <div class="form-row"><label>Program wing</label>{{ form.program }}{{ form.program.errors }}</div>
+      </div>
+      <div class="form-row"><label>Theme</label>{{ form.theme }}{{ form.theme.errors }}</div>
+      <div class="form-row"><label>Public summary</label>{{ form.summary }}{{ form.summary.errors }}</div>
+      <div class="form-row"><label>Description</label>{{ form.description }}{{ form.description.errors }}</div>
+      <div class="form-row"><label>Event flyer</label>{{ form.flyer }}{{ form.flyer.errors }}</div>
+    </div>
+
+    <div class="event-editor-section">
+      <span>Logistics</span>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Starts at</label>{{ form.starts_at }}{{ form.starts_at.errors }}</div>
+        <div class="form-row"><label>Location</label>{{ form.location }}{{ form.location.errors }}</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Venue address</label>{{ form.venue_address }}{{ form.venue_address.errors }}</div>
+        <div class="form-row"><label>Online URL</label>{{ form.online_url }}{{ form.online_url.errors }}</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Capacity</label>{{ form.capacity }}<span class="helptext">{{ form.capacity.help_text }}</span>{{ form.capacity.errors }}</div>
+        <div class="form-row"><label>Contact email</label>{{ form.contact_email }}{{ form.contact_email.errors }}</div>
+      </div>
+    </div>
+
+    <div class="event-editor-section">
+      <span>Public detail page</span>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Audience</label>{{ form.audience }}{{ form.audience.errors }}</div>
+        <div class="form-row"><label>Outcomes</label>{{ form.outcomes }}{{ form.outcomes.errors }}</div>
+      </div>
+      <div class="form-row"><label>Agenda</label>{{ form.agenda }}{{ form.agenda.errors }}</div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Speakers & facilitators</label>{{ form.speakers }}{{ form.speakers.errors }}</div>
+        <div class="form-row"><label>Preparation</label>{{ form.preparation }}{{ form.preparation.errors }}</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Accessibility notes</label>{{ form.accessibility }}{{ form.accessibility.errors }}</div>
+        <div class="form-row"><label>Registration note</label>{{ form.registration_note }}{{ form.registration_note.errors }}</div>
+      </div>
+    </div>
+
+    <div class="check-grid">
+      <label class="check-card">{{ form.is_virtual }}<span>Virtual event</span></label>
+      <label class="check-card">{{ form.registration_open }}<span>Registration open</span></label>
+      <label class="check-card">{{ form.is_published }}<span>Published</span></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn-sm" type="submit">Save event</button>
+      <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ policy.title }} · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}{{ policy.title }} for the Onesimus Impact Foundation.{% endblock %}
+{% block content %}
+<section class="page active premium-page policy-premium">
+  <div class="premium-hero policy-hero">
+    <div class="container">
+      <div class="policy-hero-inner">
+        <div class="eyebrow">{{ ORG_NAME }}</div>
+        <h1 class="display">{{ policy.title }}</h1>
+        {% if policy.is_placeholder %}<p class="policy-flag">Placeholder text — final policy to be supplied by OIF.</p>{% endif %}
+        <p>Last updated {{ policy.updated_at|date:"j M Y" }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="policy-content-section">
+    <div class="container">
+      <article class="policy-body premium-policy-body">{{ policy.body|linebreaks }}</article>
+    </div>
+  </div>
+</section>
+{% endblock %}

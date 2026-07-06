@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Donate · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<section class="page active premium-page form-page-premium donation-form-page">
+  <div class="container">
+    <div class="split-form-layout">
+      <aside class="split-form-story donation-story">
+        <div class="eyebrow">Make a gift</div>
+        <h1 class="display">Give toward leadership formation that lasts.</h1>
+        <p>Your gift fuels conferences, mentorship, and humanitarian action across the OIF ecosystem.</p>
+        <div class="trust-list">
+          <div><strong>Secure giving</strong><span>{% if paystack_configured %}Processed through Paystack.{% else %}Local demo mode is active.{% endif %}</span></div>
+          <div><strong>Receipt</strong><span>Successful gifts can generate a confirmation receipt.</span></div>
+          <div><strong>Stewardship</strong><span>Donation records support internal follow-up and reporting.</span></div>
+        </div>
+      </aside>
+      <div class="form-card premium-form-card">
+        <h1>Donation details</h1>
+        <p class="sub">Give as a guest or sign in to track your giving history in your dashboard.</p>
+        <form method="post">{% csrf_token %}
+          <div class="form-row"><label>Your name</label>{{ form.donor_name }}{{ form.donor_name.errors }}</div>
+          <div class="form-row"><label>Email</label>{{ form.donor_email }}{{ form.donor_email.errors }}</div>
+          <div class="form-row"><label>Amount (GHS)</label>{{ form.amount }}{{ form.amount.errors }}</div>
+          <div class="form-row"><label>Channel</label>{{ form.channel }}</div>
+          <div class="form-row"><label>Campaign / fund</label>{{ form.campaign }}</div>
+          <div class="form-row"><label>Message (optional)</label>{{ form.note }}</div>
+          <div class="form-row check">{{ form.is_recurring }}<label>Make this a monthly gift</label></div>
+          <div class="form-actions"><button class="btn-primary" type="submit">{% if paystack_configured %}Continue to Paystack{% else %}Record demo gift{% endif %}</button></div>
+        </form>
+        <p class="helptext">By giving you agree to our <a href="{% url 'pages:policy' 'donation' %}">Donation Policy</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

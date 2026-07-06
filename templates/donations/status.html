@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Donation {{ donation.reference }} · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<section class="page active premium-page form-page-premium">
+  <div class="container">
+    <div class="status-panel-premium">
+      <div class="status-mark">{{ donation.status|slice:":1" }}</div>
+      <div class="eyebrow">Donation status</div>
+      <h1 class="display">{{ donation.get_status_display }}</h1>
+      <p>Reference {{ donation.reference }}</p>
+      <div class="mini-bars premium-mini-bars">
+        <div><span>Donor</span><b>{{ donation.donor_name|default:"—" }}</b></div>
+        <div><span>Amount</span><b>{{ donation.currency }} {{ donation.amount|intcomma }}</b></div>
+        <div><span>Campaign</span><b>{{ donation.campaign }}</b></div>
+        <div><span>Channel</span><b>{{ donation.get_channel_display }}</b></div>
+      </div>
+      <div class="form-actions">
+        <a class="btn-primary" href="{% url 'pages:donate' %}">Back to donate</a>
+        {% if user.is_authenticated %}<a class="btn-primary premium-ghost-btn" href="{% url 'dashboard:donations' %}">View dashboard</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

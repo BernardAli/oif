@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block nav_contact %}active{% endblock %}
+{% block title %}Contact · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Get in touch with the Onesimus Impact Foundation in Accra, Ghana — send us a message, or reach us by email and phone.{% endblock %}
+{% block content %}
+<section class="page active premium-page contact-premium">
+  <div class="premium-hero contact-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Get in touch</div>
+          <h1 class="display">Start the conversation with OIF.</h1>
+          <p>Questions, partnerships, speaking invitations, prayer requests, or follow-up from a program. We would love to hear from you.</p>
+        </div>
+        <div class="contact-hero-card">
+          <strong>{{ ORG_EMAIL }}</strong>
+          <span>{{ ORG_PHONE }}</span>
+          <p>Accra, Ghana · serving youth across physical and virtual spaces.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="premium-band">
+    <div class="container">
+      <div class="contact-layout premium-contact-layout">
+        <div class="form-card premium-form-card">
+          <h2>Send a message</h2>
+          <p class="sub">We usually respond within a few working days.</p>
+          <form method="post" action="{% url 'pages:contact' %}">
+            {% csrf_token %}
+            {{ form.website }}
+            <div class="form-row"><label>Your name</label>{{ form.name }}{{ form.name.errors }}</div>
+            <div class="form-row"><label>Email</label>{{ form.email }}{{ form.email.errors }}</div>
+            <div class="form-row"><label>Phone (optional)</label>{{ form.phone }}</div>
+            <div class="form-row"><label>Subject</label>{{ form.subject }}</div>
+            <div class="form-row"><label>Message</label>{{ form.message }}{{ form.message.errors }}</div>
+            <div class="form-actions"><button class="btn-primary" type="submit">Send message</button></div>
+          </form>
+        </div>
+        <aside class="contact-aside premium-contact-aside">
+          <h3>Reach us directly</h3>
+          <p><b>Email</b><br><a href="mailto:{{ ORG_EMAIL }}">{{ ORG_EMAIL }}</a></p>
+          <p><b>Phone</b><br><a href="tel:{{ ORG_PHONE }}">{{ ORG_PHONE }}</a></p>
+          <p><b>Location</b><br>Accra, Ghana</p>
+          <div class="socials"><a href="#" title="Instagram">IG</a><a href="#" title="LinkedIn">in</a><a href="#" title="Twitter/X">X</a><a href="#" title="YouTube">YT</a></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_content %}active{% endblock %}
+{% block dash_title %}Site Content CMS{% endblock %}
+{% block dash_h1 %}Site Content CMS{% endblock %}
+{% block dash_sub %}Manage the public website content library, page assets, policies, and publishing status.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'pages:home' %}">View site</a>
+  <a class="btn-sm" href="{% url 'dashboard:content_create' 'programs' %}">Add content</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.programs|intcomma }}</div><div class="l">Programs</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.resources|intcomma }}</div><div class="l">Resources</div></div>
+  <div class="kpi gold"><div class="v">{{ cms_health.published_library|intcomma }}</div><div class="l">Published media</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.policies|intcomma }}</div><div class="l">Policies</div></div>
+</div>
+
+<div class="cms-overview">
+  <div class="cms-overview-item">
+    <span>Project name</span>
+    <strong>{{ branding.display_short_name }}</strong>
+  </div>
+  <div class="cms-overview-item">
+    <span>Base location</span>
+    <strong>{{ branding.display_location }}</strong>
+  </div>
+  <div class="cms-overview-item">
+    <span>Logo assets</span>
+    <strong>{% if branding.logo or branding.logo_mark or branding.favicon %}Uploaded{% else %}Pending{% endif %}</strong>
+  </div>
+  <div class="cms-overview-item">
+    <span>Title / body fonts</span>
+    <strong>{{ branding.title_font }} / {{ branding.body_font }}</strong>
+  </div>
+</div>
+
+<div class="event-tabs cms-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-content-tab="branding">Project Profile</button>
+  <button class="prog-tab" type="button" data-content-tab="programs">Programs</button>
+  <button class="prog-tab" type="button" data-content-tab="resources">Resources</button>
+  <button class="prog-tab" type="button" data-content-tab="speakers">Speakers</button>
+  <button class="prog-tab" type="button" data-content-tab="team">Leadership</button>
+  <button class="prog-tab" type="button" data-content-tab="stats">Stats</button>
+  <button class="prog-tab" type="button" data-content-tab="testimonials">Testimonials</button>
+  <button class="prog-tab" type="button" data-content-tab="gallery">Gallery</button>
+  <button class="prog-tab" type="button" data-content-tab="policies">Policies</button>
+</div>
+
+<div class="tab-panel active" id="content-tab-branding">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Project profile</h2><p>Identity, logos, contact details, social channels, and global typography.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit project profile</a>
+    </div>
+    <div class="project-profile-summary">
+      <div class="profile-logo-preview">
+        {% if branding.logo %}
+        <img src="{{ branding.logo.url }}" alt="{{ branding.display_name }} logo">
+        {% elif branding.logo_mark %}
+        <img src="{{ branding.logo_mark.url }}" alt="{{ branding.display_short_name }} logo">
+        {% else %}
+        <span>{{ branding.display_short_name|slice:":1" }}</span>
+        {% endif %}
+      </div>
+      <div>
+        <span>{{ branding.display_short_name }}</span>
+        <h3>{{ branding.display_name }}</h3>
+        <p>{{ branding.display_tagline }}</p>
+        <div class="profile-chip-row">
+          <small>{{ branding.display_location }}</small>
+          <small>Founded {{ branding.display_founded_year }}</small>
+          <small>{{ branding.display_email }}</small>
+        </div>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Profile area</th><th>Current value</th><th>Applies to</th><th>Status</th><th></th></tr></thead><tbody>
+      <tr>
+        <td><strong>Identity</strong><small>Name, short name, tagline, founded year, and base location</small></td>
+        <td>{{ branding.display_name }}<small>{{ branding.display_tagline }}</small></td>
+        <td>Public website, dashboard, page metadata</td>
+        <td><span class="badge green">Active</span></td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
+      </tr>
+      <tr>
+        <td><strong>Logos</strong><small>Full logo, compact mark, and favicon uploads</small></td>
+        <td>{% if branding.logo %}Full logo{% else %}No full logo{% endif %} · {% if branding.logo_mark %}Mark{% else %}No mark{% endif %} · {% if branding.favicon %}Favicon{% else %}No favicon{% endif %}</td>
+        <td>Public website and dashboard</td>
+        <td>{% if branding.logo or branding.logo_mark or branding.favicon %}<span class="badge green">Uploaded</span>{% else %}<span class="badge amber">Text fallback</span>{% endif %}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
+      </tr>
+      <tr>
+        <td><strong>Contact &amp; socials</strong><small>Email, phone, website URL, and social channels</small></td>
+        <td>{{ branding.display_email }}<small>{{ branding.display_phone }}</small></td>
+        <td>Footer, contact page, navigation metadata</td>
+        <td><span class="badge green">Editable</span></td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
+      </tr>
+      <tr>
+        <td><strong>Typography</strong><small>Google fonts for headings and body text</small></td>
+        <td>Title font: {{ branding.title_font }}<small>Body font: {{ branding.body_font }}</small></td>
+        <td>Public website and dashboard</td>
+        <td><span class="badge green">Google Font</span></td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
+      </tr>
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=programs page_param="programs_page" fragment="content-tab-programs" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-programs">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Programs</h2><p>Public program wings, homepage cards, ordering, and visibility.</p></div>
+      <div class="action-row">
+        <a class="btn-sm ghost" href="{% url 'pages:programs' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:content_create' 'programs' %}">Add program</a>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Wing</th><th>Headline</th><th>Resources</th><th>Order</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for p in programs %}
+      <tr>
+        <td><strong>{{ p.get_wing_display }}</strong><small>{{ p.tagline }}</small></td>
+        <td>{{ p.headline }}</td>
+        <td>{{ p.resources.count }}</td>
+        <td>{{ p.order }}</td>
+        <td>{% if p.is_active %}<span class="badge green">Active</span>{% else %}<span class="badge grey">Hidden</span>{% endif %}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'programs' p.pk %}">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6"><div class="empty compact">No programs have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=resources page_param="resources_page" fragment="content-tab-resources" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-resources">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Program resources</h2><p>Downloadable files and external resources attached to program pages.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_create' 'resources' %}">Add resource</a>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Title</th><th>Program</th><th>Type</th><th>Order</th><th></th></tr></thead><tbody>
+      {% for r in resources %}
+      <tr>
+        <td><strong>{{ r.title }}</strong><small>{{ r.description|default:"No description" }}</small></td>
+        <td>{{ r.program }}</td>
+        <td>{% if r.file %}<span class="badge green">File</span>{% elif r.external_url %}<span class="badge amber">Link</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td>
+        <td>{{ r.order }}</td>
+        <td class="table-actions">{% if r.link %}<a class="btn-sm ghost" href="{{ r.link }}">Open</a>{% endif %}<a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'resources' r.pk %}">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No program resources have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=speakers page_param="speakers_page" fragment="content-tab-speakers" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-speakers">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Speakers</h2><p>Conference voices and featured public speaker profiles.</p></div>
+      <div class="action-row">
+        <a class="btn-sm ghost" href="{% url 'pages:impact' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:content_create' 'speakers' %}">Add speaker</a>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Name</th><th>Role</th><th>Featured</th><th>Order</th><th></th></tr></thead><tbody>
+      {% for s in speakers %}
+      <tr><td><strong>{{ s.name }}</strong></td><td>{{ s.role }}</td><td>{% if s.featured %}<span class="badge green">Featured</span>{% else %}<span class="badge grey">Archive</span>{% endif %}</td><td>{{ s.order }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'speakers' s.pk %}">Edit</a></td></tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No speakers have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=team_members page_param="team_page" fragment="content-tab-team" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-team">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Leadership</h2><p>Directors, executive leadership, and governance profiles.</p></div>
+      <div class="action-row">
+        <a class="btn-sm ghost" href="{% url 'pages:about' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:content_create' 'team' %}">Add team member</a>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Name</th><th>Position</th><th>Title</th><th>Order</th><th></th></tr></thead><tbody>
+      {% for t in team_members %}
+      <tr><td><strong>{{ t.name }}</strong><small>{{ t.credential|default:"No credential" }}</small></td><td>{{ t.get_position_display }}</td><td>{{ t.title|default:"-" }}</td><td>{{ t.order }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'team' t.pk %}">Edit</a></td></tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No leadership profiles have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=stats page_param="stats_page" fragment="content-tab-stats" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-stats">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Impact stats</h2><p>Headline numbers used across the public website.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_create' 'stats' %}">Add stat</a>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Label</th><th>Value</th><th>Suffix</th><th>Order</th><th></th></tr></thead><tbody>
+      {% for s in stats %}
+      <tr><td><strong>{{ s.label }}</strong></td><td>{{ s.value }}</td><td>{{ s.suffix|default:"-" }}</td><td>{{ s.order }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'stats' s.pk %}">Edit</a></td></tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No impact stats have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=testimonials page_param="testimonials_page" fragment="content-tab-testimonials" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-testimonials">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Testimonials</h2><p>Stories shown on the Impact page and public proof points.</p></div>
+      <div class="action-row">
+        <a class="btn-sm ghost" href="{% url 'pages:impact' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:content_create' 'testimonials' %}">Add testimonial</a>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Author</th><th>Source</th><th>Quote</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for t in testimonials %}
+      <tr><td><strong>{{ t.author }}</strong><small>{{ t.author_role|default:"No role" }}</small></td><td>{{ t.get_source_display }}</td><td>{{ t.quote|truncatechars:92 }}</td><td>{% if t.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge grey">Hidden</span>{% endif %}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'testimonials' t.pk %}">Edit</a></td></tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No testimonials have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=testimonials page_param="testimonials_page" fragment="content-tab-testimonials" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-gallery">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Media gallery</h2><p>Public gallery images, captions, program grouping, and publishing status.</p></div>
+      <div class="action-row">
+        <a class="btn-sm ghost" href="{% url 'pages:gallery' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:content_create' 'gallery' %}">Add image</a>
+      </div>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Caption</th><th>Program</th><th>Image</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for g in gallery %}
+      <tr>
+        <td><strong>{{ g.caption|default:"Untitled image" }}</strong></td>
+        <td>{{ g.program|default:"General" }}</td>
+        <td>{% if g.image %}<span class="badge green">Uploaded</span>{% else %}<span class="badge grey">Missing</span>{% endif %}</td>
+        <td>{% if g.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge grey">Hidden</span>{% endif %}</td>
+        <td class="table-actions">
+          <a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'gallery' g.pk %}">Edit</a>
+          <form class="inline-action-form" method="post" action="{% url 'dashboard:content_delete' 'gallery' g.pk %}" onsubmit="return confirm('Delete this gallery image? This will remove it from the public website.');">
+            {% csrf_token %}
+            <button class="btn-sm red" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No gallery images have been added.</div></td></tr>
+      {% endfor %}
+	    </tbody></table>
+	    {% include "dashboard/_pagination.html" with page_obj=gallery page_param="gallery_page" fragment="content-tab-gallery" %}
+	  </div>
+	</div>
+
+<div class="tab-panel" id="content-tab-policies">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Policies</h2><p>Privacy, terms, and donation policy pages linked from the public footer.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_create' 'policies' %}">Add policy</a>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Title</th><th>Kind</th><th>Updated</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for p in policies %}
+      <tr><td><strong>{{ p.title }}</strong></td><td>{{ p.get_kind_display }}</td><td>{{ p.updated_at|date:"M j, Y" }}</td><td>{% if p.is_placeholder %}<span class="badge amber">Placeholder</span>{% else %}<span class="badge green">Final</span>{% endif %}</td><td class="table-actions"><a class="btn-sm ghost" href="{% url 'pages:policy' p.kind %}">Preview</a><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'policies' p.pk %}">Edit</a></td></tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No policies have been added.</div></td></tr>
+      {% endfor %}
+    </tbody></table>
+    {% include "dashboard/_pagination.html" with page_obj=policies page_param="policies_page" fragment="content-tab-policies" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  document.querySelectorAll('[data-content-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.contentTab;
+      document.querySelectorAll('[data-content-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="content-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'content-tab-' + name); });
+    });
+  });
+</script>
+{% endblock %}

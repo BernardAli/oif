@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block nav_impact %}active{% endblock %}
+{% block title %}Impact · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Since {{ ORG_FOUNDED }}, the Onesimus Impact Foundation has reached thousands through conferences, mentorship cohorts, and humanitarian outreach across Ghana.{% endblock %}
+{% block content %}
+<section class="page active premium-page impact-premium">
+  <div class="premium-hero impact-hero">
+    <div class="container">
+      <div class="premium-hero-grid">
+        <div>
+          <div class="eyebrow">Our impact</div>
+          <h1 class="display">Lives changed. Leaders raised. Communities served.</h1>
+          <p>Since {{ ORG_FOUNDED }}, OIF has reached young people through conferences, mentorship, and humanitarian action across Ghana and beyond.</p>
+        </div>
+        <div class="impact-hero-photo"><span>From gatherings to field work</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="impact-metrics-band">
+    <div class="container">
+      <div class="metric-grid-premium">
+        {% for s in site_stats %}
+        <div><strong>{{ s.value }}<sup>{{ s.suffix }}</sup></strong><span>{{ s.label }}</span></div>
+        {% endfor %}
+        <div><strong>{{ impact.conference_attendees }}</strong><span>Conference attendees</span></div>
+        <div><strong>{{ impact.mentorship_participants }}</strong><span>Mentorship participants</span></div>
+        <div><strong>{{ impact.events_hosted }}</strong><span>Events hosted</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="premium-band">
+    <div class="container">
+      <div class="premium-section-head">
+        <div>
+          <div class="eyebrow">Impact lanes</div>
+          <h2 class="display">The work shows up in several places at once.</h2>
+        </div>
+        <p>OIF measures impact through attendance, participation, formation, testimony, and service to real communities.</p>
+      </div>
+      <div class="impact-lane-grid">
+        <div class="impact-lane conference"><span>01</span><h3>Conferences</h3><p>Biannual gatherings that bring experienced voices into conversation with emerging leaders.</p></div>
+        <div class="impact-lane mentorship"><span>02</span><h3>Mentorship</h3><p>Structured support through cohorts, assigned mentors, and progress tracking.</p></div>
+        <div class="impact-lane outreach"><span>03</span><h3>Humanitarian action</h3><p>Community outreach aligned with youth empowerment, education, and dignity.</p></div>
+      </div>
+      {% if impact.cohorts %}
+      <div class="cohort-panel-premium">
+        <div class="eyebrow">Cohorts</div>
+        <div class="cohort-chips">
+          {% for c in impact.cohorts %}<span class="cohort-chip">{{ c.cohort }} · {{ c.n }}</span>{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if conference_testimonials or mentorship_testimonials %}
+  <div class="testimonial-section-premium">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">Stories</div>
+          <h2 class="display">What participants carry forward.</h2>
+        </div>
+      </div>
+      {% if conference_testimonials %}
+      <div class="testimonial-grid">
+        {% for t in conference_testimonials %}
+        <figure class="testimonial">
+          <blockquote>&ldquo;{{ t.quote }}&rdquo;</blockquote>
+          <figcaption>{% if t.photo %}<img src="{{ t.photo.url }}" alt="{{ t.author }}">{% else %}<span class="tavatar">{{ t.author|slice:":1" }}</span>{% endif %}<span><b>{{ t.author }}</b>{% if t.author_role %}<small>{{ t.author_role }}</small>{% endif %}</span></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if mentorship_testimonials %}
+      <div class="testimonial-grid spaced">
+        {% for t in mentorship_testimonials %}
+        <figure class="testimonial">
+          <blockquote>&ldquo;{{ t.quote }}&rdquo;</blockquote>
+          <figcaption>{% if t.photo %}<img src="{{ t.photo.url }}" alt="{{ t.author }}">{% else %}<span class="tavatar">{{ t.author|slice:":1" }}</span>{% endif %}<span><b>{{ t.author }}</b>{% if t.author_role %}<small>{{ t.author_role }}</small>{% endif %}</span></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if gallery %}
+  <div class="premium-band gallery-preview-band">
+    <div class="container">
+      <div class="premium-section-head compact">
+        <div>
+          <div class="eyebrow">From the field</div>
+          <h2 class="display">Moments of impact.</h2>
+        </div>
+      </div>
+      <div class="gallery-strip premium-gallery-strip">
+        {% for g in gallery %}
+        <a class="gimg" href="{% url 'pages:gallery' %}">
+          {% if g.image %}<img src="{{ g.image.url }}" alt="{{ g.caption }}">{% else %}<div class="gimg-ph">{{ g.caption|default:"OIF" }}</div>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      <a class="btn-sm" href="{% url 'pages:gallery' %}">View full gallery</a>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
