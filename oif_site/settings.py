@@ -113,6 +113,9 @@ MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY", "")
 PAYSTACK_PUBLIC_KEY = os.environ.get("PAYSTACK_PUBLIC_KEY", "")
 PAYSTACK_TIMEOUT_SECONDS = int(os.environ.get("PAYSTACK_TIMEOUT_SECONDS", "15"))
+PAYSTACK_DEMO_MODE = os.environ.get(
+    "PAYSTACK_DEMO_MODE", "True" if DEBUG else "False"
+).lower() in ("1", "true", "yes")
 
 # --- Email / transactional notifications ---------------------------------
 # Defaults to the console backend so the project runs with no credentials.

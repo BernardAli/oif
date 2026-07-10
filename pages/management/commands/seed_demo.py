@@ -22,7 +22,7 @@ from donations.models import Donation
 from engagement.models import (EventRegistration, Application,
                                MentorshipEnrollment, ContactMessage,
                                PartnerEnquiry, NewsletterSubscriber)
-from dashboard.models import AuditLog, log_action
+from dashboard.models import AuditLog, JournalEntry, log_action
 
 User = get_user_model()
 random.seed(2018)
@@ -42,6 +42,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         now = timezone.now()
         self.stdout.write("Clearing previous demo data…")
+        JournalEntry.objects.all().delete()
         Donation.objects.all().delete()
         EventRegistration.objects.all().delete()
         Application.objects.all().delete()
@@ -473,6 +474,12 @@ class Command(BaseCommand):
         log_action(director, "application.review", "Volunteer — member4", "APPROVED")
         log_action(finance, "donation.status", "OIF-DEMO0001", "SUCCESS")
         log_action(editor, "content.update.testimonials", "Akosua Frimpong")
+
+        # ---------------------------------------------------------- Accounting
+        from dashboard.accounting import ensure_accounting_defaults, post_donation
+        ensure_accounting_defaults()
+        for donation in Donation.objects.filter(status=Donation.Status.SUCCESS):
+            post_donation(donation, finance)
 
         # ---------------------------------------------------------------- Summary
         self.stdout.write(self.style.SUCCESS(

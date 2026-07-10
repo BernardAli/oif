@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+{% block n_finance %}active{% endblock %}
+{% block dash_title %}{{ mode }} Cash or Bank Account{% endblock %}
+{% block dash_h1 %}{{ mode }} Cash or Bank Account{% endblock %}
+{% block dash_sub %}Maintain bank, cash, mobile money, gateway, and reserve accounts used in Finance & Accounting.{% endblock %}
+{% block dash_actions %}
+<a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Back to Finance</a>
+{% endblock %}
+{% block dash_content %}
+<div class="cms-form-layout management-form-layout">
+  <aside class="cms-form-aside management-form-aside">
+    <span>Cash control</span>
+    <h2>{{ mode }} account</h2>
+    <p>Opening balance plus posted cash movements creates the book balance. Statement balance and reconciliation date support month-end review.</p>
+  </aside>
+  <div class="form-card wide dash-form-card">
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}
+        <div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
+      {% endfor %}
+      <div class="form-actions">
+        <button class="btn-sm" type="submit">Save account</button>
+        <a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

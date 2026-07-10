@@ -1,4 +1,6 @@
 import json
+import hashlib
+import hmac
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -13,15 +15,60 @@ class PaystackError(Exception):
     pass
 
 
+def configuration():
+    """Prefer CMS settings, while retaining environment-variable fallback."""
+    try:
+        from dashboard.models import IntegrationSettings
+        config = IntegrationSettings.load()
+        if not config.paystack_use_cms_configuration:
+            return {
+                "enabled": bool(settings.PAYSTACK_SECRET_KEY),
+                "secret_key": settings.PAYSTACK_SECRET_KEY,
+                "public_key": settings.PAYSTACK_PUBLIC_KEY,
+                "webhook_secret": settings.PAYSTACK_SECRET_KEY,
+                "demo_mode": settings.PAYSTACK_DEMO_MODE,
+            }
+        return {
+            "enabled": config.paystack_enabled,
+            "secret_key": config.paystack_secret_key or settings.PAYSTACK_SECRET_KEY,
+            "public_key": config.paystack_public_key or settings.PAYSTACK_PUBLIC_KEY,
+            "webhook_secret": config.paystack_webhook_secret or config.paystack_secret_key or settings.PAYSTACK_SECRET_KEY,
+            "demo_mode": config.paystack_demo_mode,
+        }
+    except Exception:
+        return {
+            "enabled": bool(settings.PAYSTACK_SECRET_KEY),
+            "secret_key": settings.PAYSTACK_SECRET_KEY,
+            "public_key": settings.PAYSTACK_PUBLIC_KEY,
+            "webhook_secret": settings.PAYSTACK_SECRET_KEY,
+            "demo_mode": settings.PAYSTACK_DEMO_MODE,
+        }
+
+
 def is_configured():
-    return bool(settings.PAYSTACK_SECRET_KEY)
+    config = configuration()
+    return bool(config["enabled"] and config["secret_key"])
+
+
+def demo_mode():
+    return bool(configuration()["demo_mode"])
+
+
+def valid_webhook_signature(raw_body, signature):
+    config = configuration()
+    secret = config["webhook_secret"]
+    if not config["enabled"] or not secret or not signature:
+        return False
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha512).hexdigest()
+    return hmac.compare_digest(expected, signature)
 
 
 def _request(path, method="GET", payload=None):
-    if not settings.PAYSTACK_SECRET_KEY:
+    secret_key = configuration()["secret_key"]
+    if not secret_key:
         raise PaystackError("Paystack secret key is not configured.")
     body = None
-    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    headers = {"Authorization": f"Bearer {secret_key}"}
     if payload is not None:
         body = json.dumps(payload).encode("utf-8")
         headers["Content-Type"] = "application/json"

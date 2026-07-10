@@ -4,11 +4,11 @@
 {% block dash_title %}Donations{% endblock %}
 {% block dash_h1 %}Donations{% endblock %}
 {% block dash_sub %}{% if can_view_all %}Donation operations, Paystack status, and giving analytics.{% else %}Your giving history and donation analytics.{% endif %}{% endblock %}
-{% block dash_actions %}<a class="btn-sm" href="{% url 'donations:give' %}">+ New donation</a>{% endblock %}
+{% block dash_actions %}<div class="action-row">{% if 'manage_donations' in user.capabilities %}<form method="post" action="{% url 'dashboard:donations_reconcile' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Reconcile Paystack</button></form>{% endif %}<a class="btn-sm" href="{% url 'donations:give' %}">+ New donation</a></div>{% endblock %}
 {% block dash_content %}
 
 <div class="kpi-grid">
-  <div class="kpi"><div class="v">GHS {{ totals.raised|floatformat:0|intcomma }}</div><div class="l">{% if can_view_all %}Total raised{% else %}My confirmed giving{% endif %}</div></div>
+  <div class="kpi"><div class="v">GHS {{ totals.raised|floatformat:2|intcomma }}</div><div class="l">{% if can_view_all %}Total raised{% else %}My confirmed giving{% endif %}</div></div>
   <div class="kpi olive"><div class="v">{{ totals.count|intcomma }}</div><div class="l">Successful gifts</div></div>
   <div class="kpi gold"><div class="v">{{ totals.pending|intcomma }}</div><div class="l">Pending review</div></div>
   <div class="kpi ink"><div class="v">{{ totals.recurring|intcomma }}</div><div class="l">Recurring pledges</div></div>
@@ -43,7 +43,7 @@
     <thead><tr><th>Reference</th><th>Amount</th><th>Channel</th><th>Campaign</th><th>Status</th><th>Date</th><th></th></tr></thead>
     <tbody>
     {% for d in my_donations %}
-      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td>
+      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td>
         <td>{{ d.get_channel_display }}</td><td>{{ d.campaign }}</td>
         <td>{% if d.status == 'SUCCESS' %}<span class="badge green">Success</span>
           {% elif d.status == 'PENDING' %}<span class="badge amber">Pending</span>
@@ -68,7 +68,7 @@
     <tbody>
     {% for d in all_donations %}
       <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td>
-        <td>{{ d.donor_email|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.get_channel_display }}</td>
+        <td>{{ d.donor_email|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td><td>{{ d.get_channel_display }}</td>
         <td>{% if d.status == 'SUCCESS' %}<span class="badge green">Success</span>
           {% elif d.status == 'PENDING' %}<span class="badge amber">Pending</span>
           {% else %}<span class="badge red">Failed</span>{% endif %}</td>
@@ -90,7 +90,7 @@
     <thead><tr><th>Reference</th><th>Donor</th><th>Amount</th><th>Campaign</th><th>Date</th><th></th></tr></thead>
     <tbody>
     {% for d in pending_donations %}
-      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
     {% endfor %}
     </tbody>
 	  </table>
@@ -103,7 +103,7 @@
     <thead><tr><th>Reference</th><th>Donor</th><th>Amount</th><th>Campaign</th><th>Date</th><th></th></tr></thead>
     <tbody>
     {% for d in failed_donations %}
-      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+      <tr><td>{{ d.reference }}</td><td>{{ d.donor_name|default:"—" }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td><td>{{ d.campaign }}</td><td>{{ d.created_at|date:"M j, Y" }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
     {% endfor %}
     </tbody>
 	  </table>

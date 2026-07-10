@@ -257,4 +257,9 @@ def newsletter_signup(request):
         messages.success(request, "You're subscribed to OIF updates.")
     else:
         messages.error(request, "Please enter a valid email address.")
-    return redirect(request.POST.get("next") or "pages:home")
+    next_url = request.POST.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}
+    ):
+        return redirect(next_url)
+    return redirect("pages:home")

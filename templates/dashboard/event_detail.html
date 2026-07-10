@@ -8,6 +8,7 @@
 <div class="action-row">
 	  <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">All events</a>
 	  <a class="btn-sm ghost" href="{% url 'pages:event_detail' event.slug %}">Public page</a>
+	  {% if can_message %}<a class="btn-sm olive" href="{% url 'dashboard:campaign_create' %}?event={{ event.pk }}">Message registrants</a>{% endif %}
 	  <a class="btn-sm" href="{% url 'dashboard:event_edit' event.pk %}">Edit event</a>
 </div>
 {% endblock %}
@@ -39,6 +40,7 @@
   <button class="prog-tab" type="button" data-detail-tab="analytics">Analytics</button>
   <button class="prog-tab" type="button" data-detail-tab="registrations">Registrations</button>
   <button class="prog-tab" type="button" data-detail-tab="timeline">Timeline</button>
+  {% if can_message or event_campaigns %}<button class="prog-tab" type="button" data-detail-tab="messages">Messages</button>{% endif %}
 </div>
 
 <div class="tab-panel active" id="detail-tab-overview">
@@ -175,6 +177,30 @@
   {% else %}<div class="empty">No registration activity yet.</div>{% endif %}
 </div>
 </div>
+
+{% if can_message or event_campaigns %}
+<div class="tab-panel" id="detail-tab-messages">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Event communications</h2><p>Send targeted updates to active registrants and review delivery results.</p></div>
+      {% if can_message %}<a class="btn-sm" href="{% url 'dashboard:campaign_create' %}?event={{ event.pk }}">Compose event message</a>{% endif %}
+    </div>
+    {% if event_campaigns %}
+    <table class="dtable">
+      <thead><tr><th>Campaign</th><th>Channel</th><th>Status</th><th>Deliveries</th><th>Created</th><th></th></tr></thead>
+      <tbody>{% for campaign in event_campaigns %}<tr>
+        <td><strong>{{ campaign.title }}</strong><small>{{ campaign.subject|default:campaign.body|truncatechars:65 }}</small></td>
+        <td>{{ campaign.get_channel_display }}</td>
+        <td><span class="badge {% if campaign.status == 'SENT' %}green{% elif campaign.status == 'FAILED' %}red{% elif campaign.status == 'PARTIAL' %}amber{% else %}grey{% endif %}">{{ campaign.get_status_display }}</span></td>
+        <td>{{ campaign.sent_count }} sent{% if campaign.failed_count %} · {{ campaign.failed_count }} failed{% endif %}</td>
+        <td>{{ campaign.created_at|date:"M j, Y · g:i A" }}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:campaign_detail' campaign.pk %}">View report</a></td>
+      </tr>{% endfor %}</tbody>
+    </table>
+    {% else %}<div class="empty">No messages have been sent for this event yet.{% if can_message %} Use “Compose event message” to contact active registrants.{% endif %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block dash_scripts %}

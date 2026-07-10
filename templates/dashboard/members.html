@@ -3,14 +3,18 @@
 {% block n_members %}active{% endblock %}
 {% block dash_title %}Members{% endblock %}
 {% block dash_h1 %}Members{% endblock %}
-{% block dash_sub %}Member operations, engagement analytics, roles, and Paystack-linked giving.{% endblock %}
+{% block dash_sub %}Member operations, engagement analytics{% if can_manage_users %}, roles{% endif %}{% if can_view_payments %}, and Paystack-linked giving{% endif %}.{% endblock %}
 {% block dash_content %}
 
 <div class="kpi-grid">
   <div class="kpi"><div class="v">{{ totals.users|intcomma }}</div><div class="l">Total accounts</div></div>
   <div class="kpi olive"><div class="v">{{ totals.active|intcomma }}</div><div class="l">Active accounts</div></div>
   <div class="kpi gold"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Staff leaders</div></div>
+  {% if can_view_payments %}
   <div class="kpi ink"><div class="v">{{ totals.paystack_gifts|intcomma }}</div><div class="l">Paystack gifts</div></div>
+  {% else %}
+  <div class="kpi ink"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Internal leaders</div></div>
+  {% endif %}
 </div>
 
 <form method="get" class="filter-bar">
@@ -30,7 +34,7 @@
   <button class="prog-tab" type="button" data-member-tab="directory">Directory</button>
   <button class="prog-tab" type="button" data-member-tab="leadership">Leadership</button>
   <button class="prog-tab" type="button" data-member-tab="engagement">Engagement</button>
-  <button class="prog-tab" type="button" data-member-tab="paystack">Paystack giving</button>
+  {% if can_view_payments %}<button class="prog-tab" type="button" data-member-tab="paystack">Paystack giving</button>{% endif %}
 </div>
 
 <div class="tab-panel active" id="member-tab-analytics">
@@ -38,7 +42,7 @@
   <h2>Member analytics</h2>
   <div class="chart-grid">
     <div class="chart-card"><h3>Role distribution</h3><div class="chart-box" id="memberRoleChart"></div></div>
-    <div class="chart-card"><h3>Paystack payment health</h3><div class="chart-box" id="memberPaymentChart"></div></div>
+    {% if can_view_payments %}<div class="chart-card"><h3>Paystack payment health</h3><div class="chart-box" id="memberPaymentChart"></div></div>{% endif %}
     <div class="chart-card full"><h3>Member growth</h3><div class="chart-box" id="memberGrowthChart"></div></div>
     <div class="chart-card full"><h3>Engagement volume</h3><div class="chart-box" id="memberEngagementChart"></div></div>
   </div>
@@ -94,10 +98,10 @@
 	  <h2>Engagement leaderboard</h2>
 	  {% if engagement_rows.object_list %}
 	  <table class="dtable">
-    <thead><tr><th>Member</th><th>Role</th><th>Registrations</th><th>Applications</th><th>Paystack gifts</th><th></th></tr></thead>
+    <thead><tr><th>Member</th><th>Role</th><th>Registrations</th><th>Applications</th>{% if can_view_payments %}<th>Paystack gifts</th>{% endif %}<th></th></tr></thead>
     <tbody>
     {% for m in engagement_rows %}
-      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.role_badge }}</td><td>{{ m.registrations_count|intcomma }}</td><td>{{ m.applications_count|intcomma }}</td><td>{{ m.gifts_count|intcomma }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Open</a></td></tr>
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.role_badge }}</td><td>{{ m.registrations_count|intcomma }}</td><td>{{ m.applications_count|intcomma }}</td>{% if can_view_payments %}<td>{{ m.gifts_count|intcomma }}</td>{% endif %}<td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Open</a></td></tr>
     {% endfor %}
     </tbody>
 		  </table>
@@ -106,6 +110,7 @@
 </div>
 </div>
 
+{% if can_view_payments %}
 <div class="tab-panel" id="member-tab-paystack">
 <div class="dash-section tabbed-section">
   <h2>Members with Paystack giving</h2>
@@ -114,7 +119,7 @@
     <thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Gifts</th><th>Total recorded</th><th></th></tr></thead>
     <tbody>
     {% for m in payment_members %}
-      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.email|default:"—" }}</td><td>{{ m.role_badge }}</td><td>{{ m.gifts|intcomma }}</td><td>GHS {{ m.raised|floatformat:0|intcomma }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Paystack records</a></td></tr>
+      <tr><td>{{ m.get_full_name|default:m.username }}</td><td>{{ m.email|default:"—" }}</td><td>{{ m.role_badge }}</td><td>{{ m.gifts|intcomma }}</td><td>GHS {{ m.raised|floatformat:2|intcomma }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:member_detail' m.pk %}">Paystack records</a></td></tr>
     {% endfor %}
     </tbody>
 	  </table>
@@ -122,6 +127,7 @@
 	  {% else %}<div class="empty">No member-linked Paystack gifts yet.</div>{% endif %}
 </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block dash_scripts %}
@@ -137,7 +143,7 @@
     var data = JSON.parse(document.getElementById('memberChartsData').textContent);
     [
       ['memberRoleChart', OIFCharts.pie(data.roles)],
-      ['memberPaymentChart', OIFCharts.pie(data.payments)],
+      {% if can_view_payments %}['memberPaymentChart', OIFCharts.pie(data.payments)],{% endif %}
       ['memberGrowthChart', OIFCharts.line(data.growth)],
       ['memberEngagementChart', OIFCharts.bar(data.engagement)]
     ].forEach(function(item){ var el=document.getElementById(item[0]); if(!el) return; var chart=OIFCharts.init(el, item[1]); memberCharts.push(chart); });

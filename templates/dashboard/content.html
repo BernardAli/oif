@@ -1,22 +1,47 @@
 {% extends "dashboard/base.html" %}
 {% load humanize %}
 {% block n_content %}active{% endblock %}
-{% block dash_title %}Site Content CMS{% endblock %}
-{% block dash_h1 %}Site Content CMS{% endblock %}
-{% block dash_sub %}Manage the public website content library, page assets, policies, and publishing status.{% endblock %}
+{% block dash_title %}Site CMS{% endblock %}
+{% block dash_h1 %}Site CMS{% endblock %}
+{% block dash_sub %}Manage global website identity, proof points, media, testimonials, and policies.{% endblock %}
 {% block dash_actions %}
 <div class="action-row">
   <a class="btn-sm ghost" href="{% url 'pages:home' %}">View site</a>
-  <a class="btn-sm" href="{% url 'dashboard:content_create' 'programs' %}">Add content</a>
+  {% if 'configure_integrations' in user.capabilities %}<a class="btn-sm ghost" href="{% url 'dashboard:integration_settings' %}">SMS &amp; Paystack settings</a>{% endif %}
+  <a class="btn-sm" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit profile</a>
 </div>
 {% endblock %}
 {% block dash_content %}
 
 <div class="kpi-grid">
-  <div class="kpi"><div class="v">{{ totals.programs|intcomma }}</div><div class="l">Programs</div></div>
-  <div class="kpi olive"><div class="v">{{ totals.resources|intcomma }}</div><div class="l">Resources</div></div>
-  <div class="kpi gold"><div class="v">{{ cms_health.published_library|intcomma }}</div><div class="l">Published media</div></div>
+  <div class="kpi"><div class="v">{{ totals.stats|intcomma }}</div><div class="l">Impact stats</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.testimonials|intcomma }}</div><div class="l">Testimonials</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.gallery|intcomma }}</div><div class="l">Gallery images</div></div>
   <div class="kpi ink"><div class="v">{{ totals.policies|intcomma }}</div><div class="l">Policies</div></div>
+</div>
+
+<div class="management-gateway-grid">
+  {% if 'configure_integrations' in user.capabilities %}<a class="management-gateway" href="{% url 'dashboard:integration_settings' %}"><span>Integrations</span><strong>SMS, WhatsApp &amp; Paystack</strong><small>Configure Arkesel, Hubtel, WhatsApp Cloud API, Email, and payment automation.</small></a>{% endif %}
+  <a class="management-gateway" href="{% url 'dashboard:programs_manage' %}">
+    <span>Programs</span>
+    <strong>Manage program wings</strong>
+    <small>Cards, imagery, visibility, and order now live in the sidebar.</small>
+  </a>
+  <a class="management-gateway" href="{% url 'dashboard:resources_manage' %}">
+    <span>Resources</span>
+    <strong>Attach files and links</strong>
+    <small>Build a clean library for program pages.</small>
+  </a>
+  <a class="management-gateway" href="{% url 'dashboard:speakers_manage' %}">
+    <span>Speakers</span>
+    <strong>Curate speaker profiles</strong>
+    <small>Featured voices, photos, archive status, and order.</small>
+  </a>
+  <a class="management-gateway" href="{% url 'dashboard:leadership_manage' %}">
+    <span>Leadership</span>
+    <strong>Steward team profiles</strong>
+    <small>Governance, executive, directors, and secretary profiles.</small>
+  </a>
 </div>
 
 <div class="cms-overview">
@@ -40,10 +65,6 @@
 
 <div class="event-tabs cms-tabs" data-tabs>
   <button class="prog-tab active" type="button" data-content-tab="branding">Project Profile</button>
-  <button class="prog-tab" type="button" data-content-tab="programs">Programs</button>
-  <button class="prog-tab" type="button" data-content-tab="resources">Resources</button>
-  <button class="prog-tab" type="button" data-content-tab="speakers">Speakers</button>
-  <button class="prog-tab" type="button" data-content-tab="team">Leadership</button>
   <button class="prog-tab" type="button" data-content-tab="stats">Stats</button>
   <button class="prog-tab" type="button" data-content-tab="testimonials">Testimonials</button>
   <button class="prog-tab" type="button" data-content-tab="gallery">Gallery</button>
@@ -106,100 +127,9 @@
         <td><span class="badge green">Google Font</span></td>
         <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
       </tr>
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=programs page_param="programs_page" fragment="content-tab-programs" %}
-	  </div>
-	</div>
-
-<div class="tab-panel" id="content-tab-programs">
-  <div class="dash-section tabbed-section">
-    <div class="cms-section-head">
-      <div><h2>Programs</h2><p>Public program wings, homepage cards, ordering, and visibility.</p></div>
-      <div class="action-row">
-        <a class="btn-sm ghost" href="{% url 'pages:programs' %}">Preview</a>
-        <a class="btn-sm" href="{% url 'dashboard:content_create' 'programs' %}">Add program</a>
-      </div>
-    </div>
-    <table class="dtable cms-table"><thead><tr><th>Wing</th><th>Headline</th><th>Resources</th><th>Order</th><th>Status</th><th></th></tr></thead><tbody>
-      {% for p in programs %}
-      <tr>
-        <td><strong>{{ p.get_wing_display }}</strong><small>{{ p.tagline }}</small></td>
-        <td>{{ p.headline }}</td>
-        <td>{{ p.resources.count }}</td>
-        <td>{{ p.order }}</td>
-        <td>{% if p.is_active %}<span class="badge green">Active</span>{% else %}<span class="badge grey">Hidden</span>{% endif %}</td>
-        <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'programs' p.pk %}">Edit</a></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6"><div class="empty compact">No programs have been added.</div></td></tr>
-      {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=resources page_param="resources_page" fragment="content-tab-resources" %}
-	  </div>
-	</div>
-
-<div class="tab-panel" id="content-tab-resources">
-  <div class="dash-section tabbed-section">
-    <div class="cms-section-head">
-      <div><h2>Program resources</h2><p>Downloadable files and external resources attached to program pages.</p></div>
-      <a class="btn-sm" href="{% url 'dashboard:content_create' 'resources' %}">Add resource</a>
-    </div>
-    <table class="dtable cms-table"><thead><tr><th>Title</th><th>Program</th><th>Type</th><th>Order</th><th></th></tr></thead><tbody>
-      {% for r in resources %}
-      <tr>
-        <td><strong>{{ r.title }}</strong><small>{{ r.description|default:"No description" }}</small></td>
-        <td>{{ r.program }}</td>
-        <td>{% if r.file %}<span class="badge green">File</span>{% elif r.external_url %}<span class="badge amber">Link</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td>
-        <td>{{ r.order }}</td>
-        <td class="table-actions">{% if r.link %}<a class="btn-sm ghost" href="{{ r.link }}">Open</a>{% endif %}<a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'resources' r.pk %}">Edit</a></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5"><div class="empty compact">No program resources have been added.</div></td></tr>
-      {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=speakers page_param="speakers_page" fragment="content-tab-speakers" %}
-	  </div>
-	</div>
-
-<div class="tab-panel" id="content-tab-speakers">
-  <div class="dash-section tabbed-section">
-    <div class="cms-section-head">
-      <div><h2>Speakers</h2><p>Conference voices and featured public speaker profiles.</p></div>
-      <div class="action-row">
-        <a class="btn-sm ghost" href="{% url 'pages:impact' %}">Preview</a>
-        <a class="btn-sm" href="{% url 'dashboard:content_create' 'speakers' %}">Add speaker</a>
-      </div>
-    </div>
-    <table class="dtable cms-table"><thead><tr><th>Name</th><th>Role</th><th>Featured</th><th>Order</th><th></th></tr></thead><tbody>
-      {% for s in speakers %}
-      <tr><td><strong>{{ s.name }}</strong></td><td>{{ s.role }}</td><td>{% if s.featured %}<span class="badge green">Featured</span>{% else %}<span class="badge grey">Archive</span>{% endif %}</td><td>{{ s.order }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'speakers' s.pk %}">Edit</a></td></tr>
-      {% empty %}
-      <tr><td colspan="5"><div class="empty compact">No speakers have been added.</div></td></tr>
-      {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=team_members page_param="team_page" fragment="content-tab-team" %}
-	  </div>
-	</div>
-
-<div class="tab-panel" id="content-tab-team">
-  <div class="dash-section tabbed-section">
-    <div class="cms-section-head">
-      <div><h2>Leadership</h2><p>Directors, executive leadership, and governance profiles.</p></div>
-      <div class="action-row">
-        <a class="btn-sm ghost" href="{% url 'pages:about' %}">Preview</a>
-        <a class="btn-sm" href="{% url 'dashboard:content_create' 'team' %}">Add team member</a>
-      </div>
-    </div>
-    <table class="dtable cms-table"><thead><tr><th>Name</th><th>Position</th><th>Title</th><th>Order</th><th></th></tr></thead><tbody>
-      {% for t in team_members %}
-      <tr><td><strong>{{ t.name }}</strong><small>{{ t.credential|default:"No credential" }}</small></td><td>{{ t.get_position_display }}</td><td>{{ t.title|default:"-" }}</td><td>{{ t.order }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'team' t.pk %}">Edit</a></td></tr>
-      {% empty %}
-      <tr><td colspan="5"><div class="empty compact">No leadership profiles have been added.</div></td></tr>
-      {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=stats page_param="stats_page" fragment="content-tab-stats" %}
-	  </div>
-	</div>
+    </tbody></table>
+  </div>
+</div>
 
 <div class="tab-panel" id="content-tab-stats">
   <div class="dash-section tabbed-section">
@@ -213,10 +143,10 @@
       {% empty %}
       <tr><td colspan="5"><div class="empty compact">No impact stats have been added.</div></td></tr>
       {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=testimonials page_param="testimonials_page" fragment="content-tab-testimonials" %}
-	  </div>
-	</div>
+    </tbody></table>
+    {% include "dashboard/_pagination.html" with page_obj=stats page_param="stats_page" fragment="content-tab-stats" %}
+  </div>
+</div>
 
 <div class="tab-panel" id="content-tab-testimonials">
   <div class="dash-section tabbed-section">
@@ -233,10 +163,10 @@
       {% empty %}
       <tr><td colspan="5"><div class="empty compact">No testimonials have been added.</div></td></tr>
       {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=testimonials page_param="testimonials_page" fragment="content-tab-testimonials" %}
-	  </div>
-	</div>
+    </tbody></table>
+    {% include "dashboard/_pagination.html" with page_obj=testimonials page_param="testimonials_page" fragment="content-tab-testimonials" %}
+  </div>
+</div>
 
 <div class="tab-panel" id="content-tab-gallery">
   <div class="dash-section tabbed-section">
@@ -265,10 +195,10 @@
       {% empty %}
       <tr><td colspan="5"><div class="empty compact">No gallery images have been added.</div></td></tr>
       {% endfor %}
-	    </tbody></table>
-	    {% include "dashboard/_pagination.html" with page_obj=gallery page_param="gallery_page" fragment="content-tab-gallery" %}
-	  </div>
-	</div>
+    </tbody></table>
+    {% include "dashboard/_pagination.html" with page_obj=gallery page_param="gallery_page" fragment="content-tab-gallery" %}
+  </div>
+</div>
 
 <div class="tab-panel" id="content-tab-policies">
   <div class="dash-section tabbed-section">

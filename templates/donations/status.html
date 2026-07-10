@@ -11,7 +11,7 @@
       <p>Reference {{ donation.reference }}</p>
       <div class="mini-bars premium-mini-bars">
         <div><span>Donor</span><b>{{ donation.donor_name|default:"—" }}</b></div>
-        <div><span>Amount</span><b>{{ donation.currency }} {{ donation.amount|intcomma }}</b></div>
+        <div><span>Amount</span><b>{{ donation.currency }} {{ donation.amount|floatformat:2|intcomma }}</b></div>
         <div><span>Campaign</span><b>{{ donation.campaign }}</b></div>
         <div><span>Channel</span><b>{{ donation.get_channel_display }}</b></div>
       </div>

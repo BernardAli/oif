@@ -1,0 +1,11 @@
+{% extends "dashboard/base.html" %}
+{% block n_messaging %}active{% endblock %}
+{% block dash_title %}{{ campaign.title }}{% endblock %}
+{% block dash_h1 %}{{ campaign.title }}{% endblock %}
+{% block dash_sub %}{{ campaign.get_channel_display }} · {{ campaign.get_audience_display }} · {{ campaign.get_status_display }}{% endblock %}
+{% block dash_actions %}<div class="action-row"><a class="btn-sm ghost" href="{% url 'dashboard:messaging' %}">Messaging centre</a>{% if can_send %}<form method="post" action="{% url 'dashboard:campaign_send' campaign.pk %}">{% csrf_token %}<button class="btn-sm" type="submit">Send again</button></form>{% endif %}</div>{% endblock %}
+{% block dash_content %}
+<div class="stat-grid"><div class="stat-card"><span>Sent</span><strong>{{ counts.SENT|default:0 }}</strong></div><div class="stat-card"><span>Failed</span><strong>{{ counts.FAILED|default:0 }}</strong></div><div class="stat-card"><span>Skipped</span><strong>{{ counts.SKIPPED|default:0 }}</strong></div><div class="stat-card"><span>Created</span><strong>{{ campaign.created_at|date:"d M" }}</strong></div></div>
+<section class="dash-section"><h2>Message</h2>{% if campaign.subject %}<p><strong>{{ campaign.subject }}</strong></p>{% endif %}<div class="policy-body">{{ campaign.body|linebreaks }}</div></section>
+<section class="dash-section"><div class="section-head"><div><h2>Delivery report</h2><p>Provider references and errors for every attempted destination.</p></div></div><div class="table-wrap"><table><thead><tr><th>Recipient</th><th>Channel</th><th>Status</th><th>Provider</th><th>Details</th><th>Time</th></tr></thead><tbody>{% for item in deliveries %}<tr><td><strong>{{ item.recipient_name|default:item.recipient }}</strong><small>{{ item.recipient }}</small></td><td>{{ item.get_channel_display }}</td><td><span class="badge">{{ item.get_status_display }}</span></td><td>{{ item.provider|default:"—" }}</td><td>{{ item.error|default:item.provider_reference|default:"—" }}</td><td>{{ item.sent_at|date:"d M Y H:i"|default:"—" }}</td></tr>{% empty %}<tr><td colspan="6">No delivery attempts.</td></tr>{% endfor %}</tbody></table></div>{% include "dashboard/_pagination.html" with page_obj=deliveries page_param="deliveries_page" %}</section>
+{% endblock %}

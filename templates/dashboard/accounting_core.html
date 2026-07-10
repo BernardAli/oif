@@ -1,0 +1,141 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_accounting %}active{% endblock %}
+{% block dash_title %}Statements & Ledger{% endblock %}
+{% block dash_h1 %}Statements & Ledger{% endblock %}
+{% block dash_sub %}Double-entry accounting, financial statements, budgets, fiscal periods, funds, and reconciliation controls.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Finance operations</a>
+  <a class="btn-sm ghost" href="{% url 'dashboard:reports' %}#reports-tab-finance">Finance reports</a>
+  {% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:budget_create' %}">New budget</a><a class="btn-sm" href="{% url 'dashboard:journal_create' %}">New journal</a>{% endif %}
+</div>
+{% endblock %}
+{% block dash_content %}
+<form class="reports-filter management-toolbar accounting-filter" method="get">
+  <label>From <input type="date" name="start" value="{{ period.start|date:'Y-m-d' }}"></label>
+  <label>To <input type="date" name="end" value="{{ period.end|date:'Y-m-d' }}"></label>
+  <label>Fund <select name="fund"><option value="">All funds</option>{% for fund in funds %}<option value="{{ fund.pk }}" {% if selected_fund.pk == fund.pk %}selected{% endif %}>{{ fund }}</option>{% endfor %}</select></label>
+  <label>Budget <select name="budget"><option value="">No comparison</option>{% for budget in budgets %}<option value="{{ budget.pk }}" {% if selected_budget.pk == budget.pk %}selected{% endif %}>{{ budget.name }}</option>{% endfor %}</select></label>
+  <button class="btn-sm ghost" type="submit">Run statements</button>
+  {% if selected_fund or selected_budget %}<a class="btn-sm ghost" href="{% url 'dashboard:accounting_core' %}">Clear</a>{% endif %}
+</form>
+
+<section class="finance-hero accounting-hero">
+  <div>
+    <span>Posted ledger surplus</span>
+    <strong>GHS {{ statements.surplus|floatformat:2|intcomma }}</strong>
+    <small>{{ period.start|date:"M j, Y" }} – {{ period.end|date:"M j, Y" }}{% if selected_fund %} · {{ selected_fund.name }}{% else %} · All funds{% endif %}</small>
+  </div>
+  <div class="finance-hero-grid">
+    <div><span>Income</span><b>GHS {{ statements.income|floatformat:2|intcomma }}</b></div>
+    <div><span>Expenditure</span><b>GHS {{ statements.expenses|floatformat:2|intcomma }}</b></div>
+    <div><span>Total assets</span><b>GHS {{ statements.assets|floatformat:2|intcomma }}</b></div>
+  </div>
+</section>
+
+<div class="finance-strip accounting-control-strip">
+  <div><span>Unbalanced drafts</span><strong>{{ health.unbalanced_drafts|intcomma }}</strong></div>
+  <div><span>Pending reconciliations</span><strong>{{ health.unreconciled|intcomma }}</strong></div>
+  <div><span>Unposted donations</span><strong>{{ health.unposted_donations|intcomma }}</strong></div>
+  <div><span>Unposted expenses</span><strong>{{ health.unposted_expenses|intcomma }}</strong></div>
+</div>
+
+<div class="cash-bank-summary accounting-position-summary">
+  <div><span>Assets</span><strong>GHS {{ statements.assets|floatformat:2|intcomma }}</strong><small>Posted asset balances</small></div>
+  <div><span>Liabilities</span><strong>GHS {{ statements.liabilities|floatformat:2|intcomma }}</strong><small>Posted obligations</small></div>
+  <div><span>Net assets</span><strong>GHS {{ statements.net_assets|floatformat:2|intcomma }}</strong><small>Including current surplus</small></div>
+  <div><span>Trial balance</span><strong>{% if statements.trial_debits == statements.trial_credits %}Balanced{% else %}Exception{% endif %}</strong><small>Dr {{ statements.trial_debits|floatformat:2|intcomma }} · Cr {{ statements.trial_credits|floatformat:2|intcomma }}</small></div>
+</div>
+
+<div class="event-tabs accounting-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-accounting-tab="statements">Statements</button>
+  <button class="prog-tab" type="button" data-accounting-tab="journals">General Ledger</button>
+  <button class="prog-tab" type="button" data-accounting-tab="budgets">Budgets</button>
+  <button class="prog-tab" type="button" data-accounting-tab="controls">Controls & Setup</button>
+</div>
+
+<div class="tab-panel active" id="accounting-tab-statements">
+  <div class="finance-split">
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Income &amp; Expenditure</h2><p>Posted activity for the selected reporting period.</p></div><span class="badge grey">{{ period.days|intcomma }} days</span></div>
+      <div class="table-wrap"><table class="dtable">
+        <thead><tr><th>Account</th><th>Classification</th><th>Amount</th></tr></thead>
+        <tbody>
+          {% for row in statements.income_rows %}<tr><td><strong>{{ row.code }} · {{ row.name }}</strong></td><td><span class="badge green">Income</span></td><td>GHS {{ row.balance|floatformat:2|intcomma }}</td></tr>{% endfor %}
+          {% for row in statements.expense_rows %}<tr><td><strong>{{ row.code }} · {{ row.name }}</strong></td><td><span class="badge amber">Expense</span></td><td>GHS {{ row.balance|floatformat:2|intcomma }}</td></tr>{% endfor %}
+          {% if not statements.income_rows and not statements.expense_rows %}<tr><td colspan="3"><div class="empty compact">No posted income or expenditure in this period.</div></td></tr>{% endif %}
+          <tr class="accounting-total-row"><td colspan="2"><strong>Surplus / deficit</strong></td><td><strong>GHS {{ statements.surplus|floatformat:2|intcomma }}</strong></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Financial Position</h2><p>Assets, liabilities, and accumulated net assets.</p></div></div>
+      <div class="statement-position-list">
+        <div><span>Assets</span><strong>GHS {{ statements.assets|floatformat:2|intcomma }}</strong></div>
+        <div><span>Liabilities</span><strong>GHS {{ statements.liabilities|floatformat:2|intcomma }}</strong></div>
+        <div><span>Net assets</span><strong>GHS {{ statements.net_assets|floatformat:2|intcomma }}</strong></div>
+        <div class="total"><span>Liabilities + net assets</span><strong>GHS {{ statements.liabilities|add:statements.net_assets|floatformat:2|intcomma }}</strong></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="dash-section">
+    <div class="cms-section-head"><div><h2>Trial Balance</h2><p>Posted debits and credits by account for the selected period.</p></div><span class="badge {% if statements.trial_debits == statements.trial_credits %}green{% else %}red{% endif %}">{% if statements.trial_debits == statements.trial_credits %}Balanced{% else %}Out of balance{% endif %}</span></div>
+    <div class="table-wrap"><table class="dtable">
+      <thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead>
+      <tbody>{% for row in statements.trial_balance %}<tr><td>{{ row.code }}</td><td><strong>{{ row.name }}</strong></td><td>{{ row.type|title }}</td><td>GHS {{ row.debit|floatformat:2|intcomma }}</td><td>GHS {{ row.credit|floatformat:2|intcomma }}</td><td>GHS {{ row.balance|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="6"><div class="empty compact">No posted journals in this reporting period.</div></td></tr>{% endfor %}<tr class="accounting-total-row"><td colspan="3"><strong>Totals</strong></td><td><strong>GHS {{ statements.trial_debits|floatformat:2|intcomma }}</strong></td><td><strong>GHS {{ statements.trial_credits|floatformat:2|intcomma }}</strong></td><td></td></tr></tbody>
+    </table></div>
+  </section>
+
+  {% if statements.budget_rows %}<section class="dash-section">
+    <div class="cms-section-head"><div><h2>Budget versus Actual</h2><p>{{ selected_budget.name }} · favourable and adverse account variances.</p></div><a class="btn-sm ghost" href="#accounting-tab-budgets">View budgets</a></div>
+    <div class="table-wrap"><table class="dtable"><thead><tr><th>Account</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Variance %</th></tr></thead><tbody>{% for row in statements.budget_rows %}<tr><td><strong>{{ row.account }}</strong></td><td>GHS {{ row.budget|floatformat:2|intcomma }}</td><td>GHS {{ row.actual|floatformat:2|intcomma }}</td><td><span class="badge {% if row.variance >= 0 %}green{% else %}red{% endif %}">GHS {{ row.variance|floatformat:2|intcomma }}</span></td><td>{{ row.variance_pct }}%</td></tr>{% endfor %}</tbody></table></div>
+  </section>{% elif selected_budget %}<div class="empty">The selected budget has no account lines to compare.</div>{% endif %}
+</div>
+
+<div class="tab-panel" id="accounting-tab-journals">
+  <section class="dash-section">
+    <div class="cms-section-head"><div><h2>General Journal</h2><p>Draft, posted, and reversed double-entry transactions.</p></div>{% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:journal_create' %}">New journal</a>{% endif %}</div>
+    <div class="table-wrap"><table class="dtable"><thead><tr><th>Number</th><th>Date</th><th>Description</th><th>Fund</th><th>Reference</th><th>Debit</th><th>Status</th><th></th></tr></thead><tbody>{% for journal in journals %}<tr><td><strong>{{ journal.number }}</strong></td><td>{{ journal.entry_date|date:"M j, Y" }}</td><td>{{ journal.description }}</td><td>{{ journal.fund|default:"General" }}</td><td>{{ journal.reference|default:"—" }}</td><td>GHS {{ journal.total_debits|floatformat:2|intcomma }}</td><td><span class="badge {% if journal.status == 'POSTED' %}green{% elif journal.status == 'DRAFT' %}amber{% else %}grey{% endif %}">{{ journal.get_status_display }}</span></td><td><a class="btn-sm ghost" href="{% url 'dashboard:journal_detail' journal.pk %}">Open</a></td></tr>{% empty %}<tr><td colspan="8"><div class="empty compact">No journals have been created.</div></td></tr>{% endfor %}</tbody></table></div>
+    {% include "dashboard/_pagination.html" with page_obj=journals page_param="journals_page" fragment="accounting-tab-journals" %}
+  </section>
+</div>
+
+<div class="tab-panel" id="accounting-tab-budgets">
+  <section class="dash-section">
+    <div class="cms-section-head"><div><h2>Budgets</h2><p>Account-level plans by fiscal period and funding restriction.</p></div>{% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:budget_create' %}">New budget</a>{% endif %}</div>
+    <div class="table-wrap"><table class="dtable"><thead><tr><th>Budget</th><th>Period</th><th>Fund</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead><tbody>{% for budget in budgets %}<tr><td><strong>{{ budget.name }}</strong></td><td>{{ budget.fiscal_period }}</td><td>{{ budget.fund|default:"All funds" }}</td><td><span class="badge {% if budget.status == 'APPROVED' %}green{% elif budget.status == 'LOCKED' %}grey{% else %}amber{% endif %}">{{ budget.get_status_display }}</span></td><td>GHS {{ budget.total_amount|floatformat:2|intcomma }}</td><td>{% if can_manage %}<div class="action-row"><form method="post" action="{% url 'dashboard:budget_action' budget.pk 'approve' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Approve</button></form><form method="post" action="{% url 'dashboard:budget_action' budget.pk 'lock' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Lock</button></form></div>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="6"><div class="empty compact">No budgets configured.</div></td></tr>{% endfor %}</tbody></table></div>
+  </section>
+</div>
+
+<div class="tab-panel" id="accounting-tab-controls">
+  <div class="finance-split">
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Fiscal Periods</h2><p>Closing a period prevents additional posting.</p></div>{% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:fiscal_period_create' %}">Add period</a>{% endif %}</div>
+      {% for p in periods %}<div class="accounting-control-row"><div><strong>{{ p.name }}</strong><small>{{ p.starts_on|date:"M j, Y" }} – {{ p.ends_on|date:"M j, Y" }}</small></div><span class="badge {% if p.status == 'OPEN' %}green{% else %}grey{% endif %}">{{ p.get_status_display }}</span>{% if can_manage %}<form method="post" action="{% url 'dashboard:fiscal_period_action' p.pk 'close' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Close</button></form>{% endif %}</div>{% empty %}<div class="empty compact">No fiscal periods configured.</div>{% endfor %}
+    </section>
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Bank Reconciliation</h2><p>Statement-to-book review and independent approval.</p></div>{% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:reconciliation_create' %}">New reconciliation</a>{% endif %}</div>
+      {% for r in reconciliations %}<div class="accounting-control-row"><div><strong>{{ r.account }}</strong><small>{{ r.statement_date|date:"M j, Y" }} · Difference GHS {{ r.difference|floatformat:2|intcomma }}</small></div><span class="badge {% if r.status == 'RECONCILED' %}green{% else %}amber{% endif %}">{{ r.get_status_display }}</span>{% if can_manage and r.status == 'DRAFT' %}<form method="post" action="{% url 'dashboard:reconciliation_action' r.pk %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Approve</button></form>{% endif %}</div>{% empty %}<div class="empty compact">No bank reconciliations prepared.</div>{% endfor %}
+    </section>
+  </div>
+
+  <section class="dash-section">
+    <div class="cms-section-head"><div><h2>Chart of Accounts</h2><p>Account classification, normal balance, hierarchy, and posting control.</p></div>{% if can_manage %}<div class="action-row"><a class="btn-sm ghost" href="{% url 'dashboard:ledger_account_create' %}">Add account</a><a class="btn-sm ghost" href="{% url 'dashboard:fund_create' %}">Add fund</a></div>{% endif %}</div>
+    <div class="table-wrap"><table class="dtable"><thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Parent</th><th>Normal balance</th><th>Posting</th><th>Status</th></tr></thead><tbody>{% for a in accounts %}<tr><td><strong>{{ a.code }}</strong></td><td>{{ a.name }}</td><td>{{ a.get_account_type_display }}</td><td>{{ a.parent|default:"—" }}</td><td>{{ a.normal_balance|title }}</td><td>{{ a.allow_posting|yesno:"Allowed,Control only" }}</td><td><span class="badge {% if a.is_active %}green{% else %}grey{% endif %}">{{ a.is_active|yesno:"Active,Inactive" }}</span></td></tr>{% empty %}<tr><td colspan="7"><div class="empty compact">No ledger accounts configured.</div></td></tr>{% endfor %}</tbody></table></div>
+  </section>
+</div>
+{% endblock %}
+{% block dash_scripts %}
+<script>
+document.querySelectorAll('[data-accounting-tab]').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    var name=tab.dataset.accountingTab;
+    document.querySelectorAll('[data-accounting-tab]').forEach(function(item){item.classList.toggle('active',item===tab);});
+    document.querySelectorAll('[id^="accounting-tab-"]').forEach(function(panel){panel.classList.toggle('active',panel.id==='accounting-tab-'+name);});
+    history.replaceState(null,'','#accounting-tab-'+name);
+  });
+});
+</script>
+{% endblock %}

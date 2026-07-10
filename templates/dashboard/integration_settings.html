@@ -1,0 +1,137 @@
+{% extends "dashboard/base.html" %}
+{% block n_integrations %}active{% endblock %}
+{% block dash_title %}Integrations{% endblock %}
+{% block dash_h1 %}Integration control centre{% endblock %}
+{% block dash_sub %}Connect messaging and payments, protect credentials, and monitor readiness from one workspace.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'dashboard:content' %}">Back to Site CMS</a>
+  <a class="btn-sm ghost" href="{% url 'dashboard:messaging' %}">Open Messaging</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="integration-hero">
+  <div class="integration-hero-copy">
+    <span class="integration-kicker">Site CMS · Secure configuration</span>
+    <h2>Your communications and revenue stack, connected.</h2>
+    <p>Choose a provider, add credentials, and enable only the services your team is ready to use. Stored secrets are never printed back into this page.</p>
+  </div>
+  <div class="integration-health">
+    <div><span class="health-dot {% if integration_status.sms %}ready{% endif %}"></span><small>SMS</small><strong>{% if integration_status.sms %}Ready{% else %}Setup needed{% endif %}</strong></div>
+    <div><span class="health-dot {% if integration_status.whatsapp %}ready{% endif %}"></span><small>WhatsApp</small><strong>{% if integration_status.whatsapp %}Ready{% else %}Setup needed{% endif %}</strong></div>
+    <div><span class="health-dot {% if integration_status.email %}ready{% endif %}"></span><small>Email</small><strong>{% if integration_status.email %}Enabled{% else %}Disabled{% endif %}</strong></div>
+    <div><span class="health-dot {% if integration_status.paystack %}ready{% endif %}"></span><small>Paystack</small><strong>{% if integration_status.paystack %}Connected{% else %}Setup needed{% endif %}</strong></div>
+  </div>
+</div>
+
+{% if form.errors %}
+<div class="integration-error-summary">
+  <strong>Some settings need attention.</strong>
+  <span>Review the highlighted fields below, then save again.</span>
+  {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<form method="post" class="integration-form">{% csrf_token %}
+  <nav class="integration-jump" aria-label="Integration sections">
+    <span>Jump to</span>
+    <a href="#sms-settings">SMS</a><a href="#whatsapp-settings">WhatsApp</a><a href="#email-settings">Email</a><a href="#paystack-settings">Paystack</a>
+  </nav>
+
+  <section class="integration-panel" id="sms-settings">
+    <header class="integration-panel-head">
+      <div class="provider-mark sms-mark">SMS</div>
+      <div><span>Mobile messaging</span><h2>SMS delivery</h2><p>Route transactional alerts and campaigns through Arkesel or Hubtel.</p></div>
+      <label class="integration-switch">{{ form.sms_enabled }}<span></span><b>Enable SMS</b></label>
+    </header>
+    <div class="integration-panel-body">
+      <div class="integration-field-grid two">
+        <div class="integration-field"><label for="{{ form.sms_provider.id_for_label }}">Active provider</label>{{ form.sms_provider }}{{ form.sms_provider.errors }}<small>Only the selected provider is used for new sends.</small></div>
+        <div class="integration-field"><label for="{{ form.sms_sender_id.id_for_label }}">Sender ID</label>{{ form.sms_sender_id }}{{ form.sms_sender_id.errors }}<small>Up to 11 characters, subject to provider approval.</small></div>
+      </div>
+      <div class="provider-grid">
+        <article class="provider-card {% if config.sms_provider == 'ARKESEL' %}selected{% endif %}">
+          <div class="provider-card-title"><span class="provider-monogram arkesel">A</span><div><strong>Arkesel</strong><small>{% if config.arkesel_api_key %}Credential configured{% else %}Credential required{% endif %}</small></div><span class="provider-state {% if config.arkesel_api_key %}ready{% endif %}">{% if config.arkesel_api_key %}Ready{% else %}Incomplete{% endif %}</span></div>
+          <div class="integration-field"><label for="{{ form.arkesel_api_key.id_for_label }}">API key</label>{{ form.arkesel_api_key }}{{ form.arkesel_api_key.errors }}{% if form.arkesel_api_key.help_text %}<small>{{ form.arkesel_api_key.help_text }}</small>{% endif %}</div>
+          <div class="integration-field"><label for="{{ form.arkesel_base_url.id_for_label }}">API endpoint</label>{{ form.arkesel_base_url }}{{ form.arkesel_base_url.errors }}</div>
+        </article>
+        <article class="provider-card {% if config.sms_provider == 'HUBTEL' %}selected{% endif %}">
+          <div class="provider-card-title"><span class="provider-monogram hubtel">H</span><div><strong>Hubtel</strong><small>{% if config.hubtel_client_id and config.hubtel_client_secret %}Credentials configured{% else %}Credentials required{% endif %}</small></div><span class="provider-state {% if config.hubtel_client_id and config.hubtel_client_secret %}ready{% endif %}">{% if config.hubtel_client_id and config.hubtel_client_secret %}Ready{% else %}Incomplete{% endif %}</span></div>
+          <div class="integration-field-grid two compact"><div class="integration-field"><label for="{{ form.hubtel_client_id.id_for_label }}">Client ID</label>{{ form.hubtel_client_id }}{{ form.hubtel_client_id.errors }}{% if form.hubtel_client_id.help_text %}<small>{{ form.hubtel_client_id.help_text }}</small>{% endif %}</div><div class="integration-field"><label for="{{ form.hubtel_client_secret.id_for_label }}">Client secret</label>{{ form.hubtel_client_secret }}{{ form.hubtel_client_secret.errors }}{% if form.hubtel_client_secret.help_text %}<small>{{ form.hubtel_client_secret.help_text }}</small>{% endif %}</div></div>
+          <div class="integration-field"><label for="{{ form.hubtel_base_url.id_for_label }}">API endpoint</label>{{ form.hubtel_base_url }}{{ form.hubtel_base_url.errors }}</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="integration-panel" id="whatsapp-settings">
+    <header class="integration-panel-head">
+      <div class="provider-mark whatsapp-mark">WA</div>
+      <div><span>Conversational messaging</span><h2>WhatsApp Cloud API</h2><p>Send personalized messages through your verified Meta business number.</p></div>
+      <label class="integration-switch">{{ form.whatsapp_enabled }}<span></span><b>Enable WhatsApp</b></label>
+    </header>
+    <div class="integration-panel-body integration-field-grid two">
+      <div class="integration-field full"><label for="{{ form.whatsapp_access_token.id_for_label }}">Permanent access token</label>{{ form.whatsapp_access_token }}{{ form.whatsapp_access_token.errors }}{% if form.whatsapp_access_token.help_text %}<small>{{ form.whatsapp_access_token.help_text }}</small>{% else %}<small>Use a system-user token intended for server-side messaging.</small>{% endif %}</div>
+      <div class="integration-field"><label for="{{ form.whatsapp_phone_number_id.id_for_label }}">Phone number ID</label>{{ form.whatsapp_phone_number_id }}{{ form.whatsapp_phone_number_id.errors }}</div>
+      <div class="integration-field"><label for="{{ form.whatsapp_business_number.id_for_label }}">Business number</label>{{ form.whatsapp_business_number }}{{ form.whatsapp_business_number.errors }}<small>Shown for reference; include the country code.</small></div>
+    </div>
+  </section>
+
+  <section class="integration-panel" id="email-settings">
+    <header class="integration-panel-head">
+      <div class="provider-mark email-mark">@</div>
+      <div><span>Transactional email</span><h2>Email delivery</h2><p>Use the SMTP backend configured by the deployment environment.</p></div>
+      <label class="integration-switch">{{ form.email_enabled }}<span></span><b>Enable Email</b></label>
+    </header>
+    <div class="integration-panel-body integration-field-grid two">
+      <div class="integration-field"><label for="{{ form.email_from_name.id_for_label }}">Sender display name</label>{{ form.email_from_name }}{{ form.email_from_name.errors }}<small>Used to identify your organization in campaign email.</small></div>
+      <div class="integration-note"><span>Environment managed</span><strong>SMTP credentials stay outside the CMS</strong><p>Host, port, username, password, TLS, and default sender are read securely from deployment environment variables.</p></div>
+    </div>
+  </section>
+
+  <section class="integration-panel paystack-panel" id="paystack-settings">
+    <header class="integration-panel-head">
+      <div class="provider-mark paystack-mark">P</div>
+      <div><span>Payment automation</span><h2>Paystack</h2><p>Accept donations, verify payments, send receipts, and reconcile successful charges automatically.</p></div>
+      <div class="paystack-head-status"><span class="provider-state {% if integration_status.paystack %}ready{% endif %}">{% if integration_status.paystack %}Connected{% else %}Not connected{% endif %}</span><small>{{ integration_status.paystack_source }}</small></div>
+    </header>
+    <div class="integration-panel-body">
+      <div class="paystack-mode-grid">
+        <label class="choice-card">{{ form.paystack_use_cms_configuration }}<span><strong>Manage keys in Site CMS</strong><small>When off, secure environment variables remain authoritative.</small></span></label>
+        <label class="choice-card">{{ form.paystack_enabled }}<span><strong>Enable Paystack</strong><small>Allows checkout, webhook processing, and dashboard reconciliation.</small></span></label>
+        <label class="choice-card warning">{{ form.paystack_demo_mode }}<span><strong>Demo-success mode</strong><small>Development only. Never enable this on the live website.</small></span></label>
+      </div>
+      {{ form.paystack_use_cms_configuration.errors }}{{ form.paystack_enabled.errors }}{{ form.paystack_demo_mode.errors }}
+      <div class="integration-field-grid two paystack-credentials">
+        <div class="integration-field"><label for="{{ form.paystack_public_key.id_for_label }}">Public key</label>{{ form.paystack_public_key }}{{ form.paystack_public_key.errors }}{% if form.paystack_public_key.help_text %}<small>{{ form.paystack_public_key.help_text }}</small>{% endif %}</div>
+        <div class="integration-field"><label for="{{ form.paystack_secret_key.id_for_label }}">Secret key</label>{{ form.paystack_secret_key }}{{ form.paystack_secret_key.errors }}{% if form.paystack_secret_key.help_text %}<small>{{ form.paystack_secret_key.help_text }}</small>{% endif %}</div>
+        <div class="integration-field full"><label for="{{ form.paystack_webhook_secret.id_for_label }}">Webhook signing secret</label>{{ form.paystack_webhook_secret }}{{ form.paystack_webhook_secret.errors }}{% if form.paystack_webhook_secret.help_text %}<small>{{ form.paystack_webhook_secret.help_text }}</small>{% else %}<small>Defaults to the Paystack secret key when left empty.</small>{% endif %}</div>
+      </div>
+      <div class="webhook-card">
+        <div class="webhook-icon">↗</div><div><span>Automatic reconciliation endpoint</span><strong id="webhookUrl">{{ request.scheme }}://{{ request.get_host }}{% url 'donations:webhook' %}</strong><p>Add this URL as a webhook in your Paystack dashboard. Signed successful charges update donations and trigger receipts without relying on the donor's browser.</p></div>
+        <button class="btn-sm ghost" type="button" data-copy-webhook>Copy URL</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="integration-savebar">
+    <div><strong>Ready to apply these settings?</strong><span>{% if config.updated_at %}Last saved {{ config.updated_at|date:"d M Y, H:i" }}{% else %}Not saved yet{% endif %}{% if config.updated_by %} by {{ config.updated_by }}{% endif %}</span></div>
+    <button class="btn-sm" type="submit">Save all integrations</button>
+  </div>
+</form>
+{% endblock %}
+{% block dash_scripts %}
+<script>
+  (function () {
+    var button = document.querySelector('[data-copy-webhook]');
+    if (!button) return;
+    button.addEventListener('click', function () {
+      var value = document.getElementById('webhookUrl').textContent.trim();
+      navigator.clipboard.writeText(value).then(function () {
+        button.textContent = 'Copied';
+        window.setTimeout(function () { button.textContent = 'Copy URL'; }, 1800);
+      });
+    });
+  })();
+</script>
+{% endblock %}

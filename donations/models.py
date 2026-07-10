@@ -38,4 +38,4 @@ class Donation(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.currency} {self.amount} via {self.get_channel_display()}"
+        return f"{self.currency} {self.amount:.2f} via {self.get_channel_display()}"

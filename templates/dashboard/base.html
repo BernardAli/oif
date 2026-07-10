@@ -38,8 +38,18 @@
     </div>
     <nav class="dash-nav">
       <a href="{% url 'dashboard:home' %}" class="{% block n_home %}{% endblock %}">Overview</a>
+      {% if 'view_org_analytics' in user.capabilities or 'view_donations' in user.capabilities or 'manage_events' in user.capabilities or 'manage_members' in user.capabilities or 'manage_applications' in user.capabilities or 'manage_mentorship' in user.capabilities or 'manage_content' in user.capabilities or 'manage_contact' in user.capabilities or 'view_partners' in user.capabilities or 'manage_partners' in user.capabilities %}
+      <a href="{% url 'dashboard:reports' %}" class="{% block n_reports %}{% endblock %}">Reports</a>
+      {% endif %}
       <a href="{% url 'dashboard:events' %}" class="{% block n_events %}{% endblock %}">Events &amp; Registrations</a>
       <a href="{% url 'dashboard:donations' %}" class="{% block n_donations %}{% endblock %}">Donations</a>
+      {% if 'send_messages' in user.capabilities or 'view_message_reports' in user.capabilities %}
+      <a href="{% url 'dashboard:messaging' %}" class="{% block n_messaging %}{% endblock %}">Messaging</a>
+      {% endif %}
+      {% if 'view_donations' in user.capabilities %}
+      <a href="{% url 'dashboard:finance_accounting' %}" class="{% block n_finance %}{% endblock %}">Finance &amp; Accounting</a>
+      <a href="{% url 'dashboard:accounting_core' %}" class="{% block n_accounting %}{% endblock %}">Statements &amp; Ledger</a>
+      {% endif %}
       <a href="{% url 'dashboard:applications' %}" class="{% block n_apps %}{% endblock %}">Applications</a>
       <a href="{% url 'dashboard:mentorship' %}" class="{% block n_mentor %}{% endblock %}">Mentorship</a>
 
@@ -49,7 +59,15 @@
       <a href="{% url 'dashboard:members' %}" class="{% block n_members %}{% endblock %}">Members</a>
       {% endif %}
       {% if 'manage_content' in user.capabilities %}
+      <div class="sep">Content Library</div>
+      <a href="{% url 'dashboard:programs_manage' %}" class="{% block n_programs %}{% endblock %}">Programs</a>
+      <a href="{% url 'dashboard:resources_manage' %}" class="{% block n_resources %}{% endblock %}">Resources</a>
+      <a href="{% url 'dashboard:speakers_manage' %}" class="{% block n_speakers %}{% endblock %}">Speakers</a>
+      <a href="{% url 'dashboard:leadership_manage' %}" class="{% block n_leadership %}{% endblock %}">Leadership</a>
       <a href="{% url 'dashboard:content' %}" class="{% block n_content %}{% endblock %}">Site CMS</a>
+      {% endif %}
+      {% if 'configure_integrations' in user.capabilities %}
+      <a href="{% url 'dashboard:integration_settings' %}" class="{% block n_integrations %}{% endblock %}">Integrations</a>
       {% endif %}
       {% if 'manage_contact' in user.capabilities %}
       <a href="{% url 'dashboard:enquiries' %}" class="{% block n_enquiries %}{% endblock %}">Enquiries</a>
@@ -57,7 +75,7 @@
       {% if 'view_audit' in user.capabilities %}
       <a href="{% url 'dashboard:audit' %}" class="{% block n_audit %}{% endblock %}">Audit Trail</a>
       {% endif %}
-      {% if user.is_staff %}<a href="/admin/">Django Admin</a>{% endif %}
+      {% if 'manage_users' in user.capabilities %}<a href="/admin/">Django Admin</a>{% endif %}
       {% endif %}
 
       <div class="sep">Account</div>
@@ -71,7 +89,7 @@
     {% if messages %}<ul class="messages" style="padding:0;margin:0 0 20px;">
       {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
     <div class="dash-head">
-      <div><h1>{% block dash_h1 %}{% block dash_title_inner %}Dashboard{% endblock %}{% endblock %}</h1>
+      <div><span class="dash-eyebrow">Dashboard</span><h1>{% block dash_h1 %}{% block dash_title_inner %}Dashboard{% endblock %}{% endblock %}</h1>
         <p>{% block dash_sub %}{% endblock %}</p></div>
       <div>{% block dash_actions %}{% endblock %}</div>
     </div>

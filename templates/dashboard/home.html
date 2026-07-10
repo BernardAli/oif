@@ -3,116 +3,156 @@
 {% block n_home %}active{% endblock %}
 {% block dash_title %}Overview{% endblock %}
 {% block dash_h1 %}Welcome, {{ user.first_name|default:user.username }}{% endblock %}
-{% block dash_sub %}Here's your {{ user.role_badge }} view of {{ ORG_NAME }}.{% endblock %}
+{% block dash_sub %}A role-aware operating view for {{ ORG_SHORT }}.{% endblock %}
 {% block dash_content %}
 
-{% if summary %}
-<div class="kpi-grid">
-  <div class="kpi"><div class="v">GHS {{ summary.total_raised|floatformat:0|intcomma }}</div><div class="l">Total raised</div></div>
-  <div class="kpi olive"><div class="v">{{ summary.total_users|intcomma }}</div><div class="l">Registered users</div></div>
-  <div class="kpi gold"><div class="v">{{ summary.registrations|intcomma }}</div><div class="l">Event registrations</div></div>
-  <div class="kpi ink"><div class="v">{{ summary.pending_applications }}</div><div class="l">Pending applications</div></div>
-</div>
-{% else %}
-<div class="kpi-grid">
-  <div class="kpi"><div class="v">{{ my.registrations }}</div><div class="l">My registrations</div></div>
-  <div class="kpi olive"><div class="v">GHS {{ my.donated|floatformat:0|intcomma }}</div><div class="l">My total giving</div></div>
-  <div class="kpi gold"><div class="v">{{ my.applications }}</div><div class="l">My applications</div></div>
-  {% if my.mentees is not None %}
-  <div class="kpi ink"><div class="v">{{ my.mentees }}</div><div class="l">Mentees assigned</div></div>
-  {% elif my.my_mentorship %}
-  <div class="kpi ink"><div class="v">{{ my.my_mentorship.progress_pct }}%</div><div class="l">My mentorship progress</div></div>
-  {% else %}
-  <div class="kpi ink"><div class="v">—</div><div class="l">No mentorship yet</div></div>
-  {% endif %}
-</div>
-{% endif %}
+<section class="dashboard-hero">
+  <div class="dashboard-hero-copy">
+    <span>{{ user.role_badge }}</span>
+    <h2>{{ ORG_NAME }}</h2>
+    <p>{{ ORG_TAGLINE }}</p>
+  </div>
+  <div class="dashboard-hero-grid">
+    {% if summary %}
+    <div><span>Total raised</span><strong>GHS {{ summary.total_raised|floatformat:2|intcomma }}</strong></div>
+    <div><span>Members</span><strong>{{ summary.total_users|intcomma }}</strong></div>
+    <div><span>Registrations</span><strong>{{ summary.registrations|intcomma }}</strong></div>
+    {% else %}
+    <div><span>My registrations</span><strong>{{ my.registrations }}</strong></div>
+    <div><span>My giving</span><strong>GHS {{ my.donated|floatformat:2|intcomma }}</strong></div>
+    <div><span>Applications</span><strong>{{ my.applications }}</strong></div>
+    {% endif %}
+  </div>
+</section>
 
 <div class="event-tabs dashboard-home-tabs" data-tabs>
-  <button class="prog-tab active" type="button" data-home-tab="overview">Overview</button>
-  <button class="prog-tab" type="button" data-home-tab="analytics">Analytics</button>
-  <button class="prog-tab" type="button" data-home-tab="events">Upcoming Events</button>
+  <button class="prog-tab active" type="button" data-home-tab="workspace">Workspace</button>
+  {% if finance_summary %}<button class="prog-tab" type="button" data-home-tab="finance">Finance</button>{% endif %}
+  <button class="prog-tab" type="button" data-home-tab="events">Latest Upcoming Events</button>
   <button class="prog-tab" type="button" data-home-tab="activity">My Activity</button>
 </div>
 
-<div class="tab-panel active" id="home-tab-overview">
-  <div class="dashboard-overview-grid">
+<div class="tab-panel active" id="home-tab-workspace">
+  <div class="home-command-grid">
+    <section class="home-panel command-panel">
+      <div class="home-panel-head">
+        <div><h2>Workspace</h2><p>Fast routes based on what your role can actually manage.</p></div>
+      </div>
+      <div class="quick-action-grid command-action-grid">
+        <a class="quick-action" href="{% url 'dashboard:events' %}"><strong>Events</strong><span>Registrations, attendance, and upcoming activity</span></a>
+        <a class="quick-action" href="{% url 'dashboard:donations' %}"><strong>Donations</strong><span>Your giving history and donation records</span></a>
+        <a class="quick-action" href="{% url 'dashboard:applications' %}"><strong>Applications</strong><span>Volunteer, mentor, mentee, and speaker applications</span></a>
+        <a class="quick-action" href="{% url 'dashboard:mentorship' %}"><strong>Mentorship</strong><span>Assignments, cohorts, and progress</span></a>
+        {% if 'view_donations' in user.capabilities %}
+        <a class="quick-action finance-action" href="{% url 'dashboard:finance_accounting' %}"><strong>Finance &amp; Accounting</strong><span>Ledger, income &amp; expenditure, expenses, and exports</span></a>
+        {% endif %}
+        {% if 'manage_members' in user.capabilities %}
+        <a class="quick-action" href="{% url 'dashboard:members' %}"><strong>Members</strong><span>Profiles, roles, engagement, and giving history</span></a>
+        {% endif %}
+        {% if 'manage_content' in user.capabilities %}
+        <a class="quick-action" href="{% url 'dashboard:programs_manage' %}"><strong>Content Library</strong><span>Programs, resources, speakers, and leadership</span></a>
+        <a class="quick-action" href="{% url 'dashboard:content' %}"><strong>Site CMS</strong><span>Branding, stats, media, testimonials, and policies</span></a>
+        {% endif %}
+        <a class="quick-action" href="{% url 'accounts:profile' %}"><strong>My Profile</strong><span>Photo, contact details, and public profile settings</span></a>
+      </div>
+    </section>
+
     <section class="home-panel">
       <div class="home-panel-head">
-        <div><h2>Command Center</h2><p>Your most important dashboard areas at a glance.</p></div>
+        <div><h2>Work Queue</h2><p>Open items that may need attention.</p></div>
       </div>
-      <div class="quick-action-grid">
-        <a class="quick-action" href="{% url 'dashboard:events' %}"><strong>Events</strong><span>Registrations, attendance, and event activity</span></a>
-        <a class="quick-action" href="{% url 'accounts:profile' %}"><strong>Profile</strong><span>Update your identity, contact details, and profile image</span></a>
-        <a class="quick-action" href="{% url 'dashboard:donations' %}"><strong>Donations</strong><span>Review giving records and donation status</span></a>
-        {% if 'manage_content' in user.capabilities %}
-        <a class="quick-action" href="{% url 'dashboard:content' %}"><strong>Site CMS</strong><span>Manage public content, branding, media, and policies</span></a>
+      <div class="queue-list">
+        {% if work_queue.pending_applications is not None %}
+        <a href="{% url 'dashboard:applications' %}"><span>Pending applications</span><strong>{{ work_queue.pending_applications|intcomma }}</strong></a>
+        {% endif %}
+        {% if finance_summary %}
+        <a href="{% url 'dashboard:finance_accounting' %}#finance-tab-reconcile"><span>Pending donations</span><strong>{{ finance_summary.pending|intcomma }}</strong></a>
+        <a href="{% url 'dashboard:finance_accounting' %}#finance-tab-reconcile"><span>Failed payments</span><strong>{{ finance_summary.failed|intcomma }}</strong></a>
+        <a href="{% url 'dashboard:finance_accounting' %}#finance-tab-expenses"><span>Draft expenses</span><strong>{{ finance_summary.pending_expenses|intcomma }}</strong></a>
+        <a href="{% url 'dashboard:finance_accounting' %}#finance-tab-ledger"><span>Receipts due</span><strong>{{ finance_summary.receipts_due|intcomma }}</strong></a>
+        {% endif %}
+        {% if work_queue.open_events is not None %}
+        <a href="{% url 'dashboard:events' %}"><span>Open event registrations</span><strong>{{ work_queue.open_events|intcomma }}</strong></a>
+        {% endif %}
+        {% if work_queue.new_enquiries is not None %}
+        <a href="{% url 'dashboard:enquiries' %}"><span>New enquiries</span><strong>{{ work_queue.new_enquiries|intcomma }}</strong></a>
+        {% endif %}
+        {% if not work_queue and not finance_summary %}
+        <div class="empty compact">No role-specific work queue items yet.</div>
         {% endif %}
       </div>
     </section>
-
-    <section class="home-panel">
-      <div class="home-panel-head">
-        <div><h2>Next Events</h2><p>Upcoming public events currently on the calendar.</p></div>
-        <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">View all</a>
-      </div>
-      {% if upcoming_events %}
-      <div class="mini-event-list">
-        {% for e in upcoming_events %}
-        <a href="{% url 'dashboard:events' %}" class="mini-event">
-          <span>{{ e.get_kind_display }}</span>
-          <strong>{{ e.title }}</strong>
-          <small>{{ e.starts_at|date:"M j, Y · g:i A" }}</small>
-        </a>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="empty compact">No upcoming events scheduled.</div>
-      {% endif %}
-    </section>
   </div>
 </div>
 
-<div class="tab-panel" id="home-tab-analytics">
-  <div class="dash-section tabbed-section">
+{% if finance_summary %}
+<div class="tab-panel" id="home-tab-finance">
+  <section class="finance-strip">
+    <div><span>Income</span><strong>GHS {{ finance_summary.raised|floatformat:2|intcomma }}</strong></div>
+    <div><span>Expenditure</span><strong>GHS {{ finance_summary.spent|floatformat:2|intcomma }}</strong></div>
+    <div><span>Net position</span><strong>GHS {{ finance_summary.net|floatformat:2|intcomma }}</strong></div>
+    <div><span>Cash &amp; bank</span><strong>GHS {{ finance_summary.cash_balance|floatformat:2|intcomma }}</strong></div>
+  </section>
+  <section class="home-panel">
     <div class="home-panel-head">
-      <div><h2>Analytics</h2><p>Role-based reporting panels load automatically for your account.</p></div>
+      <div><h2>Finance Controls</h2><p>Review income, expenditure, cash accounts, expenses, reconciliation queues, and exports.</p></div>
+      <a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Open finance</a>
     </div>
-    <div class="chart-grid" id="chartGrid">
-      <div class="empty full" id="chartLoading">Loading analytics...</div>
+    <div class="quick-action-grid">
+      <a class="quick-action" href="{% url 'dashboard:finance_accounting' %}#finance-tab-income-expenditure"><strong>Income &amp; Expenditure</strong><span>Monthly income, posted expenses, and net position</span></a>
+      <a class="quick-action" href="{% url 'dashboard:finance_accounting' %}#finance-tab-cash-bank"><strong>Cash &amp; Bank</strong><span>{{ finance_summary.cash_accounts|intcomma }} active accounts, balances, transfers, and cash movements</span></a>
+      <a class="quick-action" href="{% url 'dashboard:finance_accounting' %}#finance-tab-expenses"><strong>Expenses</strong><span>Draft, approved, paid, and void expense records</span></a>
+      <a class="quick-action" href="{% url 'dashboard:finance_accounting' %}#finance-tab-reconcile"><strong>Reconciliation</strong><span>Pending donations and failed payments</span></a>
+      <a class="quick-action" href="{% url 'dashboard:finance_export' %}"><strong>Export CSV</strong><span>Download income and expenditure ledger</span></a>
     </div>
-  </div>
+  </section>
 </div>
+{% endif %}
 
 <div class="tab-panel" id="home-tab-events">
-  <div class="dash-section tabbed-section">
+  <section class="latest-events-section">
     <div class="home-panel-head">
-      <div><h2>Upcoming Events</h2><p>Events published and scheduled for the public website.</p></div>
+      <div><h2>Latest Upcoming Events</h2><p>Published events coming up next, pulled from the current event calendar.</p></div>
       <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">Open events</a>
     </div>
     {% if upcoming_events %}
-    <table class="dtable">
-      <thead><tr><th>Event</th><th>Type</th><th>When</th><th></th></tr></thead>
-      <tbody>
+    <div class="latest-event-grid">
       {% for e in upcoming_events %}
-        <tr><td>{{ e.title }}</td><td>{{ e.get_kind_display }}</td>
-          <td>{{ e.starts_at|date:"M j, Y · g:i A" }}</td>
-          <td><a class="btn-sm ghost" href="{% url 'dashboard:events' %}">View</a></td></tr>
+      <article class="latest-event-card {% if forloop.first %}featured{% endif %}">
+        <div class="latest-event-date">
+          <span>{{ e.starts_at|date:"M" }}</span>
+          <strong>{{ e.starts_at|date:"j" }}</strong>
+        </div>
+        <div class="latest-event-body">
+          <span>{{ e.get_kind_display }}{% if e.program %} · {{ e.program.get_wing_display }}{% endif %}</span>
+          <h3>{{ e.title }}</h3>
+          <p>{{ e.starts_at|date:"l, F j, Y · g:i A" }} · {{ e.location }}</p>
+          <div class="latest-event-meta">
+            <small>{{ e.active_registrations|default:0 }} active registrations</small>
+            {% if e.seats_left is None %}<small>Unlimited seats</small>{% else %}<small>{{ e.seats_left }} seats left</small>{% endif %}
+          </div>
+          <div class="action-row">
+            <a class="btn-sm ghost" href="{% url 'pages:event_detail' e.slug %}">Public page</a>
+            <a class="btn-sm" href="{% url 'dashboard:events' %}">Manage</a>
+          </div>
+        </div>
+      </article>
       {% endfor %}
-      </tbody>
-    </table>
-    {% else %}<div class="empty">No upcoming events scheduled.</div>{% endif %}
-  </div>
+    </div>
+    {% else %}
+    <div class="empty">No upcoming events are currently published.</div>
+    {% endif %}
+  </section>
 </div>
 
 <div class="tab-panel" id="home-tab-activity">
-  <div class="dash-section tabbed-section">
+  <section class="home-panel">
     <div class="home-panel-head">
-      <div><h2>My Activity</h2><p>Your personal registrations, giving, applications, and mentorship status.</p></div>
+      <div><h2>My Activity</h2><p>Your personal activity across registrations, giving, applications, and mentorship.</p></div>
     </div>
     <div class="activity-grid">
       <div class="activity-card"><span>Registrations</span><strong>{{ my.registrations }}</strong><a href="{% url 'dashboard:events' %}">Manage events</a></div>
-      <div class="activity-card"><span>Total giving</span><strong>GHS {{ my.donated|floatformat:0|intcomma }}</strong><a href="{% url 'dashboard:donations' %}">View donations</a></div>
+      <div class="activity-card"><span>Total giving</span><strong>GHS {{ my.donated|floatformat:2|intcomma }}</strong><a href="{% url 'dashboard:donations' %}">View donations</a></div>
       <div class="activity-card"><span>Applications</span><strong>{{ my.applications }}</strong><a href="{% url 'engagement:apply' %}">Open application</a></div>
       {% if my.mentees is not None %}
       <div class="activity-card"><span>Mentees assigned</span><strong>{{ my.mentees }}</strong><a href="{% url 'dashboard:mentorship' %}">Open mentorship</a></div>
@@ -122,44 +162,18 @@
       <div class="activity-card"><span>Mentorship</span><strong>Not started</strong><a href="{% url 'engagement:apply' %}">Apply now</a></div>
       {% endif %}
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}
 
 {% block dash_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-{% include "dashboard/_echarts_theme.html" %}
 <script>
-function card(p){
-  const wrap=document.createElement('div');
-  wrap.className='chart-card chart-card-pro'+(p.type==='stacked_bar'||p.id==='member_growth'?' full':'');
-  wrap.innerHTML='<div class="chart-card-head"><span>Analytics</span><h3>'+p.title+'</h3></div><div class="chart-box" id="c_'+p.id+'"></div>';
-  return wrap;
-}
-
-fetch("{% url 'dashboard:analytics_api' %}").then(r=>r.json()).then(data=>{
-  const grid=document.getElementById('chartGrid');
-  document.getElementById('chartLoading').remove();
-  if(!data.panels.length){ grid.innerHTML='<div class="empty full">No analytics available for your role yet.</div>'; return; }
-  data.panels.forEach(p=>{
-    grid.appendChild(card(p));
-    let opt;
-    if(p.type==='line') opt=OIFCharts.line(p.payload);
-    else if(p.type==='bar') opt=OIFCharts.bar(p.payload);
-    else if(p.type==='pie') opt=OIFCharts.pie(p.payload);
-    else if(p.type==='stacked_bar') opt=OIFCharts.stacked(p.payload);
-    const chart=OIFCharts.init(document.getElementById('c_'+p.id), opt);
-    window.addEventListener('resize',()=>chart.resize());
+  document.querySelectorAll('[data-home-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.homeTab;
+      document.querySelectorAll('[data-home-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="home-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'home-tab-' + name); });
+    });
   });
-}).catch(e=>{ document.getElementById('chartGrid').innerHTML=
-  '<div class="empty full">Could not load analytics.</div>'; console.error(e); });
-
-document.querySelectorAll('[data-home-tab]').forEach(function(tab){
-  tab.addEventListener('click', function(){
-    var name = tab.dataset.homeTab;
-    document.querySelectorAll('[data-home-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
-    document.querySelectorAll('[id^="home-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'home-tab-' + name); });
-  });
-});
 </script>
 {% endblock %}

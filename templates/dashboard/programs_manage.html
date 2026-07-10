@@ -1,0 +1,68 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_programs %}active{% endblock %}
+{% block dash_title %}Programs{% endblock %}
+{% block dash_h1 %}Programs{% endblock %}
+{% block dash_sub %}Manage public program wings, positioning, imagery, visibility, and order.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'pages:programs' %}">Preview programs</a>
+  <a class="btn-sm" href="{% url 'dashboard:program_create' %}">Add program</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.programs|intcomma }}</div><div class="l">Program wings</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.active|intcomma }}</div><div class="l">Active</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.resources|intcomma }}</div><div class="l">Attached resources</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.events|intcomma }}</div><div class="l">Linked events</div></div>
+</div>
+
+<form class="management-toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search programs">
+  <select name="status">
+    <option value="">All statuses</option>
+    <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+    <option value="hidden" {% if status == "hidden" %}selected{% endif %}>Hidden</option>
+  </select>
+  <button class="btn-sm ghost" type="submit">Filter</button>
+</form>
+
+<div class="management-card-grid">
+  {% for p in programs %}
+  <article class="management-card program-management-card">
+    <div class="management-card-media">
+      {% if p.image %}
+      <img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">
+      {% else %}
+      <span>{{ p.get_wing_display|slice:":1" }}</span>
+      {% endif %}
+    </div>
+    <div class="management-card-body">
+      <div class="management-card-topline">
+        <span>{{ p.get_wing_display }}</span>
+        {% if p.is_active %}<b class="badge green">Active</b>{% else %}<b class="badge grey">Hidden</b>{% endif %}
+      </div>
+      <h2>{{ p.headline }}</h2>
+      <p>{{ p.description|truncatechars:170 }}</p>
+      <div class="management-metrics">
+        <div><strong>{{ p.resource_count }}</strong><small>Resources</small></div>
+        <div><strong>{{ p.event_count }}</strong><small>Events</small></div>
+        <div><strong>{{ p.gallery_count }}</strong><small>Gallery</small></div>
+      </div>
+      <div class="table-actions">
+        <a class="btn-sm ghost" href="{% url 'pages:program_detail' p.wing %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:program_edit' p.pk %}">Edit</a>
+        <form class="inline-action-form" method="post" action="{% url 'dashboard:program_delete' p.pk %}" onsubmit="return confirm('Delete this program? Attached resources will be removed, while linked events, gallery items, and mentorship records will be unlinked.');">
+          {% csrf_token %}
+          <button class="btn-sm red" type="submit">Delete</button>
+        </form>
+      </div>
+    </div>
+  </article>
+  {% empty %}
+  <div class="empty">No programs match this view.</div>
+  {% endfor %}
+</div>
+{% include "dashboard/_pagination.html" with page_obj=programs page_param="programs_page" %}
+{% endblock %}

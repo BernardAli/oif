@@ -5,3 +5,5 @@ python-dotenv==1.0.1
 Pillow>=10.0
 # psycopg[binary] is only required when using PostgreSQL via DATABASE_URL
 psycopg[binary]==3.2.3
+# Production WSGI server
+gunicorn>=23.0,<24.0

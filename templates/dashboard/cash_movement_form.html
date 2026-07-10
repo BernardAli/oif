@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+{% block n_finance %}active{% endblock %}
+{% block dash_title %}{{ mode }} Cash Movement{% endblock %}
+{% block dash_h1 %}{{ mode }} Cash Movement{% endblock %}
+{% block dash_sub %}Record deposits, withdrawals, transfers, bank charges, payment clearing, and reconciliation adjustments.{% endblock %}
+{% block dash_actions %}
+<a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Back to Finance</a>
+{% endblock %}
+{% block dash_content %}
+<div class="cms-form-layout management-form-layout">
+  <aside class="cms-form-aside management-form-aside">
+    <span>Movement control</span>
+    <h2>{{ mode }} movement</h2>
+    <p>Draft movements stay in review. Posted movements affect book balances immediately. Transfers require a different destination account using the same currency.</p>
+  </aside>
+  <div class="form-card wide dash-form-card">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}
+        <div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
+      {% endfor %}
+      <div class="form-actions">
+        <button class="btn-sm" type="submit">Save movement</button>
+        <a class="btn-sm ghost" href="{% url 'dashboard:finance_accounting' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

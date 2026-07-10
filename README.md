@@ -174,6 +174,8 @@ Donations support:
 - Donation status pages.
 - Email receipts.
 - Dashboard reconciliation and status controls.
+- Signed Paystack webhook reconciliation when donors do not return to the callback.
+- CMS-managed Paystack enablement, public/secret keys, webhook secret, and demo mode.
 
 Configure Paystack in `.env`:
 
@@ -181,6 +183,50 @@ Configure Paystack in `.env`:
 PAYSTACK_SECRET_KEY=sk_test_xxx
 PAYSTACK_PUBLIC_KEY=pk_test_xxx
 ```
+
+Alternatively, an account with `configure_integrations` can use **Site CMS →
+Integrations**. Configure the Paystack dashboard webhook with the URL shown on
+that screen (`/donations/webhook/`). Pending donations can also be reconciled in
+bulk from the Donations dashboard.
+
+## Messaging
+
+The role-aware Messaging Centre supports:
+
+- Email, SMS, WhatsApp, or combined multi-channel campaigns.
+- Arkesel and Hubtel SMS providers with selectable sender ID.
+- WhatsApp Cloud API text delivery.
+- Reusable templates and recipient placeholders.
+- All-member, marketing-consent, role, event-registration, newsletter, and
+  custom-recipient audiences.
+- Per-recipient sent, failed, and skipped delivery records with provider IDs.
+- Draft campaigns, immediate delivery, repeat sends, and audit logging.
+
+Communications staff can compose campaigns, leadership can receive reporting
+access, and only users with `configure_integrations` can edit provider secrets.
+SMS, WhatsApp, Email, and Paystack settings live in **Site CMS → Integrations**.
+
+## Finance, Accounting, and Management Reporting
+
+The finance workspace combines operational cash control with a double-entry
+accounting ledger. It includes:
+
+- A configurable chart of accounts with asset, liability, net asset, income,
+  and expense classifications.
+- Unrestricted, temporarily restricted, and permanently restricted funds.
+- Non-overlapping fiscal periods, closing controls, and posting locks.
+- Balanced general journals with approval, posting, and auditable reversals.
+- Idempotent accounting automation for successful donations and approved
+  expenses.
+- Account-level budgets by fiscal period and fund, including budget-versus-
+  actual variance reporting.
+- Bank reconciliation preparation and zero-difference approval controls.
+- Trial balance, income and expenditure, statement of financial position,
+  operating margin, current ratio, and accounting exception reporting.
+- Finance and management-report CSV exports with two-decimal monetary values.
+
+Finance users manage day-to-day records under **Finance & Accounting** and open
+formal statements and ledger controls under **Statements & Ledger**.
 
 ## Email
 
@@ -249,6 +295,11 @@ DATABASE_URL=postgres://user:password@host:5432/dbname
 Optional production hardening is auto-enabled when `DJANGO_DEBUG=False`; see
 `oif_site/settings.py` and `.env.example`.
 
+Simulated successful donations are controlled separately. Keep
+`PAYSTACK_DEMO_MODE=False` outside an intentional demo environment. If Paystack
+is unavailable while demo mode is disabled, online donations fail closed rather
+than being recorded as successful.
+
 ## Project Layout
 
 ```text
@@ -262,6 +313,10 @@ templates/    public, dashboard, accounts, engagement, donation templates
 static/css/   responsive site and dashboard design system
 media/        local uploaded/generated development media
 ```
+
+Dashboard reporting and cash-balance calculations live in
+`dashboard/reporting.py`. New reporting and accounting calculations should stay
+there so the HTTP view layer remains focused on request handling.
 
 ## Useful Commands
 
@@ -282,8 +337,6 @@ Run:
 python manage.py test
 ```
 
-Current suite: **55 tests**.
-
 Coverage includes public page rendering, role capabilities, dashboard access,
 events, applications, donations, member management, CMS profile/branding,
 gallery lightbox markup, gallery delete behavior, password reset, avatar upload,
@@ -301,10 +354,18 @@ Recommended production checklist:
 - Use PostgreSQL through `DATABASE_URL`.
 - Configure SMTP email.
 - Configure Paystack keys.
+- Set `PAYSTACK_DEMO_MODE=False`.
+- Run `python manage.py check --deploy` and resolve every error.
+- Run `python manage.py makemigrations --check --dry-run`.
+- Run `python manage.py test`.
 - Run `python manage.py migrate`.
 - Run `python manage.py collectstatic`.
 - Configure persistent media storage/backups.
 - Replace placeholder policies and sample media with final organization assets.
+
+The included `Dockerfile` runs the project with Gunicorn, the `Procfile`
+supports process-based hosts, and `.github/workflows/test.yml` runs checks,
+migration drift detection, and the full test suite for pushes and pull requests.
 
 ## Notes
 

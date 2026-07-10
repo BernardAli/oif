@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+{% block n_messaging %}active{% endblock %}
+{% block dash_title %}Messaging{% endblock %}
+{% block dash_h1 %}Messaging centre{% endblock %}
+{% block dash_sub %}Plan campaigns, reach the right audience, and understand every delivery.{% endblock %}
+{% block dash_actions %}
+{% if can_send %}<div class="action-row"><a class="btn-sm ghost" href="{% url 'dashboard:message_template_create' %}">New template</a><a class="btn-sm" href="{% url 'dashboard:campaign_create' %}">Compose campaign</a></div>{% endif %}
+{% endblock %}
+{% block dash_content %}
+<section class="messaging-hero">
+  <div class="messaging-hero-main">
+    <span class="messaging-eyebrow">Communications workspace</span>
+    <h2>One message. Every channel. Complete visibility.</h2>
+    <p>Coordinate member updates, event reminders, newsletters, and targeted outreach through Email, SMS, and WhatsApp.</p>
+    {% if can_send %}<div class="messaging-hero-actions"><a class="messaging-primary-action" href="{% url 'dashboard:campaign_create' %}"><span>＋</span><div><strong>Start a campaign</strong><small>Choose an audience and delivery channels</small></div></a><a class="messaging-secondary-action" href="{% url 'dashboard:message_template_create' %}">Build a reusable template →</a></div>{% endif %}
+  </div>
+  <div class="messaging-performance">
+    <span>Overall delivery rate</span>
+    <strong>{{ totals.delivery_rate }}<small>%</small></strong>
+    <div class="delivery-meter"><i style="width:{{ totals.delivery_rate }}%"></i></div>
+    <div><small>{{ totals.sent }} delivered</small><small>{{ totals.failed }} failed</small></div>
+  </div>
+</section>
+
+<div class="messaging-kpis">
+  <article><span class="message-kpi-icon campaigns">↗</span><div><small>Total campaigns</small><strong>{{ totals.campaigns }}</strong><em>Across every audience</em></div></article>
+  <article><span class="message-kpi-icon sent">✓</span><div><small>Sent deliveries</small><strong>{{ totals.sent }}</strong><em>Accepted by providers</em></div></article>
+  <article><span class="message-kpi-icon failed">!</span><div><small>Needs attention</small><strong>{{ totals.failed }}</strong><em>{{ totals.pending }} still pending</em></div></article>
+  <article><span class="message-kpi-icon templates">T</span><div><small>Active templates</small><strong>{{ templates_count }}</strong><em>Ready to reuse</em></div></article>
+</div>
+
+<section class="channel-readiness">
+  <div class="channel-readiness-head"><div><span>Channel readiness</span><h2>Delivery infrastructure</h2></div>{% if can_configure %}<a href="{% url 'dashboard:integration_settings' %}">Manage integrations →</a>{% endif %}</div>
+  <div class="channel-readiness-grid">
+    <article class="channel-card email {% if channel_status.email %}ready{% endif %}"><span class="channel-card-icon">@</span><div><strong>Email</strong><small>Deployment SMTP</small></div><b>{% if channel_status.email %}Ready{% else %}Disabled{% endif %}</b></article>
+    <article class="channel-card sms {% if channel_status.sms %}ready{% endif %}"><span class="channel-card-icon">SMS</span><div><strong>SMS</strong><small>{{ channel_status.sms_provider }}</small></div><b>{% if channel_status.sms %}Ready{% else %}Setup needed{% endif %}</b></article>
+    <article class="channel-card whatsapp {% if channel_status.whatsapp %}ready{% endif %}"><span class="channel-card-icon">WA</span><div><strong>WhatsApp</strong><small>Cloud API</small></div><b>{% if channel_status.whatsapp %}Ready{% else %}Setup needed{% endif %}</b></article>
+    <article class="channel-card multi {% if channel_status.email and channel_status.sms and channel_status.whatsapp %}ready{% endif %}"><span class="channel-card-icon">＋</span><div><strong>Multi-channel</strong><small>Email · SMS · WhatsApp</small></div><b>{% if channel_status.email and channel_status.sms and channel_status.whatsapp %}Ready{% else %}Partial{% endif %}</b></article>
+  </div>
+</section>
+
+<section class="message-workspace">
+  <div class="message-workspace-head"><div><span>Campaign operations</span><h2>Campaign history</h2><p>Search, filter, and open complete per-recipient delivery reports.</p></div></div>
+  <form class="message-filterbar" method="get">
+    <label class="message-search"><span>⌕</span><input type="search" name="q" value="{{ q }}" placeholder="Search title, subject, content, or sender"></label>
+    <select name="channel" aria-label="Filter by channel"><option value="">All channels</option>{% for value, label in channel_choices %}<option value="{{ value }}" {% if channel == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select name="status" aria-label="Filter by status"><option value="">All statuses</option>{% for value, label in status_choices %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="btn-sm" type="submit">Apply filters</button>
+    {% if q or channel or status %}<a class="btn-sm ghost" href="{% url 'dashboard:messaging' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="campaign-list">
+    {% for campaign in campaigns %}
+    <article class="campaign-row">
+      <span class="campaign-channel-icon {{ campaign.channel|lower }}">{% if campaign.channel == 'EMAIL' %}@{% elif campaign.channel == 'SMS' %}SMS{% elif campaign.channel == 'WHATSAPP' %}WA{% else %}＋{% endif %}</span>
+      <div class="campaign-identity"><div><h3>{{ campaign.title }}</h3><span class="campaign-status {{ campaign.status|lower }}">{{ campaign.get_status_display }}</span></div><p>{{ campaign.subject|default:campaign.body|truncatechars:105 }}</p><small>Created {{ campaign.created_at|date:"d M Y, H:i" }}{% if campaign.created_by %} by {{ campaign.created_by }}{% endif %}</small></div>
+      <div class="campaign-audience"><span>Audience</span><strong>{{ campaign.get_audience_display }}</strong>{% if campaign.event %}<small>{{ campaign.event.title|truncatechars:30 }}</small>{% endif %}</div>
+      <div class="campaign-delivery"><span>Delivery</span><div><b>{{ campaign.deliveries_sent }}</b><small>sent</small>{% if campaign.deliveries_failed %}<b class="danger">{{ campaign.deliveries_failed }}</b><small>failed</small>{% endif %}</div><i><em style="width:{% widthratio campaign.deliveries_sent campaign.deliveries_total 100 %}%"></em></i></div>
+      <a class="campaign-report-link" href="{% url 'dashboard:campaign_detail' campaign.pk %}">View report <span>→</span></a>
+    </article>
+    {% empty %}
+    <div class="message-empty"><span>✦</span><h3>No campaigns found</h3><p>{% if q or channel or status %}Try changing your filters or clearing the search.{% else %}Create your first campaign to begin communicating across the platform.{% endif %}</p>{% if can_send %}<a class="btn-sm" href="{% url 'dashboard:campaign_create' %}">Compose campaign</a>{% endif %}</div>
+    {% endfor %}
+  </div>
+  {% include "dashboard/_pagination.html" with page_obj=campaigns page_param="campaigns_page" %}
+</section>
+
+<div class="messaging-lower-grid">
+  <section class="message-workspace template-library">
+    <div class="message-workspace-head"><div><span>Content library</span><h2>Reusable templates</h2><p>Personalized starting points for recurring communication.</p></div>{% if can_send %}<a href="{% url 'dashboard:message_template_create' %}">Add template →</a>{% endif %}</div>
+    <div class="message-template-list">{% for template in templates %}<article><span class="template-letter">{{ template.name|slice:":1" }}</span><div><div><h3>{{ template.name }}</h3>{% if template.is_active %}<b>Active</b>{% else %}<b class="inactive">Inactive</b>{% endif %}</div><p>{{ template.body|truncatechars:115 }}</p><small>Updated {{ template.updated_at|date:"d M Y" }}</small></div>{% if can_send %}<a href="{% url 'dashboard:message_template_edit' template.pk %}" aria-label="Edit {{ template.name }}">→</a>{% endif %}</article>{% empty %}<div class="message-empty compact"><p>No reusable templates have been created.</p></div>{% endfor %}</div>
+  </section>
+  <aside class="message-workspace failure-panel">
+    <div class="message-workspace-head"><div><span>Delivery health</span><h2>Recent failures</h2><p>Latest provider errors requiring review.</p></div></div>
+    <div class="failure-list">{% for item in recent_failures %}<a href="{% url 'dashboard:campaign_detail' item.campaign_id %}"><span class="failure-symbol">!</span><div><strong>{{ item.recipient|default:"Missing destination" }}</strong><p>{{ item.error|truncatechars:90 }}</p><small>{{ item.get_channel_display }} · {{ item.created_at|timesince }} ago</small></div><b>→</b></a>{% empty %}<div class="healthy-state"><span>✓</span><strong>No recent delivery failures</strong><p>Your tracked deliveries are looking healthy.</p></div>{% endfor %}</div>
+  </aside>
+</div>
+{% endblock %}

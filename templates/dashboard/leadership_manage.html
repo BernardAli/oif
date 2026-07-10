@@ -1,0 +1,65 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_leadership %}active{% endblock %}
+{% block dash_title %}Leadership{% endblock %}
+{% block dash_h1 %}Leadership{% endblock %}
+{% block dash_sub %}Manage governance, executive, director, and secretary profiles for the public leadership page.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'pages:leadership' %}">Preview leadership</a>
+  <a class="btn-sm" href="{% url 'dashboard:leadership_create' %}">Add profile</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.leaders|intcomma }}</div><div class="l">Profiles</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.executive|intcomma }}</div><div class="l">Executive</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.directors|intcomma }}</div><div class="l">Directors</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.photos|intcomma }}</div><div class="l">With photos</div></div>
+</div>
+
+<form class="management-toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search leadership">
+  <select name="position">
+    <option value="">All positions</option>
+    {% for value,label in position_choices %}
+    <option value="{{ value }}" {% if position == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn-sm ghost" type="submit">Filter</button>
+</form>
+
+<div class="profile-management-grid">
+  {% for t in team_members %}
+  <article class="profile-management-card leadership-management-card">
+    <div class="profile-management-photo">
+      {% if t.photo %}
+      <img src="{{ t.photo.url }}" alt="{{ t.name }}">
+      {% else %}
+      <span>{{ t.name|slice:":1" }}</span>
+      {% endif %}
+    </div>
+    <div class="profile-management-body">
+      <div class="management-card-topline">
+        <span>{{ t.get_position_display }}</span>
+        <b class="badge grey">Order {{ t.order }}</b>
+      </div>
+      <h2>{{ t.name }}</h2>
+      <p>{{ t.title|default:"No title set" }}{% if t.credential %} · {{ t.credential }}{% endif %}</p>
+      {% if t.bio %}<small class="profile-management-bio">{{ t.bio|truncatechars:135 }}</small>{% endif %}
+      <div class="table-actions">
+        <a class="btn-sm ghost" href="{% url 'pages:leadership' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:leadership_edit' t.pk %}">Edit</a>
+        <form class="inline-action-form" method="post" action="{% url 'dashboard:leadership_delete' t.pk %}" onsubmit="return confirm('Delete this leadership profile?');">
+          {% csrf_token %}
+          <button class="btn-sm red" type="submit">Delete</button>
+        </form>
+      </div>
+    </div>
+  </article>
+  {% empty %}
+  <div class="empty">No leadership profiles match this view.</div>
+  {% endfor %}
+</div>
+{% include "dashboard/_pagination.html" with page_obj=team_members page_param="team_page" %}
+{% endblock %}

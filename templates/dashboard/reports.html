@@ -1,0 +1,285 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_reports %}active{% endblock %}
+{% block dash_title %}Reports{% endblock %}
+{% block dash_h1 %}Reports{% endblock %}
+{% block dash_sub %}Board-ready operational, finance, event, people, content, and engagement reporting for the selected period.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=all&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export all CSV</a>
+  <a class="btn-sm" href="{% url 'dashboard:reports' %}">Reset period</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<form class="reports-filter management-toolbar" method="get">
+  <label>From <input type="date" name="start" value="{{ period.start|date:'Y-m-d' }}"></label>
+  <label>To <input type="date" name="end" value="{{ period.end|date:'Y-m-d' }}"></label>
+  <button class="btn-sm ghost" type="submit">Apply period</button>
+</form>
+
+<section class="reports-hero">
+  <div>
+    <span>Reporting period</span>
+    <strong>{{ period.start|date:"M j, Y" }} - {{ period.end|date:"M j, Y" }}</strong>
+    <small>{{ period.days|intcomma }} days of role-compliant dashboard reporting</small>
+  </div>
+  <div class="reports-hero-grid">
+    {% if executive_report %}<div><span>Total users</span><b>{{ executive_report.summary.total_users|intcomma }}</b></div>{% endif %}
+    {% if finance_report %}<div><span>Net position</span><b>GHS {{ finance_report.net|floatformat:2|intcomma }}</b></div>{% endif %}
+    {% if events_report %}<div><span>Registrations</span><b>{{ events_report.registrations|intcomma }}</b></div>{% endif %}
+    {% if engagement_report %}<div><span>Open enquiries</span><b>{{ engagement_report.new_messages|add:engagement_report.open_partners|intcomma }}</b></div>{% endif %}
+  </div>
+</section>
+
+<div class="event-tabs reports-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-reports-tab="summary">Summary</button>
+  {% if report_permissions.finance %}<button class="prog-tab" type="button" data-reports-tab="finance">Finance</button>{% endif %}
+  {% if report_permissions.events %}<button class="prog-tab" type="button" data-reports-tab="events">Events</button>{% endif %}
+  {% if report_permissions.people %}<button class="prog-tab" type="button" data-reports-tab="people">People</button>{% endif %}
+  {% if report_permissions.content %}<button class="prog-tab" type="button" data-reports-tab="content">Content</button>{% endif %}
+  {% if report_permissions.engagement %}<button class="prog-tab" type="button" data-reports-tab="engagement">Engagement</button>{% endif %}
+</div>
+
+<div class="tab-panel active" id="reports-tab-summary">
+  <div class="report-card-grid">
+    {% if executive_report %}
+    <article class="report-card">
+      <span>Executive</span>
+      <h2>Organization snapshot</h2>
+      <div class="report-metric-list">
+        <div><small>Total raised</small><strong>GHS {{ executive_report.summary.total_raised|floatformat:2|intcomma }}</strong></div>
+        <div><small>Members</small><strong>{{ executive_report.summary.member_count|intcomma }}</strong></div>
+        <div><small>Active events</small><strong>{{ executive_report.summary.active_events|intcomma }}</strong></div>
+        <div><small>Pending applications</small><strong>{{ executive_report.summary.pending_applications|intcomma }}</strong></div>
+      </div>
+    </article>
+    {% endif %}
+    {% if finance_report %}
+    <article class="report-card">
+      <span>Finance</span>
+      <h2>Income and cash health</h2>
+      <div class="report-metric-list">
+        <div><small>Income</small><strong>GHS {{ finance_report.income|floatformat:2|intcomma }}</strong></div>
+        <div><small>Expenditure</small><strong>GHS {{ finance_report.expenses|floatformat:2|intcomma }}</strong></div>
+        <div><small>Cash &amp; bank</small><strong>GHS {{ finance_report.cash_balance|floatformat:2|intcomma }}</strong></div>
+        <div><small>Receipts due</small><strong>{{ finance_report.receipts_due|intcomma }}</strong></div>
+      </div>
+    </article>
+    {% endif %}
+    {% if events_report %}
+    <article class="report-card">
+      <span>Events</span>
+      <h2>Participation performance</h2>
+      <div class="report-metric-list">
+        <div><small>Events</small><strong>{{ events_report.events|intcomma }}</strong></div>
+        <div><small>Registrations</small><strong>{{ events_report.registrations|intcomma }}</strong></div>
+        <div><small>Attended</small><strong>{{ events_report.attended|intcomma }}</strong></div>
+        <div><small>Attendance rate</small><strong>{{ events_report.attendance_rate }}%</strong></div>
+      </div>
+    </article>
+    {% endif %}
+    {% if people_report %}
+    <article class="report-card">
+      <span>People</span>
+      <h2>Membership and pathways</h2>
+      <div class="report-metric-list">
+        <div><small>New users</small><strong>{{ people_report.new_users|intcomma }}</strong></div>
+        <div><small>Applications</small><strong>{{ people_report.applications|intcomma }}</strong></div>
+        <div><small>Pending</small><strong>{{ people_report.pending_applications|intcomma }}</strong></div>
+        <div><small>Mentorships</small><strong>{{ people_report.mentorships|intcomma }}</strong></div>
+      </div>
+    </article>
+    {% endif %}
+    {% if content_report %}
+    <article class="report-card">
+      <span>Content</span>
+      <h2>Public site readiness</h2>
+      <div class="report-metric-list">
+        <div><small>Programs</small><strong>{{ content_report.totals.programs|intcomma }}</strong></div>
+        <div><small>Resources</small><strong>{{ content_report.totals.resources|intcomma }}</strong></div>
+        <div><small>Speakers</small><strong>{{ content_report.totals.speakers|intcomma }}</strong></div>
+        <div><small>Policy placeholders</small><strong>{{ content_report.policy_placeholders|intcomma }}</strong></div>
+      </div>
+    </article>
+    {% endif %}
+    {% if engagement_report %}
+    <article class="report-card">
+      <span>Engagement</span>
+      <h2>Inbound pipeline</h2>
+      <div class="report-metric-list">
+        <div><small>Messages</small><strong>{{ engagement_report.messages|intcomma }}</strong></div>
+        <div><small>Partners</small><strong>{{ engagement_report.partners|intcomma }}</strong></div>
+        <div><small>Newsletter signups</small><strong>{{ engagement_report.newsletter_signups|intcomma }}</strong></div>
+        <div><small>Active mailing list</small><strong>{{ engagement_report.active_newsletter|intcomma }}</strong></div>
+      </div>
+    </article>
+    {% endif %}
+  </div>
+</div>
+
+{% if finance_report %}
+<div class="tab-panel" id="reports-tab-finance">
+  <div class="reports-section-head"><div><h2>Finance report</h2><p>Income, expenditure, campaign performance, cash position, and receipt controls.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=finance&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export finance</a></div>
+  <div class="cash-bank-summary">
+    <div><span>Income</span><strong>GHS {{ finance_report.income|floatformat:2|intcomma }}</strong><small>{{ finance_report.successful_gifts|intcomma }} successful gifts</small></div>
+    <div><span>Expenditure</span><strong>GHS {{ finance_report.expenses|floatformat:2|intcomma }}</strong><small>Approved and paid expenses</small></div>
+    <div><span>Net</span><strong>GHS {{ finance_report.net|floatformat:2|intcomma }}</strong><small>Income minus expenditure</small></div>
+    <div><span>Cash &amp; bank</span><strong>GHS {{ finance_report.cash_balance|floatformat:2|intcomma }}</strong><small>Current book balance</small></div>
+  </div>
+  {% if accounting_report %}<div class="accounting-health-grid">
+    <div><span>Ledger income</span><strong>GHS {{ accounting_report.income|floatformat:2|intcomma }}</strong></div>
+    <div><span>Operating margin</span><strong>{{ accounting_report.operating_margin }}%</strong></div>
+    <div><span>Current ratio</span><strong>{% if accounting_report.current_ratio is not None %}{{ accounting_report.current_ratio }}×{% else %}No liabilities{% endif %}</strong></div>
+    <div><span>Posted journals</span><strong>{{ accounting_report.posted_journals }}</strong></div>
+  </div>{% endif %}
+  <div class="chart-grid">
+    <div class="chart-card full"><h3>Income, expenditure, and net</h3><div class="chart-box" id="reportsFinanceChart"></div></div>
+    <div class="chart-card"><h3>Revenue by channel</h3><div class="chart-box" id="reportsChannelChart"></div></div>
+    {% if accounting_report %}<div class="chart-card"><h3>Ledger account activity</h3><div class="chart-box" id="reportsAccountingAccountsChart"></div></div>{% endif %}
+    {% if accounting_report.budget_rows %}<div class="chart-card full"><h3>Budget versus actual</h3><div class="chart-box" id="reportsBudgetVarianceChart"></div></div>{% endif %}
+  </div>
+  {% if accounting_report %}<section class="home-panel"><div class="home-panel-head"><div><h2>Accounting control health</h2><p>Posting, period, and reconciliation exceptions.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:accounting_core' %}">Open accounting</a></div><div class="report-metric-list"><div><small>Draft journals</small><strong>{{ accounting_report.draft_journals }}</strong></div><div><small>Open periods</small><strong>{{ accounting_report.open_periods }}</strong></div><div><small>Pending reconciliations</small><strong>{{ accounting_report.unreconciled }}</strong></div><div><small>Trial balance</small><strong>{% if accounting_report.trial_debits == accounting_report.trial_credits %}Balanced{% else %}Exception{% endif %}</strong></div></div></section>{% endif %}
+  <div class="finance-split">
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Campaigns</h2><p>Successful giving grouped by fund.</p></div></div>
+      <table class="dtable"><thead><tr><th>Campaign</th><th>Gifts</th><th>Total</th></tr></thead><tbody>{% for row in finance_report.campaign_rows %}<tr><td>{{ row.campaign|default:"General Fund" }}</td><td>{{ row.count|intcomma }}</td><td>GHS {{ row.total|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="3"><div class="empty compact">No campaign income in this period.</div></td></tr>{% endfor %}</tbody></table>
+    </section>
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Cash accounts</h2><p>Current book balances for key accounts.</p></div></div>
+      <table class="dtable"><thead><tr><th>Account</th><th>Status</th><th>Balance</th><th>Variance</th></tr></thead><tbody>{% for row in finance_report.cash_rows %}<tr><td>{{ row.account.name }}<small>{{ row.account.get_account_type_display }}</small></td><td>{{ row.account.get_status_display }}</td><td>{{ row.account.currency }} {{ row.balance|floatformat:2|intcomma }}</td><td>{{ row.account.currency }} {{ row.variance|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="4"><div class="empty compact">No cash accounts yet.</div></td></tr>{% endfor %}</tbody></table>
+    </section>
+  </div>
+</div>
+{% endif %}
+
+{% if events_report %}
+<div class="tab-panel" id="reports-tab-events">
+  <div class="reports-section-head"><div><h2>Events report</h2><p>Published events, registrations, attendance, and programme demand.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=events&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export events</a></div>
+  <div class="cash-bank-summary">
+    <div><span>Events</span><strong>{{ events_report.events|intcomma }}</strong><small>{{ events_report.published|intcomma }} published</small></div>
+    <div><span>Open registration</span><strong>{{ events_report.open_registration|intcomma }}</strong><small>Events accepting registrations</small></div>
+    <div><span>Registrations</span><strong>{{ events_report.registrations|intcomma }}</strong><small>Non-cancelled signups</small></div>
+    <div><span>Attendance rate</span><strong>{{ events_report.attendance_rate }}%</strong><small>{{ events_report.attended|intcomma }} attended</small></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card full"><h3>Registrations by programme</h3><div class="chart-box" id="reportsEventProgramChart"></div></div>
+    <div class="chart-card"><h3>Event mix</h3><div class="chart-box" id="reportsEventKindChart"></div></div>
+  </div>
+  <section class="home-panel">
+    <div class="home-panel-head"><div><h2>Event performance</h2><p>Recent events in the selected period.</p></div></div>
+    <table class="dtable cms-table"><thead><tr><th>Event</th><th>Programme</th><th>Date</th><th>Registrations</th><th>Attended</th><th>Status</th></tr></thead><tbody>{% for event in events_report.event_rows %}<tr><td><strong>{{ event.title }}</strong><small>{{ event.location }}</small></td><td>{% if event.program %}{{ event.program.get_wing_display }}{% else %}General{% endif %}</td><td>{{ event.starts_at|date:"M j, Y" }}</td><td>{{ event.registrations_count|intcomma }}</td><td>{{ event.attended_count|intcomma }}</td><td>{% if event.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="6"><div class="empty compact">No events in this period.</div></td></tr>{% endfor %}</tbody></table>
+  </section>
+</div>
+{% endif %}
+
+{% if people_report %}
+<div class="tab-panel" id="reports-tab-people">
+  <div class="reports-section-head"><div><h2>People report</h2><p>Membership growth, role mix, application pipeline, and mentorship health.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=people&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export people</a></div>
+  <div class="cash-bank-summary">
+    <div><span>New users</span><strong>{{ people_report.new_users|intcomma }}</strong><small>{{ people_report.total_users|intcomma }} all-time accounts</small></div>
+    <div><span>Members</span><strong>{{ people_report.members|intcomma }}</strong><small>Public member role</small></div>
+    <div><span>Applications</span><strong>{{ people_report.applications|intcomma }}</strong><small>{{ people_report.pending_applications|intcomma }} pending</small></div>
+    <div><span>Mentorships</span><strong>{{ people_report.mentorships|intcomma }}</strong><small>Tracked enrollments</small></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Role mix</h3><div class="chart-box" id="reportsPeopleRoleChart"></div></div>
+    <div class="chart-card"><h3>Application status</h3><div class="chart-box" id="reportsApplicationStatusChart"></div></div>
+  </div>
+  <div class="finance-split">
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Applications by kind</h2><p>Applicant pathway demand.</p></div></div><table class="dtable"><thead><tr><th>Kind</th><th>Count</th></tr></thead><tbody>{% for row in people_report.app_kind_rows %}<tr><td>{{ row.label }}</td><td>{{ row.count|intcomma }}</td></tr>{% empty %}<tr><td colspan="2"><div class="empty compact">No applications in this period.</div></td></tr>{% endfor %}</tbody></table></section>
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Mentorship phases</h2><p>Current enrollment distribution.</p></div></div><table class="dtable"><thead><tr><th>Phase</th><th>Enrollments</th></tr></thead><tbody>{% for row in people_report.mentorship_rows %}<tr><td>{{ row.label }}</td><td>{{ row.count|intcomma }}</td></tr>{% empty %}<tr><td colspan="2"><div class="empty compact">No mentorship enrollments yet.</div></td></tr>{% endfor %}</tbody></table></section>
+  </div>
+</div>
+{% endif %}
+
+{% if content_report %}
+<div class="tab-panel" id="reports-tab-content">
+  <div class="reports-section-head"><div><h2>Content report</h2><p>Public website inventory, publication readiness, and programme coverage.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=content&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export content</a></div>
+  <div class="cash-bank-summary">
+    <div><span>Programs</span><strong>{{ content_report.totals.active_programs|intcomma }}/{{ content_report.totals.programs|intcomma }}</strong><small>Active programme wings</small></div>
+    <div><span>Resources</span><strong>{{ content_report.totals.resources|intcomma }}</strong><small>Attached files and links</small></div>
+    <div><span>People</span><strong>{{ content_report.totals.speakers|add:content_report.totals.leaders|intcomma }}</strong><small>Speakers and leadership profiles</small></div>
+    <div><span>Media</span><strong>{{ content_report.totals.published_gallery|intcomma }}/{{ content_report.totals.gallery|intcomma }}</strong><small>Published gallery items</small></div>
+  </div>
+  <div class="chart-grid"><div class="chart-card full"><h3>Resources by programme</h3><div class="chart-box" id="reportsContentProgramChart"></div></div></div>
+  <section class="home-panel">
+    <div class="home-panel-head"><div><h2>Programme coverage</h2><p>Resources, linked events, and gallery content per programme.</p></div></div>
+    <table class="dtable"><thead><tr><th>Programme</th><th>Status</th><th>Resources</th><th>Events</th><th>Gallery</th></tr></thead><tbody>{% for program in content_report.program_rows %}<tr><td>{{ program.get_wing_display }}</td><td>{% if program.is_active %}<span class="badge green">Active</span>{% else %}<span class="badge grey">Hidden</span>{% endif %}</td><td>{{ program.resources_count|intcomma }}</td><td>{{ program.events_count|intcomma }}</td><td>{{ program.gallery_count|intcomma }}</td></tr>{% empty %}<tr><td colspan="5"><div class="empty compact">No programme content yet.</div></td></tr>{% endfor %}</tbody></table>
+  </section>
+</div>
+{% endif %}
+
+{% if engagement_report %}
+<div class="tab-panel" id="reports-tab-engagement">
+  <div class="reports-section-head"><div><h2>Engagement report</h2><p>Contact enquiries, partnership pipeline, and newsletter acquisition.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:reports_export' %}?type=engagement&amp;start={{ period.start|date:'Y-m-d' }}&amp;end={{ period.end|date:'Y-m-d' }}">Export engagement</a></div>
+  <div class="cash-bank-summary">
+    <div><span>Messages</span><strong>{{ engagement_report.messages|intcomma }}</strong><small>{{ engagement_report.new_messages|intcomma }} new</small></div>
+    <div><span>Partners</span><strong>{{ engagement_report.partners|intcomma }}</strong><small>{{ engagement_report.open_partners|intcomma }} open</small></div>
+    <div><span>Newsletter</span><strong>{{ engagement_report.newsletter_signups|intcomma }}</strong><small>New signups in period</small></div>
+    <div><span>Active list</span><strong>{{ engagement_report.active_newsletter|intcomma }}</strong><small>All active subscribers</small></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Contact message status</h3><div class="chart-box" id="reportsMessageChart"></div></div>
+    <div class="chart-card"><h3>Partner pipeline status</h3><div class="chart-box" id="reportsPartnerChart"></div></div>
+  </div>
+  <div class="finance-split">
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Message status</h2><p>Operational response queue health.</p></div></div><table class="dtable"><thead><tr><th>Status</th><th>Messages</th></tr></thead><tbody>{% for row in engagement_report.message_rows %}<tr><td>{{ row.label }}</td><td>{{ row.count|intcomma }}</td></tr>{% empty %}<tr><td colspan="2"><div class="empty compact">No contact messages in this period.</div></td></tr>{% endfor %}</tbody></table></section>
+    <section class="home-panel"><div class="home-panel-head"><div><h2>Partner status</h2><p>Partnership and sponsor pipeline.</p></div></div><table class="dtable"><thead><tr><th>Status</th><th>Enquiries</th></tr></thead><tbody>{% for row in engagement_report.partner_rows %}<tr><td>{{ row.label }}</td><td>{{ row.count|intcomma }}</td></tr>{% empty %}<tr><td colspan="2"><div class="empty compact">No partner enquiries in this period.</div></td></tr>{% endfor %}</tbody></table></section>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"reportsChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var reportCharts = [];
+  function reportIncomeExpenseOption(rows) {
+    rows = rows || { labels: [], income: [], expenses: [], net: [] };
+    return {
+      color: ['#4a5d3a', '#c0392b', '#6f4a2f'],
+      tooltip: { trigger: 'axis' },
+      legend: { bottom: 0, data: ['Income', 'Expenditure', 'Net'] },
+      grid: { left: 48, right: 22, top: 34, bottom: 56, containLabel: true },
+      xAxis: { type: 'category', data: rows.labels || [] },
+      yAxis: { type: 'value' },
+      series: [
+        { name: 'Income', type: 'bar', data: rows.income || [], barMaxWidth: 34 },
+        { name: 'Expenditure', type: 'bar', data: rows.expenses || [], barMaxWidth: 34 },
+        { name: 'Net', type: 'line', smooth: true, data: rows.net || [] }
+      ]
+    };
+  }
+  function initReportsCharts() {
+    if (typeof echarts === 'undefined') return;
+    var data = JSON.parse(document.getElementById('reportsChartsData').textContent || '{}');
+    [
+      ['reportsFinanceChart', reportIncomeExpenseOption(data.finance_income_expense)],
+      ['reportsChannelChart', OIFCharts.pie(data.finance_channels || [])],
+      ['reportsAccountingAccountsChart', OIFCharts.bar(data.accounting_accounts || { labels: [], values: [] })],
+      ['reportsBudgetVarianceChart', reportIncomeExpenseOption({labels:(data.budget_variance||{}).labels||[],income:(data.budget_variance||{}).budget||[],expenses:(data.budget_variance||{}).actual||[],net:[]})],
+      ['reportsEventProgramChart', OIFCharts.bar(data.event_programs || { labels: [], values: [] })],
+      ['reportsEventKindChart', OIFCharts.pie(data.event_kinds || [])],
+      ['reportsPeopleRoleChart', OIFCharts.pie(data.people_roles || [])],
+      ['reportsApplicationStatusChart', OIFCharts.pie(data.applications_status || [])],
+      ['reportsContentProgramChart', OIFCharts.bar(data.content_programs || { labels: [], values: [] })],
+      ['reportsMessageChart', OIFCharts.pie(data.engagement_messages || [])],
+      ['reportsPartnerChart', OIFCharts.pie(data.engagement_partners || [])]
+    ].forEach(function(item){
+      var el = document.getElementById(item[0]);
+      if (!el) return;
+      reportCharts.push(OIFCharts.init(el, item[1]));
+    });
+    window.addEventListener('resize', function(){ reportCharts.forEach(function(chart){ chart.resize(); }); });
+  }
+  initReportsCharts();
+  document.querySelectorAll('[data-reports-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.reportsTab;
+      document.querySelectorAll('[data-reports-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="reports-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'reports-tab-' + name); });
+      reportCharts.forEach(function(chart){ chart.resize(); });
+    });
+  });
+</script>
+{% endblock %}

@@ -20,6 +20,7 @@ from pages.models import Event, GalleryImage, Program, ProgramResource, SiteBran
 from pages.models import SiteStat, Speaker, TeamMember
 from donations.models import Donation
 from engagement.models import MentorshipEnrollment
+from dashboard.models import CashAccount, CashMovement, Expense, MessageCampaign
 
 
 PWD = "testpass123"
@@ -93,11 +94,49 @@ class PublicPagesTest(TestCase):
         self.assertIn("/accounts/login", resp.url)
 
 
+class MutationMethodSafetyTest(TestCase):
+    def setUp(self):
+        self.admin = make("method_admin", Role.ADMIN, is_staff=True)
+        self.member = make("method_member", Role.MEMBER)
+        self.event = Event.objects.create(
+            title="Method-safe event",
+            starts_at=timezone.now() + timedelta(days=1),
+        )
+        self.registration = EventRegistration.objects.create(
+            event=self.event, user=self.member
+        )
+        self.application = Application.objects.create(
+            user=self.member, kind=Application.Kind.VOLUNTEER
+        )
+        self.donation = Donation.objects.create(
+            donor=self.member, amount="20.00", reference="METHOD-SAFE"
+        )
+        self.client.login(username=self.admin.username, password=PWD)
+
+    def test_state_changing_routes_reject_get(self):
+        urls = [
+            reverse("dashboard:event_action", args=[self.event.pk, "close"]),
+            reverse("dashboard:update_registration", args=[
+                self.event.pk, self.registration.pk
+            ]),
+            reverse("dashboard:donation_action", args=[
+                self.donation.pk, "mark-failed"
+            ]),
+            reverse("dashboard:review_application", args=[
+                self.application.pk, "approve"
+            ]),
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 405)
+
+
 class RoleAccessTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin = make("admin_u", Role.ADMIN, is_superuser=True, is_staff=True)
         cls.director = make("director_u", Role.DIRECTOR)
+        cls.finance = make("finance_u", Role.FINANCE)
         cls.mentor = make("mentor_u", Role.MENTOR)
         cls.volunteer = make("vol_u", Role.VOLUNTEER)
         cls.member = make("member_u", Role.MEMBER)
@@ -129,6 +168,25 @@ class RoleAccessTest(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.member.refresh_from_db()
         self.assertEqual(self.member.role, Role.MENTOR)
+
+    def test_speaker_application_approval_does_not_promote_to_volunteer(self):
+        speaker_applicant = make("speaker_applicant", Role.MEMBER)
+        app = Application.objects.create(
+            user=speaker_applicant,
+            kind=Application.Kind.SPEAKER,
+            status=Application.Status.PENDING,
+        )
+
+        self.client.login(username="director_u", password=PWD)
+        resp = self.client.post(
+            reverse("dashboard:review_application", args=[app.pk, "approve"])
+        )
+        self.assertRedirects(resp, reverse("dashboard:applications"))
+
+        app.refresh_from_db()
+        speaker_applicant.refresh_from_db()
+        self.assertEqual(app.status, Application.Status.APPROVED)
+        self.assertEqual(speaker_applicant.role, Role.MEMBER)
 
     def _panels(self, username):
         self.client.login(username=username, password=PWD)
@@ -169,13 +227,73 @@ class RoleAccessTest(TestCase):
         self.client.login(username="member_u", password=PWD)
         html = self.client.get(reverse("dashboard:home")).content.decode()
         self.assertNotIn(reverse("dashboard:members"), html)
+        self.assertNotIn(reverse("dashboard:reports"), html)
 
-    def test_dashboard_home_renders_tabbed_sections(self):
+    def test_reports_are_role_compliant_and_exportable(self):
+        event = Event.objects.create(
+            title="Report Forum",
+            starts_at=timezone.now() + timedelta(days=7),
+            location="Accra",
+            is_published=True,
+        )
+        EventRegistration.objects.create(event=event, user=self.member)
+        Donation.objects.create(
+            donor=self.member,
+            donor_name="Report Member",
+            donor_email="report-member@oif.test",
+            amount="450.00",
+            channel=Donation.Channel.CARD,
+            status=Donation.Status.SUCCESS,
+            reference="REPORT-GIFT",
+            campaign="Reports Fund",
+        )
+
+        self.client.login(username="member_u", password=PWD)
+        self.assertEqual(self.client.get(reverse("dashboard:reports")).status_code, 403)
+        self.client.logout()
+
+        self.client.login(username="admin_u", password=PWD)
+        resp = self.client.get(reverse("dashboard:reports"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Reports")
+        self.assertContains(resp, "Executive")
+        self.assertContains(resp, "Finance")
+        self.assertContains(resp, "Events")
+        self.assertContains(resp, "People")
+        self.assertContains(resp, "Content")
+        self.assertContains(resp, "Engagement")
+        self.assertContains(resp, "reportsChartsData")
+        export = self.client.get(reverse("dashboard:reports_export") + "?type=all")
+        self.assertEqual(export.status_code, 200)
+        self.assertEqual(export["Content-Type"], "text/csv")
+        body = export.content.decode()
+        self.assertIn("finance,income", body)
+        self.assertIn("events,registrations", body)
+        self.client.logout()
+
+        self.client.login(username="finance_u", password=PWD)
+        resp = self.client.get(reverse("dashboard:reports"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Finance report")
+        self.assertNotContains(resp, "People report")
+        finance_export = self.client.get(reverse("dashboard:reports_export") + "?type=finance")
+        self.assertIn("finance,income", finance_export.content.decode())
+
+    def test_dashboard_home_renders_workspace_and_latest_events(self):
+        Event.objects.create(
+            title="Latest Upcoming Forum",
+            starts_at=timezone.now() + timedelta(days=3),
+            location="Accra",
+            is_published=True,
+        )
         self.client.login(username="member_u", password=PWD)
         resp = self.client.get(reverse("dashboard:home"))
-        self.assertContains(resp, 'data-home-tab="overview"')
-        self.assertContains(resp, 'data-home-tab="analytics"')
-        self.assertContains(resp, 'id="home-tab-events"')
+        self.assertContains(resp, 'data-home-tab="workspace"')
+        self.assertContains(resp, 'data-home-tab="events"')
+        self.assertContains(resp, 'id="home-tab-activity"')
+        self.assertContains(resp, "Workspace")
+        self.assertContains(resp, "Latest Upcoming Events")
+        self.assertContains(resp, "Latest Upcoming Forum")
         self.assertContains(resp, "My Activity")
 
     def test_director_nav_shows_members(self):
@@ -283,6 +401,8 @@ class EventManagementTest(TestCase):
         self.assertContains(resp, "Event analytics")
         self.assertContains(resp, "eventChartsData")
         self.assertContains(resp, "echarts.min.js")
+        self.assertContains(resp, "Message registrants")
+        self.assertContains(resp, "Event communications")
 
         resp = self.client.post(
             reverse("dashboard:update_registration", args=[self.event.pk, self.registration.pk]),
@@ -291,6 +411,39 @@ class EventManagementTest(TestCase):
         self.assertRedirects(resp, reverse("dashboard:event_detail", args=[self.event.pk]))
         self.registration.refresh_from_db()
         self.assertEqual(self.registration.status, EventRegistration.Status.ATTENDED)
+
+    def test_event_message_action_prefills_and_links_campaign_to_event(self):
+        self.client.login(username="event_director", password=PWD)
+        compose_url = reverse("dashboard:campaign_create")
+        response = self.client.get(compose_url, {"event": self.event.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["form"].initial["audience"],
+            MessageCampaign.Audience.EVENT,
+        )
+        self.assertEqual(response.context["form"].initial["event"], self.event)
+        self.assertContains(response, "Event communication")
+        self.assertContains(response, self.event.title)
+
+        response = self.client.post(compose_url, {
+            "title": "Registrant reminder",
+            "channel": MessageCampaign.Channel.EMAIL,
+            "audience": MessageCampaign.Audience.EVENT,
+            "event": self.event.pk,
+            "subject": "Event reminder",
+            "body": "Hello {first_name}, this is your reminder.",
+            "action": "draft",
+        })
+        campaign = MessageCampaign.objects.get(title="Registrant reminder")
+        self.assertEqual(campaign.event, self.event)
+        self.assertRedirects(
+            response, reverse("dashboard:campaign_detail", args=[campaign.pk])
+        )
+
+        detail = self.client.get(
+            reverse("dashboard:event_detail", args=[self.event.pk])
+        )
+        self.assertContains(detail, "Registrant reminder")
 
     def test_event_list_splits_upcoming_and_archived_for_staff(self):
         Event.objects.create(
@@ -325,6 +478,70 @@ class DonationManagementTest(TestCase):
             reference="OIF-TESTREF",
             campaign="Mentorship Fund",
         )
+        cls.success_donation = Donation.objects.create(
+            donor=cls.member,
+            donor_name="Donation Member",
+            donor_email="donation_member@oif.test",
+            amount="1000.00",
+            channel=Donation.Channel.CARD,
+            status=Donation.Status.SUCCESS,
+            reference="OIF-INCOME",
+            campaign="General Fund",
+        )
+        cls.paid_expense = Expense.objects.create(
+            title="Venue deposit",
+            category=Expense.Category.EVENTS,
+            payee="Accra Conference Centre",
+            amount="300.00",
+            status=Expense.Status.PAID,
+            expense_date=timezone.localdate(),
+            payment_method="Bank transfer",
+            reference="EXP-001",
+            recorded_by=cls.director,
+            approved_by=cls.director,
+        )
+        cls.draft_expense = Expense.objects.create(
+            title="Printing quote",
+            category=Expense.Category.MEDIA,
+            payee="Print House",
+            amount="150.00",
+            status=Expense.Status.DRAFT,
+            expense_date=timezone.localdate(),
+            recorded_by=cls.director,
+        )
+        cls.bank_account = CashAccount.objects.create(
+            name="Main Operating Account",
+            account_type=CashAccount.AccountType.BANK,
+            institution_name="OIF Bank",
+            account_number="1234567890",
+            opening_balance="500.00",
+            statement_balance="1500.00",
+            status=CashAccount.Status.ACTIVE,
+            is_primary=True,
+            created_by=cls.director,
+        )
+        cls.cash_account = CashAccount.objects.create(
+            name="Programme Petty Cash",
+            account_type=CashAccount.AccountType.CASH,
+            opening_balance="100.00",
+            statement_balance="100.00",
+            status=CashAccount.Status.ACTIVE,
+            created_by=cls.director,
+        )
+        cls.cash_movement = CashMovement.objects.create(
+            account=cls.bank_account,
+            direction=CashMovement.Direction.IN,
+            category=CashMovement.Category.DONATION_CLEARING,
+            title="Donation clearing",
+            amount="1000.00",
+            currency="GHS",
+            status=CashMovement.Status.POSTED,
+            movement_date=timezone.localdate(),
+            reference="CASH-001",
+            linked_donation=cls.success_donation,
+            recorded_by=cls.director,
+            approved_by=cls.director,
+        )
 
     def test_donations_dashboard_has_tabs_and_echarts(self):
         self.client.login(username="donation_director", password=PWD)
@@ -334,6 +551,128 @@ class DonationManagementTest(TestCase):
         self.assertContains(resp, "echarts.min.js")
         self.assertContains(resp, "Needs attention")
         self.assertContains(resp, "OIF-TESTREF")
+
+    def test_finance_accounting_is_role_compliant_and_exports_csv(self):
+        self.client.login(username="donation_member", password=PWD)
+        self.assertEqual(
+            self.client.get(reverse("dashboard:finance_accounting")).status_code,
+            403,
+        )
+        self.client.logout()
+
+        self.client.login(username="donation_director", password=PWD)
+        resp = self.client.get(reverse("dashboard:finance_accounting"))
+        self.assertContains(resp, "Finance &amp; Accounting")
+        self.assertContains(resp, "Income &amp; Expenditure")
+        self.assertContains(resp, "Cash &amp; Bank")
+        self.assertContains(resp, "Expenses")
+        self.assertContains(resp, "Reconciliation")
+        self.assertContains(resp, "OIF-TESTREF")
+        self.assertContains(resp, "Venue deposit")
+        self.assertContains(resp, "Main Operating Account")
+        self.assertContains(resp, "Donation clearing")
+        self.assertContains(resp, "GHS 700.00")
+
+        export = self.client.get(reverse("dashboard:finance_export"))
+        self.assertEqual(export.status_code, 200)
+        self.assertEqual(export["Content-Type"], "text/csv")
+        self.assertIn("OIF-TESTREF", export.content.decode())
+        self.assertIn("expense", export.content.decode())
+        self.assertIn("Venue deposit", export.content.decode())
+        self.assertIn("donation clearing", export.content.decode().lower())
+        self.assertIn("Main Operating Account", export.content.decode())
+        self.assertIn("1000.00", export.content.decode())
+
+    def test_finance_can_create_and_update_expenses(self):
+        self.client.login(username="donation_admin", password=PWD)
+        resp = self.client.post(reverse("dashboard:expense_create"), data={
+            "title": "Transport reimbursement",
+            "category": Expense.Category.OPERATIONS,
+            "payee": "Volunteer Team",
+            "description": "Transport for outreach volunteers.",
+            "amount": "125.00",
+            "currency": "GHS",
+            "status": Expense.Status.DRAFT,
+            "expense_date": timezone.localdate().isoformat(),
+            "payment_method": "Mobile Money",
+            "reference": "EXP-NEW",
+        })
+        self.assertRedirects(resp, reverse("dashboard:finance_accounting"))
+        expense = Expense.objects.get(reference="EXP-NEW")
+        self.assertEqual(expense.recorded_by, self.admin)
+        self.assertEqual(expense.status, Expense.Status.DRAFT)
+
+        resp = self.client.post(
+            reverse("dashboard:expense_action", args=[expense.pk, "pay"])
+        )
+        self.assertRedirects(resp, reverse("dashboard:finance_accounting"))
+        expense.refresh_from_db()
+        self.assertEqual(expense.status, Expense.Status.PAID)
+        self.assertEqual(expense.approved_by, self.admin)
+
+    def test_finance_can_manage_cash_accounts_and_movements(self):
+        self.client.login(username="donation_member", password=PWD)
+        self.assertEqual(
+            self.client.post(reverse("dashboard:cash_account_create"), data={}).status_code,
+            403,
+        )
+        self.client.logout()
+
+        self.client.login(username="donation_admin", password=PWD)
+        resp = self.client.post(reverse("dashboard:cash_account_create"), data={
+            "name": "Reserve Bank Account",
+            "account_type": CashAccount.AccountType.SAVINGS,
+            "institution_name": "Reserve Bank",
+            "account_number": "987654321",
+            "branch": "Accra",
+            "currency": "GHS",
+            "opening_balance": "2000.00",
+            "opening_balance_date": timezone.localdate().isoformat(),
+            "statement_balance": "2000.00",
+            "last_reconciled_on": timezone.localdate().isoformat(),
+            "status": CashAccount.Status.ACTIVE,
+            "is_primary": "",
+            "accepts_donations": "on",
+            "pays_expenses": "on",
+            "notes": "Reserve funds",
+        })
+        self.assertRedirects(resp, reverse("dashboard:finance_accounting"))
+        reserve = CashAccount.objects.get(name="Reserve Bank Account")
+        self.assertEqual(reserve.created_by, self.admin)
+
+        resp = self.client.post(reverse("dashboard:cash_movement_create"), data={
+            "account": self.bank_account.pk,
+            "transfer_account": self.cash_account.pk,
+            "direction": CashMovement.Direction.TRANSFER,
+            "category": CashMovement.Category.TRANSFER,
+            "title": "Petty cash top-up",
+            "counterparty": "Internal finance",
+            "amount": "200.00",
+            "currency": "GHS",
+            "movement_date": timezone.localdate().isoformat(),
+            "status": CashMovement.Status.DRAFT,
+            "reference": "MOVE-001",
+            "linked_donation": "",
+            "linked_expense": "",
+            "memo": "Top up programme cash box.",
+        })
+        self.assertRedirects(resp, reverse("dashboard:finance_accounting"))
+        movement = CashMovement.objects.get(reference="MOVE-001")
+        self.assertEqual(movement.recorded_by, self.admin)
+        self.assertEqual(movement.status, CashMovement.Status.DRAFT)
+
+        resp = self.client.post(
+            reverse("dashboard:cash_movement_action", args=[movement.pk, "post"])
+        )
+        self.assertRedirects(resp, reverse("dashboard:finance_accounting"))
+        movement.refresh_from_db()
+        self.assertEqual(movement.status, CashMovement.Status.POSTED)
+        self.assertEqual(movement.approved_by, self.admin)
+
+        resp = self.client.get(reverse("dashboard:finance_accounting"))
+        self.assertContains(resp, "Petty cash top-up")
+        self.assertContains(resp, "GHS 1,300.00")
+        self.assertContains(resp, "GHS 300.00")
 
     def test_member_can_view_own_donation_detail_only(self):
         other = Donation.objects.create(
@@ -369,7 +708,9 @@ class DonationManagementTest(TestCase):
 class MemberManagementTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.admin = make("member_admin", Role.ADMIN, is_superuser=True, is_staff=True)
         cls.director = make("member_director", Role.DIRECTOR)
+        cls.ops = make("member_ops", Role.DIR_OPS)
         cls.member = make("managed_member", Role.MEMBER, title="Volunteer hopeful")
         cls.program = Program.objects.create(
             wing=Program.Wing.HADASSAH,
@@ -426,12 +767,13 @@ class MemberManagementTest(TestCase):
         self.assertContains(resp, "Paystack-linked giving")
         self.assertContains(resp, "Save member")
 
-    def test_director_can_update_member_role_and_status(self):
-        self.client.login(username="member_director", password=PWD)
+    def test_admin_can_update_member_role_and_status(self):
+        self.client.login(username="member_admin", password=PWD)
         resp = self.client.post(reverse("dashboard:member_detail", args=[self.member.pk]), data={
             "role": Role.VOLUNTEER,
             "title": "Events Volunteer",
             "location": "Kumasi, Ghana",
+            "is_staff": "",
             "is_active": "on",
             "is_public_profile": "on",
         })
@@ -440,6 +782,33 @@ class MemberManagementTest(TestCase):
         self.assertEqual(self.member.role, Role.VOLUNTEER)
         self.assertEqual(self.member.title, "Events Volunteer")
         self.assertTrue(self.member.is_public_profile)
+
+    def test_member_manager_without_user_admin_cannot_change_roles_or_view_payments(self):
+        target = make("ops_managed_member", Role.MEMBER, title="New member")
+        self.client.login(username="member_ops", password=PWD)
+        resp = self.client.get(reverse("dashboard:members"))
+        self.assertContains(resp, "Member analytics")
+        self.assertNotContains(resp, "Paystack giving")
+        self.assertNotContains(resp, "Paystack payment health")
+
+        resp = self.client.get(reverse("dashboard:member_detail", args=[target.pk]))
+        self.assertContains(resp, "Member picture")
+        self.assertNotContains(resp, "Paystack-linked giving")
+        self.assertNotContains(resp, "Django admin access")
+
+        resp = self.client.post(reverse("dashboard:member_detail", args=[target.pk]), data={
+            "role": Role.ADMIN,
+            "title": "Operations verified",
+            "location": "Takoradi, Ghana",
+            "is_staff": "on",
+            "is_active": "on",
+            "is_public_profile": "on",
+        })
+        self.assertRedirects(resp, reverse("dashboard:member_detail", args=[target.pk]))
+        target.refresh_from_db()
+        self.assertEqual(target.role, Role.MEMBER)
+        self.assertFalse(target.is_staff)
+        self.assertEqual(target.title, "Operations verified")
 
     def test_director_can_upload_member_picture_from_detail_page(self):
         self.client.login(username="member_director", password=PWD)
@@ -482,12 +851,14 @@ class FullDashboardControlTest(TestCase):
     def test_admin_can_manage_public_content_from_dashboard(self):
         self.client.login(username="control_admin", password=PWD)
         resp = self.client.get(reverse("dashboard:content"))
-        self.assertContains(resp, "Site Content")
+        self.assertContains(resp, "Site CMS")
         self.assertContains(resp, "Programs")
-        self.assertContains(resp, "Program resources")
+        self.assertContains(resp, reverse("dashboard:programs_manage"))
+        self.assertContains(resp, reverse("dashboard:resources_manage"))
         self.assertContains(resp, "Speakers")
+        self.assertContains(resp, reverse("dashboard:speakers_manage"))
 
-        resp = self.client.post(reverse("dashboard:content_create", args=["speakers"]), data={
+        resp = self.client.post(reverse("dashboard:speaker_create"), data={
             "name": "Dashboard Speaker",
             "role": "Founder",
             "featured": "on",
@@ -495,10 +866,10 @@ class FullDashboardControlTest(TestCase):
         })
         speaker = Speaker.objects.get(name="Dashboard Speaker")
         self.assertRedirects(
-            resp, reverse("dashboard:content_edit", args=["speakers", speaker.pk])
+            resp, reverse("dashboard:speaker_edit", args=[speaker.pk])
         )
 
-        resp = self.client.post(reverse("dashboard:content_edit", args=["programs", self.program.pk]), data={
+        resp = self.client.post(reverse("dashboard:program_edit", args=[self.program.pk]), data={
             "wing": Program.Wing.FORGE,
             "tagline": "Updated tagline",
             "headline": "Updated headline",
@@ -508,12 +879,12 @@ class FullDashboardControlTest(TestCase):
             "is_active": "on",
         })
         self.assertRedirects(
-            resp, reverse("dashboard:content_edit", args=["programs", self.program.pk])
+            resp, reverse("dashboard:program_edit", args=[self.program.pk])
         )
         self.program.refresh_from_db()
         self.assertEqual(self.program.headline, "Updated headline")
 
-        resp = self.client.post(reverse("dashboard:content_create", args=["resources"]), data={
+        resp = self.client.post(reverse("dashboard:resource_create"), data={
             "program": self.program.pk,
             "title": "Mentorship Brief",
             "description": "Overview for applicants",
@@ -522,8 +893,40 @@ class FullDashboardControlTest(TestCase):
         })
         resource = ProgramResource.objects.get(title="Mentorship Brief")
         self.assertRedirects(
-            resp, reverse("dashboard:content_edit", args=["resources", resource.pk])
+            resp, reverse("dashboard:resource_edit", args=[resource.pk])
         )
+
+    def test_admin_can_delete_program_from_program_cards(self):
+        self.client.login(username="control_admin", password=PWD)
+        resource = ProgramResource.objects.create(
+            program=self.program,
+            title="Delete with program",
+        )
+
+        resp = self.client.get(reverse("dashboard:programs_manage"))
+        self.assertContains(
+            resp, reverse("dashboard:program_delete", args=[self.program.pk])
+        )
+        self.assertContains(resp, "Delete")
+
+        resp = self.client.post(
+            reverse("dashboard:program_delete", args=[self.program.pk])
+        )
+        self.assertRedirects(resp, reverse("dashboard:programs_manage"))
+        self.assertFalse(Program.objects.filter(pk=self.program.pk).exists())
+        self.assertFalse(ProgramResource.objects.filter(pk=resource.pk).exists())
+
+    def test_admin_can_open_sidebar_content_managers(self):
+        self.client.login(username="control_admin", password=PWD)
+        for name, label in [
+            ("dashboard:programs_manage", "Program wings"),
+            ("dashboard:resources_manage", "Uploaded files"),
+            ("dashboard:speakers_manage", "Featured"),
+            ("dashboard:leadership_manage", "Leadership"),
+        ]:
+            resp = self.client.get(reverse(name))
+            self.assertEqual(resp.status_code, 200, name)
+            self.assertContains(resp, label)
 
     def test_admin_can_manage_branding_typography_from_dashboard(self):
         self.client.login(username="control_admin", password=PWD)
@@ -578,7 +981,7 @@ class FullDashboardControlTest(TestCase):
 
     def test_admin_can_create_team_and_stats_from_dashboard(self):
         self.client.login(username="control_admin", password=PWD)
-        resp = self.client.post(reverse("dashboard:content_create", args=["team"]), data={
+        resp = self.client.post(reverse("dashboard:leadership_create"), data={
             "name": "Dashboard Leader",
             "position": TeamMember.Position.DIRECTOR,
             "title": "Director",
@@ -588,7 +991,7 @@ class FullDashboardControlTest(TestCase):
         })
         team = TeamMember.objects.get(name="Dashboard Leader")
         self.assertRedirects(
-            resp, reverse("dashboard:content_edit", args=["team", team.pk])
+            resp, reverse("dashboard:leadership_edit", args=[team.pk])
         )
 
         resp = self.client.post(reverse("dashboard:content_create", args=["stats"]), data={
@@ -690,7 +1093,11 @@ class ContractRoleMatrixTest(TestCase):
 
     def test_finance_manages_donations_not_content(self):
         self.assertEqual(self._status("cfinance", "dashboard:donations"), 200)
+        self.assertEqual(self._status("cfinance", "dashboard:finance_accounting"), 200)
         self.assertEqual(self._status("cfinance", "dashboard:content"), 403)
+
+    def test_content_editor_cannot_access_finance_accounting(self):
+        self.assertEqual(self._status("ceditor", "dashboard:finance_accounting"), 403)
 
     def test_partnerships_sees_enquiries(self):
         self.assertEqual(self._status("cpartners", "dashboard:enquiries"), 200)

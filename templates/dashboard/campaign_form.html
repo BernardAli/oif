@@ -1,0 +1,152 @@
+{% extends "dashboard/base.html" %}
+{% block n_messaging %}active{% endblock %}
+{% block dash_title %}Compose Campaign{% endblock %}
+{% block dash_h1 %}Compose Campaign{% endblock %}
+{% block dash_sub %}Choose a channel and audience, write the message, then save it as a draft or send it now.{% endblock %}
+{% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:messaging' %}">Back to Messaging</a>{% endblock %}
+{% block dash_content %}
+{% if source_event %}<div class="campaign-event-source"><span>Event communication</span><div><strong>{{ source_event.title }}</strong><small>{{ source_event.starts_at|date:"M j, Y · g:i A" }} · {{ source_event.active_registration_count }} active recipient{{ source_event.active_registration_count|pluralize }}</small></div><a href="{% url 'dashboard:event_detail' source_event.pk %}">Back to event</a></div>{% endif %}
+<div class="cms-form-layout management-form-layout campaign-form-layout">
+  <aside class="cms-form-aside management-form-aside campaign-form-aside">
+    <span>Messaging</span>
+    <h2>New campaign</h2>
+    <p>Create a role-compliant Email, SMS, WhatsApp, or multi-channel message. Server-side validation and delivery logging apply to every send.</p>
+
+    <div class="campaign-aside-section">
+      <strong>Channel readiness</strong>
+      <div class="campaign-aside-status"><i class="{% if channel_status.email %}ready{% endif %}"></i><span>Email</span><small>{% if channel_status.email %}Ready{% else %}Disabled{% endif %}</small></div>
+      <div class="campaign-aside-status"><i class="{% if channel_status.sms %}ready{% endif %}"></i><span>SMS</span><small>{% if channel_status.sms %}{{ channel_status.sms_provider }}{% else %}Setup needed{% endif %}</small></div>
+      <div class="campaign-aside-status"><i class="{% if channel_status.whatsapp %}ready{% endif %}"></i><span>WhatsApp</span><small>{% if channel_status.whatsapp %}Ready{% else %}Setup needed{% endif %}</small></div>
+    </div>
+
+    <div class="campaign-aside-section">
+      <strong>Campaign readiness</strong>
+      <div class="campaign-readiness-row"><span data-readiness-label>Complete the required fields.</span><b data-readiness-value>0%</b></div>
+      <div class="campaign-readiness-bar"><i data-readiness-bar></i></div>
+    </div>
+
+    <div class="campaign-aside-note">
+      <strong>Before sending</strong>
+      <p>Confirm the audience and message carefully. Sending begins immediately; save a draft when approval is still required.</p>
+    </div>
+  </aside>
+
+  <div class="form-card wide dash-form-card campaign-editor-card">
+    <form method="post" data-campaign-composer>{% csrf_token %}
+      {% if form.errors %}<div class="form-errors"><strong>Please correct the highlighted fields.</strong>{{ form.non_field_errors }}</div>{% endif %}
+
+      <div class="event-editor-section">
+        <span>Campaign setup</span>
+        <div class="form-row"><label>Campaign name</label>{{ form.title }}{{ form.title.errors }}<span class="helptext">An internal name used in campaign history and reports.</span></div>
+        <div class="form-grid-2">
+          <div class="form-row"><label>Delivery channel</label>{{ form.channel }}{{ form.channel.errors }}</div>
+          <div class="form-row"><label>Message template</label>{{ form.template }}{{ form.template.errors }}<span class="helptext">Optional reusable content.</span></div>
+        </div>
+        <div class="form-actions compact-form-actions"><button class="btn-sm ghost" type="button" data-apply-template>Apply selected template</button></div>
+      </div>
+
+      <div class="event-editor-section">
+        <span>Audience</span>
+        <div class="form-row"><label>Audience group</label>{{ form.audience }}{{ form.audience.errors }}</div>
+        <div class="campaign-audience-counts">
+          <div><span>Active members</span><strong>{{ audience_counts.all }}</strong></div>
+          <div><span>Marketing opt-ins</span><strong>{{ audience_counts.marketing }}</strong></div>
+          <div><span>Newsletter subscribers</span><strong>{{ audience_counts.newsletter }}</strong></div>
+        </div>
+        <div data-audience-field="ROLE"><div class="form-row"><label>Member role</label>{{ form.role }}{{ form.role.errors }}<span class="helptext">Only active accounts in this role will be included.</span></div></div>
+        <div data-audience-field="EVENT"><div class="form-row"><label>Registered event</label>{{ form.event }}{{ form.event.errors }}<span class="helptext">Cancelled registrations are excluded.</span></div></div>
+        <div data-audience-field="CUSTOM"><div class="form-row"><label>Custom recipients</label>{{ form.custom_recipients }}{{ form.custom_recipients.errors }}<span class="helptext">Enter one email address or phone number per line.</span></div></div>
+      </div>
+
+      <div class="event-editor-section">
+        <span>Message</span>
+        <div class="campaign-token-row"><small>Insert personalization</small><button type="button" data-token="{first_name}">First name</button><button type="button" data-token="{name}">Full name</button><button type="button" data-token="{email}">Email</button><button type="button" data-token="{phone}">Phone</button><button type="button" data-token="{org_name}">Organization</button></div>
+        <div class="form-row" data-email-subject><label>Email subject</label>{{ form.subject }}{{ form.subject.errors }}<span class="helptext"><span data-subject-count>0</span>/200 characters. Required for Email and multi-channel campaigns.</span></div>
+        <div class="form-row"><label>Message content</label>{{ form.body }}{{ form.body.errors }}<div class="campaign-message-meta"><span><b data-body-count>0</b> characters</span><span data-sms-segments>1 SMS segment</span></div></div>
+      </div>
+
+      <div class="event-editor-section campaign-preview-section">
+        <span>Message preview</span>
+        <div class="campaign-inline-preview">
+          <div><strong data-preview-subject>Campaign subject</strong><small data-preview-channel>Email preview</small></div>
+          <p data-preview-body>Hello Ama,\n\nYour message preview will appear here as you type.</p>
+          <small>Preview substitutions use “Ama Mensah” as the sample recipient.</small>
+        </div>
+      </div>
+
+      <div class="form-actions campaign-form-actions">
+        <button class="btn-sm" name="action" value="send" type="submit">Send campaign now</button>
+        <button class="btn-sm ghost" name="action" value="draft" type="submit">Save as draft</button>
+        <a class="btn-sm ghost" href="{% url 'dashboard:messaging' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{{ template_data|json_script:"messageTemplateData" }}
+{% endblock %}
+{% block dash_scripts %}
+<script>
+(function () {
+  var root = document.querySelector('[data-campaign-composer]');
+  if (!root) return;
+  var fields = {
+    channel: document.getElementById('{{ form.channel.id_for_label }}'),
+    audience: document.getElementById('{{ form.audience.id_for_label }}'),
+    title: document.getElementById('{{ form.title.id_for_label }}'),
+    subject: document.getElementById('{{ form.subject.id_for_label }}'),
+    body: document.getElementById('{{ form.body.id_for_label }}'),
+    template: document.getElementById('{{ form.template.id_for_label }}'),
+    role: document.getElementById('{{ form.role.id_for_label }}'),
+    event: document.getElementById('{{ form.event.id_for_label }}'),
+    custom: document.getElementById('{{ form.custom_recipients.id_for_label }}')
+  };
+  var templates = JSON.parse(document.getElementById('messageTemplateData').textContent);
+  function substitute(value) {
+    return (value || '').replaceAll('{first_name}', 'Ama').replaceAll('{name}', 'Ama Mensah').replaceAll('{email}', 'ama@example.com').replaceAll('{phone}', '+233 24 000 0000').replaceAll('{org_name}', '{{ ORG_NAME|escapejs }}');
+  }
+  function audienceReady() {
+    if (!fields.audience.value) return false;
+    if (fields.audience.value === 'ROLE') return !!fields.role.value;
+    if (fields.audience.value === 'EVENT') return !!fields.event.value;
+    if (fields.audience.value === 'CUSTOM') return !!fields.custom.value.trim();
+    return true;
+  }
+  function update() {
+    document.querySelectorAll('[data-audience-field]').forEach(function (item) { item.hidden = item.dataset.audienceField !== fields.audience.value; });
+    var needsSubject = fields.channel.value === 'EMAIL' || fields.channel.value === 'ALL';
+    document.querySelector('[data-email-subject]').classList.toggle('campaign-optional-field', !needsSubject);
+    document.querySelector('[data-preview-channel]').textContent = (fields.channel.options[fields.channel.selectedIndex] ? fields.channel.options[fields.channel.selectedIndex].text : 'Message') + ' preview';
+    document.querySelector('[data-preview-subject]').textContent = substitute(fields.subject.value) || 'Campaign subject';
+    document.querySelector('[data-preview-body]').textContent = substitute(fields.body.value) || 'Hello Ama,\n\nYour message preview will appear here as you type.';
+    document.querySelector('[data-subject-count]').textContent = fields.subject.value.length;
+    document.querySelector('[data-body-count]').textContent = fields.body.value.length;
+    var segments = Math.max(1, Math.ceil(fields.body.value.length / 160));
+    document.querySelector('[data-sms-segments]').textContent = segments + ' SMS segment' + (segments === 1 ? '' : 's');
+    var checks = [!!fields.title.value.trim(), !!fields.channel.value, audienceReady(), !!fields.body.value.trim(), !needsSubject || !!fields.subject.value.trim()];
+    var percent = Math.round(checks.filter(Boolean).length / checks.length * 100);
+    document.querySelector('[data-readiness-value]').textContent = percent + '%';
+    document.querySelector('[data-readiness-bar]').style.width = percent + '%';
+    document.querySelector('[data-readiness-label]').textContent = percent === 100 ? 'Ready to save or send.' : 'Complete the required fields.';
+  }
+  document.querySelector('[data-apply-template]').addEventListener('click', function () {
+    var selected = templates.find(function (item) { return String(item.id) === fields.template.value; });
+    if (!selected) return;
+    fields.subject.value = selected.subject;
+    fields.body.value = selected.body;
+    update();
+  });
+  document.querySelectorAll('[data-token]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var start = fields.body.selectionStart || fields.body.value.length;
+      var end = fields.body.selectionEnd || start;
+      fields.body.value = fields.body.value.slice(0, start) + button.dataset.token + fields.body.value.slice(end);
+      fields.body.focus();
+      fields.body.selectionStart = fields.body.selectionEnd = start + button.dataset.token.length;
+      update();
+    });
+  });
+  Object.values(fields).forEach(function (field) { field.addEventListener('input', update); field.addEventListener('change', update); });
+  update();
+})();
+</script>
+{% endblock %}

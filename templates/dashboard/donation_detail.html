@@ -3,7 +3,7 @@
 {% block n_donations %}active{% endblock %}
 {% block dash_title %}Donation {{ donation.reference }}{% endblock %}
 {% block dash_h1 %}Donation {{ donation.reference }}{% endblock %}
-{% block dash_sub %}{{ donation.donor_name|default:"Anonymous donor" }} · {{ donation.currency }} {{ donation.amount|intcomma }} · {{ donation.get_status_display }}{% endblock %}
+{% block dash_sub %}{{ donation.donor_name|default:"Anonymous donor" }} · {{ donation.currency }} {{ donation.amount|floatformat:2|intcomma }} · {{ donation.get_status_display }}{% endblock %}
 {% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:donations' %}">All donations</a>{% endblock %}
 {% block dash_content %}
 <div class="event-toolbar">
@@ -30,7 +30,7 @@
       <div><dt>Reference</dt><dd>{{ donation.reference }}</dd></div>
       <div><dt>Donor</dt><dd>{{ donation.donor_name|default:"—" }}</dd></div>
       <div><dt>Email</dt><dd>{{ donation.donor_email|default:"—" }}</dd></div>
-      <div><dt>Amount</dt><dd>{{ donation.currency }} {{ donation.amount|intcomma }}</dd></div>
+      <div><dt>Amount</dt><dd>{{ donation.currency }} {{ donation.amount|floatformat:2|intcomma }}</dd></div>
       <div><dt>Channel</dt><dd>{{ donation.get_channel_display }}</dd></div>
       <div><dt>Campaign</dt><dd>{{ donation.campaign }}</dd></div>
       <div><dt>Date</dt><dd>{{ donation.created_at|date:"M j, Y · g:i A" }}</dd></div>

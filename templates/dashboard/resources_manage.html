@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_resources %}active{% endblock %}
+{% block dash_title %}Resources{% endblock %}
+{% block dash_h1 %}Resources{% endblock %}
+{% block dash_sub %}Manage downloadable files and external links attached to program pages.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'pages:programs' %}">Preview programs</a>
+  <a class="btn-sm" href="{% url 'dashboard:resource_create' %}">Add resource</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.resources|intcomma }}</div><div class="l">Resources</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.files|intcomma }}</div><div class="l">Uploaded files</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.links|intcomma }}</div><div class="l">External links</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.drafts|intcomma }}</div><div class="l">Needs link/file</div></div>
+</div>
+
+<form class="management-toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search resources">
+  <select name="program">
+    <option value="">All programs</option>
+    {% for p in programs %}
+    <option value="{{ p.pk }}" {% if program == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.get_wing_display }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn-sm ghost" type="submit">Filter</button>
+</form>
+
+<div class="dash-section">
+  <table class="dtable cms-table management-table">
+    <thead><tr><th>Resource</th><th>Program</th><th>Delivery</th><th>Order</th><th></th></tr></thead>
+    <tbody>
+      {% for r in resources %}
+      <tr>
+        <td><strong>{{ r.title }}</strong><small>{{ r.description|default:"No description yet" }}</small></td>
+        <td>{{ r.program }}</td>
+        <td>
+          {% if r.file %}<span class="badge green">File</span>
+          {% elif r.external_url %}<span class="badge amber">Link</span>
+          {% else %}<span class="badge grey">Draft</span>{% endif %}
+        </td>
+        <td>{{ r.order }}</td>
+        <td class="table-actions">
+          {% if r.link %}<a class="btn-sm ghost" href="{{ r.link }}">Open</a>{% endif %}
+          <a class="btn-sm" href="{% url 'dashboard:resource_edit' r.pk %}">Edit</a>
+          <form class="inline-action-form" method="post" action="{% url 'dashboard:resource_delete' r.pk %}" onsubmit="return confirm('Delete this resource?');">
+            {% csrf_token %}
+            <button class="btn-sm red" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty compact">No resources match this view.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "dashboard/_pagination.html" with page_obj=resources page_param="resources_page" %}
+</div>
+{% endblock %}

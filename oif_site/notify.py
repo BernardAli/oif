@@ -17,14 +17,14 @@ def _send(subject, body, recipients):
     if not recipients:
         return False
     try:
-        send_mail(
+        delivered = send_mail(
             subject=subject,
             message=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=recipients,
-            fail_silently=True,
+            fail_silently=False,
         )
-        return True
+        return delivered > 0
     except Exception:  # pragma: no cover - defensive
         logger.exception("Failed to send notification email")
         return False
@@ -96,7 +96,7 @@ def send_donation_receipt(donation):
         "Your donation receipt — Onesimus Impact Foundation",
         f"Hello {donation.donor_name or 'friend'},\n\n"
         f"Thank you for your generous gift of {donation.currency} "
-        f"{donation.amount} to the {donation.campaign}.\n"
+        f"{donation.amount:.2f} to the {donation.campaign}.\n"
         f"Reference: {donation.reference}\n"
         f"Channel: {donation.get_channel_display()}\n\n"
         "Your support equips the next generation of leaders. God bless you.\n\n— OIF",

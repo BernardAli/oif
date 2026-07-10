@@ -1,0 +1,413 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_finance %}active{% endblock %}
+{% block dash_title %}Finance & Accounting{% endblock %}
+{% block dash_h1 %}Finance & Accounting{% endblock %}
+{% block dash_sub %}Revenue control, cash and bank accounts, donation ledger, reconciliation queues, campaign accounting, and receipt health.{% endblock %}
+{% block dash_actions %}
+<div class="action-row"><a class="btn-sm olive" href="{% url 'dashboard:accounting_core' %}">Accounting &amp; Statements</a>
+  <a class="btn-sm ghost" href="{% url 'dashboard:finance_export' %}">Export CSV</a>
+  {% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:cash_account_create' %}">Add account</a>{% endif %}
+  {% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:cash_movement_create' %}">Record movement</a>{% endif %}
+  {% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:expense_create' %}">Record expense</a>{% endif %}
+  <a class="btn-sm" href="{% url 'donations:give' %}">Record donation</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="finance-hero">
+  <div>
+    <span>Confirmed revenue</span>
+    <strong>GHS {{ totals.raised|floatformat:2|intcomma }}</strong>
+    <small>{{ totals.success_count|intcomma }} successful gifts · GHS {{ totals.expenses|floatformat:2|intcomma }} posted expenditure</small>
+  </div>
+  <div class="finance-hero-grid">
+    <div><span>Expenditure</span><b>GHS {{ totals.expenses|floatformat:2|intcomma }}</b></div>
+    <div><span>Net position</span><b>GHS {{ totals.net|floatformat:2|intcomma }}</b></div>
+    <div><span>Cash &amp; bank</span><b>GHS {{ totals.cash_balance|floatformat:2|intcomma }}</b></div>
+  </div>
+</div>
+
+<div class="finance-strip">
+  <div><span>Pending income</span><strong>GHS {{ totals.pending_amount|floatformat:2|intcomma }}</strong></div>
+  <div><span>Failed payments</span><strong>GHS {{ totals.failed_amount|floatformat:2|intcomma }}</strong></div>
+  <div><span>Draft expenditure</span><strong>GHS {{ totals.draft_expense_amount|floatformat:2|intcomma }}</strong></div>
+  <div><span>Draft cash movements</span><strong>{{ totals.draft_movements|intcomma }}</strong></div>
+</div>
+
+<div class="income-expense-summary">
+  <div><span>Income</span><strong>GHS {{ totals.raised|floatformat:2|intcomma }}</strong><small>Successful donations</small></div>
+  <div><span>Expenditure</span><strong>GHS {{ totals.expenses|floatformat:2|intcomma }}</strong><small>Approved and paid expenses</small></div>
+  <div><span>Net</span><strong>GHS {{ totals.net|floatformat:2|intcomma }}</strong><small>Income minus expenditure</small></div>
+  <div><span>Cash accounts</span><strong>{{ totals.active_accounts|intcomma }}</strong><small>Active accounts with GHS {{ totals.cash_balance|floatformat:2|intcomma }} book balance</small></div>
+</div>
+
+<div class="event-tabs" data-tabs>
+  <button class="prog-tab active" type="button" data-finance-tab="overview">Overview</button>
+  <button class="prog-tab" type="button" data-finance-tab="income-expenditure">Income &amp; Expenditure</button>
+  <button class="prog-tab" type="button" data-finance-tab="cash-bank">Cash &amp; Bank</button>
+  <button class="prog-tab" type="button" data-finance-tab="expenses">Expenses</button>
+  <button class="prog-tab" type="button" data-finance-tab="ledger">Ledger</button>
+  <button class="prog-tab" type="button" data-finance-tab="reconcile">Reconciliation</button>
+  <button class="prog-tab" type="button" data-finance-tab="campaigns">Campaigns</button>
+  <button class="prog-tab" type="button" data-finance-tab="close">Month Close</button>
+</div>
+
+<div class="tab-panel active" id="finance-tab-overview">
+  <div class="chart-grid">
+    <div class="chart-card full"><h3>Income, expenditure, and net position</h3><div class="chart-box" id="financeIncomeExpenseChart"></div></div>
+    <div class="chart-card full"><h3>Confirmed revenue over time</h3><div class="chart-box" id="financeMonthlyChart"></div></div>
+    <div class="chart-card"><h3>Revenue by channel</h3><div class="chart-box" id="financeChannelChart"></div></div>
+    <div class="chart-card"><h3>Cash and bank by account type</h3><div class="chart-box" id="financeCashAccountChart"></div></div>
+    <div class="chart-card"><h3>Expense categories</h3><div class="chart-box" id="financeExpenseCategoryChart"></div></div>
+    <div class="chart-card full"><h3>Top campaigns</h3><div class="chart-box" id="financeCampaignChart"></div></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="finance-tab-income-expenditure">
+  <div class="finance-split">
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Income &amp; Expenditure</h2><p>Monthly recognized income, posted expenditure, and resulting net.</p></div></div>
+      <table class="dtable"><thead><tr><th>Month</th><th>Income</th><th>Expenditure</th><th>Net</th></tr></thead><tbody>
+        {% for row in income_expense_rows %}
+        <tr>
+          <td>{{ row.label }}</td>
+          <td>GHS {{ row.income|floatformat:2|intcomma }}</td>
+          <td>GHS {{ row.expenses|floatformat:2|intcomma }}</td>
+          <td>{% if row.net < 0 %}<span class="badge red">GHS {{ row.net|floatformat:2|intcomma }}</span>{% else %}<span class="badge green">GHS {{ row.net|floatformat:2|intcomma }}</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="empty compact">No income or expenditure has been posted yet.</div></td></tr>
+        {% endfor %}
+      </tbody></table>
+    </section>
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Expenditure by category</h2><p>Approved and paid expenses grouped for accounting review.</p></div></div>
+      <table class="dtable"><thead><tr><th>Category</th><th>Items</th><th>Total</th></tr></thead><tbody>
+        {% for row in expense_category_rows %}
+        <tr><td>{{ row.label }}</td><td>{{ row.count|intcomma }}</td><td>GHS {{ row.total|floatformat:2|intcomma }}</td></tr>
+        {% empty %}
+        <tr><td colspan="3"><div class="empty compact">No posted expenses yet.</div></td></tr>
+        {% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+</div>
+
+<div class="tab-panel" id="finance-tab-cash-bank">
+  <div class="cash-bank-summary">
+    <div><span>Book balance</span><strong>GHS {{ totals.filtered_cash_balance|floatformat:2|intcomma }}</strong><small>Filtered account balance</small></div>
+    <div><span>Statement balance</span><strong>GHS {{ totals.cash_statement_balance|floatformat:2|intcomma }}</strong><small>Latest statement or cash count</small></div>
+    <div><span>Variance</span><strong>GHS {{ totals.cash_variance|floatformat:2|intcomma }}</strong><small>Book minus statement</small></div>
+    <div><span>Posted movements</span><strong>{{ totals.posted_movements|intcomma }}</strong><small>Approved balance-affecting entries</small></div>
+  </div>
+
+  <form class="management-toolbar" method="get">
+    <input type="search" name="cash_q" value="{{ cash_q }}" placeholder="Account, institution, number, branch, or notes">
+    <select name="cash_type">
+      <option value="">All account types</option>
+      {% for value,label in cash_type_choices %}
+      <option value="{{ value }}" {% if cash_type == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="cash_status">
+      <option value="">All account statuses</option>
+      {% for value,label in cash_status_choices %}
+      <option value="{{ value }}" {% if cash_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn-sm ghost" type="submit">Filter accounts</button>
+    {% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:cash_account_create' %}">Add account</a>{% endif %}
+  </form>
+
+  <div class="cash-account-grid">
+    {% for row in cash_accounts %}
+    {% with account=row.account %}
+    <article class="cash-account-card">
+      <div class="management-card-topline">
+        <span>{{ account.get_account_type_display }}</span>
+        {% if account.status == "ACTIVE" %}<b class="badge green">Active</b>{% elif account.status == "CLOSED" %}<b class="badge red">Closed</b>{% else %}<b class="badge grey">Inactive</b>{% endif %}
+      </div>
+      <h2>{{ account.name }}</h2>
+      <p>{{ account.institution_name|default:"Internal account" }}{% if account.branch %} · {{ account.branch }}{% endif %}</p>
+      <div class="cash-account-balance">
+        <span>Book balance</span>
+        <strong>{{ account.currency }} {{ row.balance|floatformat:2|intcomma }}</strong>
+        <small>{{ account.masked_account_number }} · Statement {{ account.currency }} {{ account.statement_balance|floatformat:2|intcomma }}</small>
+      </div>
+      <div class="cash-account-flags">
+        {% if account.is_primary %}<span class="badge green">Primary</span>{% endif %}
+        {% if account.accepts_donations %}<span class="badge">Donations</span>{% endif %}
+        {% if account.pays_expenses %}<span class="badge">Expenses</span>{% endif %}
+        {% if row.variance != 0 %}<span class="badge amber">Variance {{ account.currency }} {{ row.variance|floatformat:2|intcomma }}</span>{% endif %}
+      </div>
+      {% if account.last_reconciled_on %}
+      <small class="cash-account-note">Last reconciled {{ account.last_reconciled_on|date:"M j, Y" }}</small>
+      {% else %}
+      <small class="cash-account-note">Not reconciled yet</small>
+      {% endif %}
+      {% if can_manage %}
+      <div class="table-actions">
+        <a class="btn-sm ghost" href="{% url 'dashboard:cash_account_edit' account.pk %}">Edit</a>
+        {% if account.status != "ACTIVE" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:cash_account_action' account.pk 'activate' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Activate</button></form>{% endif %}
+        {% if account.status == "ACTIVE" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:cash_account_action' account.pk 'deactivate' %}">{% csrf_token %}<button class="btn-sm ghost" type="submit">Deactivate</button></form>{% endif %}
+        {% if account.status != "CLOSED" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:cash_account_action' account.pk 'close' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Close</button></form>{% endif %}
+      </div>
+      {% endif %}
+    </article>
+    {% endwith %}
+    {% empty %}
+    <div class="empty">No cash or bank accounts match this filter.</div>
+    {% endfor %}
+  </div>
+  {% include "dashboard/_pagination.html" with page_obj=cash_accounts page_param="accounts_page" fragment="finance-tab-cash-bank" %}
+
+  <section class="home-panel cash-movement-panel">
+    <div class="home-panel-head">
+      <div><h2>Cash movements</h2><p>Deposits, withdrawals, transfers, bank charges, clearing entries, and reconciliation adjustments.</p></div>
+      {% if can_manage %}<a class="btn-sm ghost" href="{% url 'dashboard:cash_movement_create' %}">Record movement</a>{% endif %}
+    </div>
+    <form class="management-toolbar" method="get">
+      <input type="search" name="movement_q" value="{{ movement_q }}" placeholder="Movement, account, counterparty, reference, or memo">
+      <select name="movement_account">
+        <option value="">All accounts</option>
+        {% for account in cash_account_choices %}
+        <option value="{{ account.pk }}" {% if movement_account == account.pk|stringformat:"s" %}selected{% endif %}>{{ account.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="movement_status">
+        <option value="">All movement statuses</option>
+        {% for value,label in movement_status_choices %}
+        <option value="{{ value }}" {% if movement_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn-sm ghost" type="submit">Filter movements</button>
+    </form>
+    <table class="dtable cms-table management-table">
+      <thead><tr><th>Movement</th><th>Account</th><th>Direction</th><th>Category</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for m in cash_movements %}
+        <tr>
+          <td><strong>{{ m.title }}</strong><small>{{ m.reference|default:"No reference" }}{% if m.counterparty %} · {{ m.counterparty }}{% endif %}</small></td>
+          <td>{{ m.account.name }}{% if m.transfer_account %}<small>To {{ m.transfer_account.name }}</small>{% endif %}</td>
+          <td>{{ m.get_direction_display }}</td>
+          <td>{{ m.get_category_display }}</td>
+          <td>{{ m.movement_date|date:"M j, Y" }}</td>
+          <td>{{ m.currency }} {{ m.amount|floatformat:2|intcomma }}</td>
+          <td>{% if m.status == "POSTED" %}<span class="badge green">Posted</span>{% elif m.status == "VOID" %}<span class="badge red">Void</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td>
+          <td class="table-actions">
+            {% if can_manage %}
+            <a class="btn-sm ghost" href="{% url 'dashboard:cash_movement_edit' m.pk %}">Edit</a>
+            {% if m.status != "POSTED" and m.status != "VOID" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:cash_movement_action' m.pk 'post' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Post</button></form>{% endif %}
+            {% if m.status != "VOID" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:cash_movement_action' m.pk 'void' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Void</button></form>{% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty compact">No cash movements match this filter.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include "dashboard/_pagination.html" with page_obj=cash_movements page_param="movements_page" fragment="finance-tab-cash-bank" %}
+  </section>
+</div>
+
+<div class="tab-panel" id="finance-tab-expenses">
+  <form class="management-toolbar" method="get">
+    <input type="search" name="expense_q" value="{{ expense_q }}" placeholder="Expense, payee, reference, or description">
+    <select name="expense_status">
+      <option value="">All statuses</option>
+      {% for value,label in expense_status_choices %}
+      <option value="{{ value }}" {% if expense_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="expense_category">
+      <option value="">All categories</option>
+      {% for value,label in expense_category_choices %}
+      <option value="{{ value }}" {% if expense_category == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn-sm ghost" type="submit">Filter expenses</button>
+    {% if can_manage %}<a class="btn-sm" href="{% url 'dashboard:expense_create' %}">Add expense</a>{% endif %}
+  </form>
+  <table class="dtable cms-table management-table">
+    <thead><tr><th>Expense</th><th>Category</th><th>Payee</th><th>Date</th><th>Amount</th><th>Status</th><th>Receipt</th><th></th></tr></thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td><strong>{{ e.title }}</strong><small>{{ e.reference|default:"No reference" }}</small></td>
+        <td>{{ e.get_category_display }}</td>
+        <td>{{ e.payee|default:"—" }}</td>
+        <td>{{ e.expense_date|date:"M j, Y" }}</td>
+        <td>{{ e.currency }} {{ e.amount|floatformat:2|intcomma }}</td>
+        <td>{% if e.status == "PAID" %}<span class="badge green">Paid</span>{% elif e.status == "APPROVED" %}<span class="badge amber">Approved</span>{% elif e.status == "VOID" %}<span class="badge red">Void</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td>
+        <td>{% if e.receipt %}<a class="btn-sm ghost" href="{{ e.receipt.url }}">Open</a>{% else %}<span class="badge grey">None</span>{% endif %}</td>
+        <td class="table-actions">
+          {% if can_manage %}
+          <a class="btn-sm ghost" href="{% url 'dashboard:expense_edit' e.pk %}">Edit</a>
+          {% if e.status == "DRAFT" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:expense_action' e.pk 'approve' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Approve</button></form>{% endif %}
+          {% if e.status != "PAID" and e.status != "VOID" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:expense_action' e.pk 'pay' %}">{% csrf_token %}<button class="btn-sm olive" type="submit">Mark paid</button></form>{% endif %}
+          {% if e.status != "VOID" %}<form class="inline-action-form" method="post" action="{% url 'dashboard:expense_action' e.pk 'void' %}">{% csrf_token %}<button class="btn-sm red" type="submit">Void</button></form>{% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8"><div class="empty compact">No expenses match this filter.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "dashboard/_pagination.html" with page_obj=expenses page_param="expenses_page" fragment="finance-tab-expenses" %}
+</div>
+
+<div class="tab-panel" id="finance-tab-ledger">
+  <form class="management-toolbar" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="Reference, donor, email, or note">
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for value,label in status_choices %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="campaign">
+      <option value="">All campaigns</option>
+      {% for item in campaigns %}
+      <option value="{{ item }}" {% if campaign == item %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn-sm ghost" type="submit">Filter ledger</button>
+  </form>
+  <table class="dtable cms-table management-table">
+    <thead><tr><th>Reference</th><th>Donor</th><th>Campaign</th><th>Channel</th><th>Amount</th><th>Status</th><th>Receipt</th><th></th></tr></thead>
+    <tbody>
+      {% for d in ledger %}
+      <tr>
+        <td><strong>{{ d.reference }}</strong><small>{{ d.created_at|date:"M j, Y · g:i A" }}</small></td>
+        <td>{{ d.donor_name|default:"—" }}<small>{{ d.donor_email|default:"No email" }}</small></td>
+        <td>{{ d.campaign|default:"General Fund" }}</td>
+        <td>{{ d.get_channel_display }}</td>
+        <td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td>
+        <td>{% if d.status == "SUCCESS" %}<span class="badge green">Success</span>{% elif d.status == "PENDING" %}<span class="badge amber">Pending</span>{% else %}<span class="badge red">Failed</span>{% endif %}</td>
+        <td>{% if d.receipt_sent %}<span class="badge green">Sent</span>{% elif d.donor_email %}<span class="badge amber">Due</span>{% else %}<span class="badge grey">No email</span>{% endif %}</td>
+        <td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Open</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8"><div class="empty compact">No ledger entries match this filter.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "dashboard/_pagination.html" with page_obj=ledger page_param="ledger_page" fragment="finance-tab-ledger" %}
+</div>
+
+<div class="tab-panel" id="finance-tab-reconcile">
+  <div class="finance-split">
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Pending confirmation</h2><p>Transactions waiting for Paystack or internal verification.</p></div></div>
+      {% if pending_donations.object_list %}
+      <table class="dtable"><thead><tr><th>Reference</th><th>Amount</th><th>Campaign</th><th></th></tr></thead><tbody>
+      {% for d in pending_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td><td>{{ d.campaign }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+      {% endfor %}
+      </tbody></table>
+      {% include "dashboard/_pagination.html" with page_obj=pending_donations page_param="pending_page" fragment="finance-tab-reconcile" %}
+      {% else %}<div class="empty compact">No pending donations.</div>{% endif %}
+    </section>
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Failed payments</h2><p>Failed attempts that may need donor follow-up or cleanup.</p></div></div>
+      {% if failed_donations.object_list %}
+      <table class="dtable"><thead><tr><th>Reference</th><th>Amount</th><th>Campaign</th><th></th></tr></thead><tbody>
+      {% for d in failed_donations %}
+      <tr><td>{{ d.reference }}</td><td>{{ d.currency }} {{ d.amount|floatformat:2|intcomma }}</td><td>{{ d.campaign }}</td><td><a class="btn-sm ghost" href="{% url 'dashboard:donation_detail' d.pk %}">Review</a></td></tr>
+      {% endfor %}
+      </tbody></table>
+      {% include "dashboard/_pagination.html" with page_obj=failed_donations page_param="failed_page" fragment="finance-tab-reconcile" %}
+      {% else %}<div class="empty compact">No failed donations.</div>{% endif %}
+    </section>
+  </div>
+</div>
+
+<div class="tab-panel" id="finance-tab-campaigns">
+  <div class="finance-split">
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Campaign accounting</h2><p>Confirmed revenue grouped by public fund or campaign.</p></div></div>
+      <table class="dtable"><thead><tr><th>Campaign</th><th>Gifts</th><th>Total</th></tr></thead><tbody>
+        {% for row in campaign_rows %}
+        <tr><td>{{ row.campaign|default:"General Fund" }}</td><td>{{ row.gifts|intcomma }}</td><td>GHS {{ row.total|floatformat:2|intcomma }}</td></tr>
+        {% empty %}
+        <tr><td colspan="3"><div class="empty compact">No successful campaign revenue yet.</div></td></tr>
+        {% endfor %}
+      </tbody></table>
+    </section>
+    <section class="home-panel">
+      <div class="home-panel-head"><div><h2>Channel clearing</h2><p>Confirmed revenue grouped by payment channel.</p></div></div>
+      <table class="dtable"><thead><tr><th>Channel</th><th>Gifts</th><th>Total</th></tr></thead><tbody>
+        {% for row in channel_rows %}
+        <tr><td>{{ row.label }}</td><td>{{ row.gifts|intcomma }}</td><td>GHS {{ row.total|floatformat:2|intcomma }}</td></tr>
+        {% empty %}
+        <tr><td colspan="3"><div class="empty compact">No successful channel revenue yet.</div></td></tr>
+        {% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+</div>
+
+<div class="tab-panel" id="finance-tab-close">
+  <div class="home-panel">
+    <div class="home-panel-head"><div><h2>Month close snapshot</h2><p>Recent successful donation totals for reporting and reconciliation packs.</p></div><a class="btn-sm ghost" href="{% url 'dashboard:finance_export' %}">Export CSV</a></div>
+    <table class="dtable"><thead><tr><th>Month</th><th>Successful gifts</th><th>Recognized revenue</th></tr></thead><tbody>
+      {% for row in month_close_rows %}
+      <tr><td>{{ row.month|date:"F Y" }}</td><td>{{ row.gifts|intcomma }}</td><td>GHS {{ row.total|floatformat:2|intcomma }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3"><div class="empty compact">No closed months yet.</div></td></tr>
+      {% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}
+
+{% block dash_scripts %}
+{{ chart_data|json_script:"financeChartsData" }}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+{% include "dashboard/_echarts_theme.html" %}
+<script>
+  var financeChartsReady = false;
+  var financeCharts = [];
+  function initFinanceCharts() {
+    if (financeChartsReady || typeof echarts === 'undefined') return;
+    financeChartsReady = true;
+    var data = JSON.parse(document.getElementById('financeChartsData').textContent);
+    [
+      ['financeIncomeExpenseChart', incomeExpenseOption(data.income_expense)],
+      ['financeMonthlyChart', OIFCharts.line(data.monthly)],
+      ['financeChannelChart', OIFCharts.pie(data.channels)],
+      ['financeCashAccountChart', OIFCharts.pie(data.cash_accounts)],
+      ['financeExpenseCategoryChart', OIFCharts.pie(data.expense_categories)],
+      ['financeCampaignChart', OIFCharts.bar(data.campaigns)]
+    ].forEach(function(item){ var el=document.getElementById(item[0]); if(!el) return; var chart=OIFCharts.init(el, item[1]); financeCharts.push(chart); });
+    window.addEventListener('resize', function(){ financeCharts.forEach(function(chart){ chart.resize(); }); });
+  }
+  function incomeExpenseOption(rows) {
+    rows = rows || { labels: [], income: [], expenses: [], net: [] };
+    return {
+      color: ['#4a5d3a', '#c0392b', '#6f4a2f'],
+      tooltip: { trigger: 'axis' },
+      legend: { bottom: 0, data: ['Income', 'Expenditure', 'Net'] },
+      grid: { left: 48, right: 22, top: 34, bottom: 56, containLabel: true },
+      xAxis: { type: 'category', data: rows.labels || [] },
+      yAxis: { type: 'value' },
+      series: [
+        { name: 'Income', type: 'bar', data: rows.income || [], barMaxWidth: 34 },
+        { name: 'Expenditure', type: 'bar', data: rows.expenses || [], barMaxWidth: 34 },
+        { name: 'Net', type: 'line', smooth: true, data: rows.net || [] }
+      ]
+    };
+  }
+  initFinanceCharts();
+  document.querySelectorAll('[data-finance-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name = tab.dataset.financeTab;
+      document.querySelectorAll('[data-finance-tab]').forEach(function(item){ item.classList.toggle('active', item === tab); });
+      document.querySelectorAll('[id^="finance-tab-"]').forEach(function(panel){ panel.classList.toggle('active', panel.id === 'finance-tab-' + name); });
+      financeCharts.forEach(function(chart){ chart.resize(); });
+    });
+  });
+</script>
+{% endblock %}

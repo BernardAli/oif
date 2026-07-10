@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block n_speakers %}active{% endblock %}
+{% block dash_title %}Speakers{% endblock %}
+{% block dash_h1 %}Speakers{% endblock %}
+{% block dash_sub %}Curate conference voices, featured public profiles, photos, and display order.{% endblock %}
+{% block dash_actions %}
+<div class="action-row">
+  <a class="btn-sm ghost" href="{% url 'pages:speakers' %}">Preview speakers</a>
+  <a class="btn-sm" href="{% url 'dashboard:speaker_create' %}">Add speaker</a>
+</div>
+{% endblock %}
+{% block dash_content %}
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">{{ totals.speakers|intcomma }}</div><div class="l">Speakers</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.featured|intcomma }}</div><div class="l">Featured</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.photos|intcomma }}</div><div class="l">With photos</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.archive|intcomma }}</div><div class="l">Archive</div></div>
+</div>
+
+<form class="management-toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search speakers">
+  <select name="status">
+    <option value="">All speakers</option>
+    <option value="featured" {% if status == "featured" %}selected{% endif %}>Featured</option>
+    <option value="archive" {% if status == "archive" %}selected{% endif %}>Archive</option>
+  </select>
+  <button class="btn-sm ghost" type="submit">Filter</button>
+</form>
+
+<div class="profile-management-grid">
+  {% for s in speakers %}
+  <article class="profile-management-card">
+    <div class="profile-management-photo">
+      {% if s.photo %}
+      <img src="{{ s.photo.url }}" alt="{{ s.name }}">
+      {% else %}
+      <span>{{ s.name|slice:":1" }}</span>
+      {% endif %}
+    </div>
+    <div class="profile-management-body">
+      <div class="management-card-topline">
+        <span>Order {{ s.order }}</span>
+        {% if s.featured %}<b class="badge green">Featured</b>{% else %}<b class="badge grey">Archive</b>{% endif %}
+      </div>
+      <h2>{{ s.name }}</h2>
+      <p>{{ s.role }}</p>
+      <div class="table-actions">
+        <a class="btn-sm ghost" href="{% url 'pages:speakers' %}">Preview</a>
+        <a class="btn-sm" href="{% url 'dashboard:speaker_edit' s.pk %}">Edit</a>
+        <form class="inline-action-form" method="post" action="{% url 'dashboard:speaker_delete' s.pk %}" onsubmit="return confirm('Delete this speaker?');">
+          {% csrf_token %}
+          <button class="btn-sm red" type="submit">Delete</button>
+        </form>
+      </div>
+    </div>
+  </article>
+  {% empty %}
+  <div class="empty">No speakers match this view.</div>
+  {% endfor %}
+</div>
+{% include "dashboard/_pagination.html" with page_obj=speakers page_param="speakers_page" %}
+{% endblock %}

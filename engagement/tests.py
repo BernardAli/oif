@@ -139,6 +139,13 @@ class NewsletterTest(TestCase):
         self.assertEqual(NewsletterSubscriber.objects.filter(
             email="sub@example.com").count(), 1)
 
+    def test_newsletter_signup_rejects_external_next_url(self):
+        resp = self.client.post(reverse("engagement:newsletter_signup"), {
+            "email": "safe@example.com",
+            "next": "https://evil.example/phish",
+        })
+        self.assertRedirects(resp, reverse("pages:home"))
+
 
 class ApplicationKindsTest(TestCase):
     def test_mentee_and_speaker_kinds_accepted(self):

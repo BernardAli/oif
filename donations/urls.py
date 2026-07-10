@@ -6,5 +6,6 @@ app_name = "donations"
 urlpatterns = [
     path("give/", views.give, name="give"),
     path("callback/", views.callback, name="callback"),
+    path("webhook/", views.webhook, name="webhook"),
     path("status/<str:reference>/", views.status, name="status"),
 ]
