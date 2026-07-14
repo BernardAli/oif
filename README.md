@@ -39,7 +39,6 @@ python -m venv .venv
 pip install -r requirements.txt
 cp .env.example .env
 python manage.py migrate
-python manage.py seed_demo
 python manage.py runserver 8010
 ```
 
@@ -53,7 +52,14 @@ Open:
 If you use Django's default port instead, run `python manage.py runserver` and
 open `http://127.0.0.1:8000/`.
 
-Seeded demo accounts use this password:
+The database starts with only the basic organization profile. To add disposable
+sample content and accounts for local development, run:
+
+```sh
+python manage.py seed_demo
+```
+
+Do not run that command in production. Seeded demo accounts use this password:
 
 ```text
 oifdemo123
@@ -271,7 +277,8 @@ When `DEBUG=True`, media is served by Django via `oif_site.urls`.
 - Python
 - Django
 - SQLite by default
-- PostgreSQL via `DATABASE_URL`
+- MySQL in production, configured with `MYSQL_*` environment variables
+- SQLite fallback for zero-configuration local development
 - Pillow for media uploads
 - Vanilla JavaScript for tabs, navigation, password toggles, sharing, countdowns,
   and gallery lightbox
@@ -281,19 +288,25 @@ When `DEBUG=True`, media is served by Django via `oif_site.urls`.
 
 ## Environment Variables
 
-The app runs locally with SQLite and no extra configuration. Production should
-set at least:
+The app uses SQLite locally when `MYSQL_DATABASE` and `DATABASE_URL` are empty.
+Production MySQL deployments should set at least:
 
 ```env
 DJANGO_SECRET_KEY=replace-with-a-long-random-string
 DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-DATABASE_URL=postgres://user:password@host:5432/dbname
+MYSQL_DATABASE=oif_db
+MYSQL_USER=oif_user
+MYSQL_PASSWORD=replace-with-a-strong-password
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
 ```
 
 Optional production hardening is auto-enabled when `DJANGO_DEBUG=False`; see
-`oif_site/settings.py` and `.env.example`.
+`oif_site/settings.py` and `.env.example`. `DATABASE_URL` remains supported for
+hosts that provide a complete database URL, but the documented deployment path
+uses the explicit MySQL settings above.
 
 Simulated successful donations are controlled separately. Keep
 `PAYSTACK_DEMO_MODE=False` outside an intentional demo environment. If Paystack
@@ -344,14 +357,42 @@ contact/partner/newsletter flows, email notifications, and audit logging.
 
 ## Deployment Notes
 
-The app is suitable for PythonAnywhere or any standard Django host.
+### PythonAnywhere
+
+The project includes a PythonAnywhere WSGI template, a repeatable deployment
+script, and a detailed setup guide. The short deployment path is:
+
+1. Clone the repository in a PythonAnywhere Bash console.
+2. Create a virtual environment using the same Python version selected in the
+   Web tab, then install `requirements.txt`.
+3. Create a MySQL database in the Databases tab.
+4. Copy `.env.example` to `.env` and add the PythonAnywhere hostname, MySQL,
+   SMTP, and Paystack credentials.
+5. Run `bash deploy/pythonanywhere_update.sh` and create a superuser.
+6. Create a manually configured web app, adapt
+   `deploy/pythonanywhere_wsgi.py.example`, and configure the static and media
+   mappings.
+7. Reload the web app from the Web tab.
+
+Use [PYTHONANYWHERE.md](PYTHONANYWHERE.md) for the complete commands, directory
+paths, environment example, and production checklist. The deployment helpers
+are:
+
+- `deploy/pythonanywhere_wsgi.py.example`: WSGI configuration that loads `.env`.
+- `deploy/pythonanywhere_update.sh`: checks, migrates, collects static assets,
+  and runs Django's deployment checks.
+
+PythonAnywhere database names typically use the `username$database` format.
+Confirm that the selected account plan includes MySQL before deployment.
+
+### Production Checklist
 
 Recommended production checklist:
 
 - Set `DJANGO_DEBUG=False`.
 - Set a strong `DJANGO_SECRET_KEY`.
 - Configure `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
-- Use PostgreSQL through `DATABASE_URL`.
+- Configure MySQL and keep its credentials only in `.env`.
 - Configure SMTP email.
 - Configure Paystack keys.
 - Set `PAYSTACK_DEMO_MODE=False`.
@@ -363,14 +404,15 @@ Recommended production checklist:
 - Configure persistent media storage/backups.
 - Replace placeholder policies and sample media with final organization assets.
 
-The included `Dockerfile` runs the project with Gunicorn, the `Procfile`
-supports process-based hosts, and `.github/workflows/test.yml` runs checks,
-migration drift detection, and the full test suite for pushes and pull requests.
+For other hosts, the included `Dockerfile` runs the project with Gunicorn, the
+`Procfile` supports process-based hosts, and `.github/workflows/test.yml` runs
+checks, migration drift detection, and the full test suite for pushes and pull
+requests.
 
 ## Notes
 
 - Sample gallery images are included for development/demo use and can be managed
   from the CMS.
 - Policy pages are editable placeholders until final legal copy is supplied.
-- Third-party costs such as hosting, domain, email, SSL, PostgreSQL, and Paystack
+- Third-party costs such as hosting, domain, email, SSL, MySQL, and Paystack
   fees are external to the application.
