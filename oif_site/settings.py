@@ -17,7 +17,8 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
 ALLOWED_HOSTS = os.environ.get(
     "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,testserver"
-).split(",")
+)
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS.split(",") if host.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -67,12 +68,32 @@ TEMPLATES = [
 WSGI_APPLICATION = "oif_site.wsgi.application"
 
 # --- Database -------------------------------------------------------------
-# Defaults to SQLite so the project runs out of the box. Set DATABASE_URL to a
-# PostgreSQL DSN (e.g. postgres://user:pass@host:5432/oif) for production.
+# MySQL is selected when MYSQL_DATABASE is configured. DATABASE_URL remains
+# supported for managed deployments; SQLite is only the credential-free local
+# fallback used by tests and first-time setup.
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+elif os.environ.get("MYSQL_DATABASE"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ["MYSQL_DATABASE"],
+            "USER": os.environ.get("MYSQL_USER", "root"),
+            "PASSWORD": os.environ.get("MYSQL_PASSWORD", ""),
+            "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),
+            "PORT": os.environ.get("MYSQL_PORT", "3306"),
+            "CONN_MAX_AGE": int(os.environ.get("MYSQL_CONN_MAX_AGE", "300")),
+            "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+    if os.environ.get("MYSQL_TEST_DATABASE"):
+        DATABASES["default"]["TEST"] = {"NAME": os.environ["MYSQL_TEST_DATABASE"]}
 else:
     DATABASES = {
         "default": {
@@ -91,7 +112,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Africa/Accra"
+# Ghana observes UTC year-round. Using UTC avoids MySQL's optional named-zone
+# table dependency while preserving the exact local date and time in Accra.
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 

@@ -5,9 +5,9 @@ from .models import (EventRegistration, Application, MentorshipEnrollment,
 
 @admin.register(EventRegistration)
 class EventRegistrationAdmin(admin.ModelAdmin):
-    list_display = ("user", "event", "attendance_mode", "status", "created_at")
+    list_display = ("attendee_name", "attendee_email", "event", "attendance_mode", "status", "created_at")
     list_filter = ("status", "attendance_mode", "event")
-    search_fields = ("user__username", "user__email", "event__title",
+    search_fields = ("user__username", "user__email", "guest_name", "guest_email", "event__title",
                      "organisation", "role_title")
     readonly_fields = ("created_at",)
 

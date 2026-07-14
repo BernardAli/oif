@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from decimal import Decimal
@@ -22,6 +23,7 @@ from engagement.models import (EventRegistration, Application,
 from pages.models import (Event, Program, ProgramResource, SiteBranding,
                           SiteStat, Speaker, TeamMember, Testimonial,
                           GalleryImage, Policy)
+from oif_site import notify
 from . import analytics
 from .reporting import (
     can_view_reports as _can_view_reports,
@@ -810,7 +812,7 @@ def _event_detail_context(request, event):
         .order_by("user__role")
     )
     role_mix = [
-        {"label": role_labels.get(row["user__role"], row["user__role"]), "count": row["c"]}
+        {"label": role_labels.get(row["user__role"], row["user__role"] or "Guest"), "count": row["c"]}
         for row in role_rows
     ]
     timeline = (
@@ -980,7 +982,7 @@ def update_registration(request, event_pk, reg_pk):
         reg.status = status
         reg.save(update_fields=["status"])
         log_action(request.user, "registration.status",
-                   f"{reg.user} @ {event.title}", status)
+                   f"{reg.attendee_name} @ {event.title}", status)
         messages.success(request, "Registration status updated.")
     else:
         messages.error(request, "Choose a valid registration status.")
@@ -1957,6 +1959,7 @@ def applications_view(request):
 @require_POST
 def review_application(request, pk, decision):
     app = get_object_or_404(Application, pk=pk)
+    previous_status = app.status
     if decision not in ("approve", "reject"):
         raise PermissionDenied("Unknown application decision.")
     if decision == "approve":
@@ -1974,6 +1977,11 @@ def review_application(request, pk, decision):
     app.reviewed_by = request.user
     app.reviewed_at = timezone.now()
     app.save()
+    if app.status != previous_status:
+        notify.send_application_decision(
+            app,
+            request.build_absolute_uri(reverse("dashboard:applications")),
+        )
     log_action(request.user, "application.review",
                f"{app.get_kind_display()} — {app.user}", app.status)
     messages.success(request, f"Application {app.get_status_display().lower()}.")
@@ -2746,8 +2754,19 @@ def member_detail(request, pk):
             request.POST, request.FILES, instance=member, actor=request.user
         )
         if form.is_valid():
-            before_role = User.objects.get(pk=member.pk).role
+            before = User.objects.get(pk=member.pk)
+            before_role = before.role
+            before_active = before.is_active
             form.save()
+            membership_accepted = (
+                (before_role == Role.APPLICANT and member.role == Role.MEMBER)
+                or (not before_active and member.is_active)
+            )
+            if membership_accepted:
+                notify.send_membership_accepted(
+                    member,
+                    request.build_absolute_uri(reverse("accounts:login")),
+                )
             if member.role != before_role:
                 log_action(request.user, "member.role_change", member.username,
                            f"{before_role} → {member.role}")

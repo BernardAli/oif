@@ -73,16 +73,18 @@
         <div class="mega-panel mega-panel-wide">
           <div class="mega-feature program-feature">
             <span>Program Ecosystem</span>
-            <strong>Five connected pathways for leadership formation and community impact.</strong>
+            <strong>Current pathways for leadership formation and community impact.</strong>
             <a href="{% url 'pages:programs' %}">Explore programs</a>
           </div>
           <div class="mega-link-grid program-mega-grid">
-            <a href="{% url 'pages:programs' %}"><span>All Programs</span><small>Browse the complete OIF program house</small></a>
-            <a href="{% url 'pages:programs' %}#program-wings"><span>The Forge</span><small>Leadership and entrepreneurship formation</small></a>
-            <a href="{% url 'pages:programs' %}#program-wings"><span>The Hadassah Project</span><small>Purpose and dignity for young women</small></a>
-            <a href="{% url 'pages:programs' %}#program-wings"><span>Humanitarian Wing</span><small>Service connected to real needs</small></a>
-            <a href="{% url 'pages:programs' %}#program-wings"><span>Virtual Conferences</span><small>Digital teaching and global access</small></a>
-            <a href="{% url 'pages:programs' %}#open-events"><span>Open Events</span><small>Upcoming gatherings and registrations</small></a>
+            {% for item in nav_programs %}
+            <a href="{% url 'pages:program_detail' item.wing|lower %}">
+              <span>{{ item.get_wing_display }}</span>
+              <small>{{ item.tagline|default:item.headline }}</small>
+            </a>
+            {% empty %}
+            <div class="mega-program-empty">No programs are currently published.</div>
+            {% endfor %}
           </div>
         </div>
       </div>

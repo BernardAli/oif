@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<main class="error-page">
+  <div class="container error-page-inner">
+    <span class="error-code">500</span>
+    <div>
+      <div class="eyebrow">Temporary problem</div>
+      <h1 class="display">We couldn’t complete that request.</h1>
+      <p>Our team can try again shortly. No further action is required from you.</p>
+      <div class="error-page-actions">
+        <a class="btn-primary" href="{% url 'pages:home' %}">Return home</a>
+        <a class="btn-primary premium-ghost-btn" href="{% url 'pages:contact' %}">Contact OIF</a>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

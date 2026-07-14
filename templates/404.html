@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Page not found · {{ ORG_NAME }}{% endblock %}
+{% block content %}
+<main class="error-page">
+  <div class="container error-page-inner">
+    <span class="error-code">404</span>
+    <div>
+      <div class="eyebrow">Page not found</div>
+      <h1 class="display">This page isn’t here.</h1>
+      <p>The address may have changed, or the page may no longer be available.</p>
+      <div class="error-page-actions">
+        <a class="btn-primary" href="{% url 'pages:home' %}">Return home</a>
+        <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">Explore programs</a>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

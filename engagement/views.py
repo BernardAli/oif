@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from datetime import UTC, timedelta
 from urllib.parse import urlencode
 
-from pages.models import Event
+from pages.models import Event, GalleryImage
 from oif_site import notify
 from .forms import (ApplicationForm, ContactForm, EventRegistrationForm,
                     PartnerEnquiryForm, NewsletterForm)
@@ -107,12 +107,21 @@ def event_detail(request, slug):
         .select_related("program")
         .order_by("starts_at")[:3]
     )
+    event_images = GalleryImage.objects.filter(is_published=True)
+    if event.program_id:
+        event_images = event_images.filter(program=event.program)
+    else:
+        event_images = event_images.none()
+    event_images = list(event_images[:4])
     event_url = request.build_absolute_uri(reverse("pages:event_detail", args=[event.slug]))
     return render(request, "engagement/event_detail.html", {
         "event": event,
         "registration": registration,
-        "registration_form": EventRegistrationForm(instance=registration),
+        "registration_form": EventRegistrationForm(
+            instance=registration, guest=not request.user.is_authenticated
+        ),
         "related_events": related_events,
+        "event_images": event_images,
         "calendar_links": {
             "google": _google_calendar_url(event, event_url),
             "apple": reverse("pages:event_calendar", args=[event.slug]),
@@ -154,7 +163,6 @@ def event_calendar(request, slug):
     return response
 
 
-@login_required
 @require_POST
 def register_event(request, slug):
     event = get_object_or_404(Event, slug=slug, is_published=True)
@@ -166,27 +174,51 @@ def register_event(request, slug):
         messages.error(request, "This event has reached capacity.")
         return redirect(redirect_to)
 
-    form = EventRegistrationForm(request.POST)
+    is_guest = not request.user.is_authenticated
+    form = EventRegistrationForm(request.POST, guest=is_guest)
     if not form.is_valid():
         messages.error(request, "Please check the registration form and try again.")
         return redirect(redirect_to)
 
     defaults = form.cleaned_data
-    reg, created = EventRegistration.objects.get_or_create(
-        event=event, user=request.user,
-        defaults=defaults,
-    )
+    if is_guest:
+        email = defaults["guest_email"]
+        reg = EventRegistration.objects.filter(
+            event=event, user__isnull=True, guest_email__iexact=email
+        ).first()
+        created = reg is None
+        if created:
+            reg = EventRegistration.objects.create(event=event, **defaults)
+        else:
+            for field, value in defaults.items():
+                setattr(reg, field, value)
+    else:
+        reg, created = EventRegistration.objects.get_or_create(
+            event=event, user=request.user,
+            defaults=defaults,
+        )
     if created:
+        notify.send_event_registration_confirmation(
+            reg,
+            request.build_absolute_uri(reverse("pages:event_detail", args=[event.slug])),
+            request.build_absolute_uri(reverse("pages:event_calendar", args=[event.slug])),
+        )
         messages.success(request, f"You're registered for {event.title}.")
     else:
         for field, value in defaults.items():
             setattr(reg, field, value)
         if reg.status == EventRegistration.Status.CANCELLED:
             reg.status = EventRegistration.Status.REGISTERED
+            reg.save()
+            notify.send_event_registration_confirmation(
+                reg,
+                request.build_absolute_uri(reverse("pages:event_detail", args=[event.slug])),
+                request.build_absolute_uri(reverse("pages:event_calendar", args=[event.slug])),
+            )
             messages.success(request, f"You're registered again for {event.title}.")
         else:
             messages.info(request, "Your event registration details have been updated.")
-        reg.save()
+            reg.save()
     return redirect(redirect_to)
 
 
@@ -229,7 +261,13 @@ def contact(request):
             return redirect("pages:contact")
     else:
         form = ContactForm()
-    return render(request, "pages/contact.html", {"form": form})
+    contact_image = GalleryImage.objects.filter(
+        is_published=True, program__wing="HUMANITARIAN"
+    ).first() or GalleryImage.objects.filter(is_published=True).first()
+    return render(request, "pages/contact.html", {
+        "form": form,
+        "contact_image": contact_image,
+    })
 
 
 @require_POST

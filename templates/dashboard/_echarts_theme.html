@@ -1,7 +1,7 @@
 <script>
 window.OIFCharts = (function () {
   var bodyFont = '{{ site_branding.body_font|escapejs }}', titleFont = '{{ site_branding.title_font|escapejs }}';
-  var palette = ['#6f4a2f', '#4a5d3a', '#cda983', '#1a1512', '#9a6b48', '#7a8f62', '#d8b892'];
+  var palette = ['#6f4a2f', '#cda983', '#cda983', '#1a1512', '#9a6b48', '#9a6b48', '#d8b892'];
   var axis = '#8a7b6b', line = 'rgba(26,21,18,0.12)', ink = '#1a1512';
 
   function gradient(from, to) {
@@ -97,7 +97,7 @@ window.OIFCharts = (function () {
           borderRadius: [6, 6, 0, 0],
           color: gradient('#9a6b48', '#6f4a2f')
         },
-        emphasis: { itemStyle: { color: '#4a5d3a' } }
+        emphasis: { itemStyle: { color: '#cda983' } }
       }]
     });
   }

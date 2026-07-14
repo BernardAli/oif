@@ -5,6 +5,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
+from oif_site import notify
 from .forms import SignUpForm, LoginForm, ProfileForm
 
 
@@ -15,6 +16,11 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            notify.send_account_registered(
+                user,
+                request.build_absolute_uri(reverse_lazy("accounts:login")),
+                request.build_absolute_uri(reverse_lazy("accounts:password_reset")),
+            )
             login(request, user)
             messages.success(
                 request, f"Welcome to Onesimus Impact Foundation, {user.first_name}!"

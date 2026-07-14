@@ -12,6 +12,26 @@ EMAIL = "django.core.mail.backends.locmem.EmailBackend"
 
 
 @override_settings(EMAIL_BACKEND=EMAIL)
+class SignupEmailTest(TestCase):
+    def test_signup_sends_account_access_email_without_password(self):
+        response = self.client.post(reverse("accounts:signup"), {
+            "first_name": "Ama", "last_name": "Mensah",
+            "username": "ama.member", "email": "ama@example.com",
+            "phone": "0200000000",
+            "password1": "A-secure-test-password-123",
+            "password2": "A-secure-test-password-123",
+        })
+        self.assertRedirects(response, reverse("dashboard:home"))
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn("account is ready", message.subject)
+        self.assertIn("Username: ama.member", message.body)
+        self.assertIn(reverse("accounts:login"), message.body)
+        self.assertIn(reverse("accounts:password_reset"), message.body)
+        self.assertNotIn("A-secure-test-password-123", message.body)
+
+
+@override_settings(EMAIL_BACKEND=EMAIL)
 class PasswordResetFlowTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

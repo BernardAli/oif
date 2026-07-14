@@ -8,6 +8,7 @@ import os
 import tempfile
 from datetime import timedelta
 
+from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -24,6 +25,7 @@ from dashboard.models import CashAccount, CashMovement, Expense, MessageCampaign
 
 
 PWD = "testpass123"
+EMAIL = "django.core.mail.backends.locmem.EmailBackend"
 
 
 def make(username, role, **extra):
@@ -168,6 +170,21 @@ class RoleAccessTest(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.member.refresh_from_db()
         self.assertEqual(self.member.role, Role.MENTOR)
+
+    @override_settings(EMAIL_BACKEND=EMAIL)
+    def test_application_approval_sends_acceptance_email_once(self):
+        app = Application.objects.create(
+            user=self.member, kind=Application.Kind.VOLUNTEER,
+            status=Application.Status.PENDING,
+        )
+        url = reverse("dashboard:review_application", args=[app.pk, "approve"])
+        self.client.login(username="director_u", password=PWD)
+        self.client.post(url)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("has been accepted", mail.outbox[0].subject)
+        self.assertIn("Welcome", mail.outbox[0].body)
+        self.client.post(url)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_speaker_application_approval_does_not_promote_to_volunteer(self):
         speaker_applicant = make("speaker_applicant", Role.MEMBER)
@@ -782,6 +799,22 @@ class MemberManagementTest(TestCase):
         self.assertEqual(self.member.role, Role.VOLUNTEER)
         self.assertEqual(self.member.title, "Events Volunteer")
         self.assertTrue(self.member.is_public_profile)
+
+    @override_settings(EMAIL_BACKEND=EMAIL)
+    def test_activating_membership_sends_acceptance_email(self):
+        applicant = make("pending_member", Role.APPLICANT, is_active=False)
+        self.client.login(username="member_admin", password=PWD)
+        self.client.post(reverse("dashboard:member_detail", args=[applicant.pk]), data={
+            "role": Role.MEMBER,
+            "title": "New member",
+            "location": "Accra, Ghana",
+            "is_active": "on",
+            "is_staff": "",
+            "is_public_profile": "",
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("membership has been accepted", mail.outbox[0].subject)
+        self.assertIn("Username: pending_member", mail.outbox[0].body)
 
     def test_member_manager_without_user_admin_cannot_change_roles_or_view_payments(self):
         target = make("ops_managed_member", Role.MEMBER, title="New member")

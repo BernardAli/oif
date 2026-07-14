@@ -15,11 +15,7 @@
           <p class="event-detail-lede">{{ event.description|default:"A structured OIF gathering for leadership, mentorship, service, and practical next steps." }}</p>
           {% endif %}
           <div class="event-detail-actions">
-	            {% if user.is_authenticated %}
 	            <a class="btn-primary" href="#event-registration">Register or update details</a>
-	            {% else %}
-	            <a class="btn-primary" href="{% url 'accounts:login' %}?next={{ request.path }}">Sign in to register</a>
-	            {% endif %}
 	            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">Explore programs</a>
 	          </div>
 	          <div class="calendar-action-row" aria-label="Add event to calendar">
@@ -39,6 +35,8 @@
         <div class="event-detail-media">
           {% if event.flyer %}
           <img src="{{ event.flyer.url }}" alt="{{ event.title }} flyer">
+          {% elif event_images %}
+          <img src="{{ event_images.0.image.url }}" alt="{{ event_images.0.caption|default:event.title }}">
           {% else %}
           <div class="event-detail-fallback">
             <span>{{ event.get_kind_display }}</span>
@@ -76,6 +74,17 @@
               {{ event.description|default:"Full details will be announced soon."|linebreaks }}
             </div>
           </section>
+
+          {% if event_images %}
+          <section class="event-visual-story" aria-label="Event highlights">
+            {% for image in event_images %}
+            <figure>
+              <img src="{{ image.image.url }}" alt="{{ image.caption|default:event.title }}" loading="lazy">
+              {% if image.caption %}<figcaption>{{ image.caption }}</figcaption>{% endif %}
+            </figure>
+            {% endfor %}
+          </section>
+          {% endif %}
 
           <div class="event-info-grid">
             <section class="event-info-panel">
@@ -166,10 +175,14 @@
             </div>
             {% endif %}
 
-            {% if user.is_authenticated %}
               {% if event.registration_open and not event.is_full %}
               <form class="event-register-form" method="post" action="{% url 'engagement:register_event' event.slug %}">{% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
+                {% if not user.is_authenticated %}
+                <div class="form-row"><label>Full name</label>{{ registration_form.guest_name }}</div>
+                <div class="form-row"><label>Email address</label>{{ registration_form.guest_email }}</div>
+                <div class="form-row"><label>Phone number</label>{{ registration_form.guest_phone }}</div>
+                {% endif %}
                 <div class="form-row"><label>Attendance mode</label>{{ registration_form.attendance_mode }}</div>
                 <div class="form-row"><label>Organisation</label>{{ registration_form.organisation }}</div>
                 <div class="form-row"><label>Role / title</label>{{ registration_form.role_title }}</div>
@@ -183,9 +196,6 @@
               {% else %}
               <div class="premium-empty">Registration is currently closed.</div>
               {% endif %}
-            {% else %}
-            <a class="btn-primary" href="{% url 'accounts:login' %}?next={{ request.path }}">Sign in to register</a>
-            {% endif %}
           </div>
         </aside>
       </div>

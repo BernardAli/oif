@@ -102,20 +102,28 @@ def _audience(campaign):
             for item in {line.strip() for line in campaign.custom_recipients.splitlines() if line.strip()}
         ]
     users = User.objects.filter(is_active=True)
+    recipients = []
     if campaign.audience == MessageCampaign.Audience.MARKETING:
         users = users.filter(marketing_opt_in=True)
     elif campaign.audience == MessageCampaign.Audience.ROLE:
         users = users.filter(role=campaign.role)
     elif campaign.audience == MessageCampaign.Audience.EVENT:
-        user_ids = EventRegistration.objects.filter(event=campaign.event).exclude(
+        registrations = EventRegistration.objects.filter(event=campaign.event).exclude(
             status=EventRegistration.Status.CANCELLED
-        ).values_list("user_id", flat=True)
+        )
+        user_ids = registrations.filter(user__isnull=False).values_list("user_id", flat=True)
         users = users.filter(pk__in=user_ids)
-    return [
+        recipients = [
+            {"name": row.guest_name, "first_name": row.guest_name.split(" ")[0],
+             "email": row.guest_email, "phone": row.guest_phone}
+            for row in registrations.filter(user__isnull=True)
+        ]
+    recipients.extend([
         {"name": user.get_full_name() or user.username,
          "first_name": user.first_name, "email": user.email, "phone": user.phone}
         for user in users
-    ]
+    ])
+    return recipients
 
 
 def _render(text, recipient):

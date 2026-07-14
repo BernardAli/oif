@@ -6,9 +6,34 @@ from django.utils import timezone
 
 from .checks import production_configuration_check
 from .models import Event, Policy, Program, SiteBranding
+from .views import error_500
 
 
 class PublicPageBehaviourTest(TestCase):
+    def test_program_mega_nav_only_shows_active_database_programs(self):
+        active = Program.objects.create(
+            wing=Program.Wing.FORGE,
+            tagline="Active leadership pathway",
+            headline="Forge leaders",
+            description="Active program",
+            is_active=True,
+        )
+        Program.objects.create(
+            wing=Program.Wing.HADASSAH,
+            tagline="Hidden pathway",
+            headline="Hidden program",
+            description="Inactive program",
+            is_active=False,
+        )
+
+        response = self.client.get(reverse("pages:home"))
+        self.assertContains(
+            response, reverse("pages:program_detail", args=[active.wing.lower()])
+        )
+        self.assertContains(response, "Active leadership pathway")
+        self.assertNotContains(response, "Hidden pathway")
+        self.assertNotContains(response, "Open Events")
+
     def test_unpublished_event_is_not_public(self):
         event = Event.objects.create(
             title="Private planning event",
@@ -73,3 +98,17 @@ class DeploymentConfigurationCheckTest(SimpleTestCase):
     )
     def test_safe_production_configuration_has_no_oif_issues(self):
         self.assertEqual(production_configuration_check(None), [])
+
+
+class ErrorPageTest(TestCase):
+    @override_settings(DEBUG=False)
+    def test_custom_404_page(self):
+        response = self.client.get("/this-page-does-not-exist/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "This page isn’t here.", status_code=404)
+
+    @override_settings(DEBUG=False)
+    def test_custom_500_page(self):
+        response = error_500(RequestFactory().get("/broken/"))
+        self.assertEqual(response.status_code, 500)
+        self.assertContains(response, "We couldn’t complete that request.", status_code=500)

@@ -9,7 +9,7 @@ from accounts.models import User, Role
 from engagement.models import (ContactMessage, PartnerEnquiry,
                                NewsletterSubscriber, Application,
                                EventRegistration)
-from pages.models import Event, Policy, Program
+from pages.models import Event, GalleryImage, Policy, Program
 
 PWD = "testpass123"
 
@@ -98,6 +98,91 @@ class PublicContentPagesTest(TestCase):
         self.assertEqual(registration.attendance_mode, EventRegistration.AttendanceMode.IN_PERSON)
         self.assertEqual(registration.organisation, "OIF Club")
         self.assertEqual(registration.accessibility_needs, "Front-row seating")
+
+    @override_settings(EMAIL_BACKEND=EMAIL)
+    def test_event_registration_sends_confirmation_once(self):
+        member = make("confirmation_member")
+        event = Event.objects.create(
+            title="OIF Leadership Workshop",
+            starts_at=timezone.now() + timedelta(days=5),
+            location="Accra Conference Centre",
+            registration_open=True,
+            is_published=True,
+        )
+        self.client.login(username=member.username, password=PWD)
+        url = reverse("engagement:register_event", args=[event.slug])
+        data = {"attendance_mode": EventRegistration.AttendanceMode.IN_PERSON}
+        self.client.post(url, data)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Registration confirmed", mail.outbox[0].subject)
+        self.assertIn("Accra Conference Centre", mail.outbox[0].body)
+        self.assertIn(reverse("pages:event_calendar", args=[event.slug]), mail.outbox[0].body)
+        self.client.post(url, data)
+        self.assertEqual(len(mail.outbox), 1)
+
+    @override_settings(EMAIL_BACKEND=EMAIL)
+    def test_guest_can_register_without_an_account(self):
+        event = Event.objects.create(
+            title="Open Community Programme",
+            starts_at=timezone.now() + timedelta(days=7),
+            location="OIF Centre, Accra",
+            registration_open=True,
+            is_published=True,
+        )
+        url = reverse("engagement:register_event", args=[event.slug])
+        data = {
+            "guest_name": "Akosua Mensah",
+            "guest_email": "AKOSUA@example.com",
+            "guest_phone": "+233240000000",
+            "attendance_mode": EventRegistration.AttendanceMode.IN_PERSON,
+            "organisation": "Community Leaders Network",
+        }
+        response = self.client.post(url, data)
+        self.assertRedirects(response, reverse("pages:event_detail", args=[event.slug]))
+        registration = EventRegistration.objects.get(event=event)
+        self.assertIsNone(registration.user)
+        self.assertEqual(registration.guest_name, "Akosua Mensah")
+        self.assertEqual(registration.guest_email, "akosua@example.com")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Registration confirmed", mail.outbox[0].subject)
+
+        self.client.post(url, {**data, "guest_name": "Akosua A. Mensah"})
+        self.assertEqual(EventRegistration.objects.filter(event=event).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_event_page_shows_guest_registration_fields(self):
+        event = Event.objects.create(
+            title="Public Programme",
+            starts_at=timezone.now() + timedelta(days=3),
+            registration_open=True,
+            is_published=True,
+        )
+        response = self.client.get(reverse("pages:event_detail", args=[event.slug]))
+        self.assertContains(response, "Full name")
+        self.assertContains(response, "Email address")
+        self.assertNotContains(response, "Sign in to register")
+
+        home = self.client.get(reverse("pages:home"))
+        registration_url = reverse("pages:event_detail", args=[event.slug]) + "#event-registration"
+        self.assertContains(home, registration_url)
+        self.assertNotContains(home, reverse("accounts:login") + "?next=/dashboard/events/")
+
+    def test_event_uses_program_gallery_images(self):
+        program = Program.objects.create(
+            wing=Program.Wing.FORGE, tagline="Lead", headline="Lead well",
+            description="Leadership development",
+        )
+        GalleryImage.objects.create(
+            program=program, caption="Leadership conference gathering",
+            image="gallery/oif-sample-leadership-conference.png",
+        )
+        event = Event.objects.create(
+            title="Ignite Leadership Conference 2026", program=program,
+            starts_at=timezone.now() + timedelta(days=10), is_published=True,
+        )
+        response = self.client.get(reverse("pages:event_detail", args=[event.slug]))
+        self.assertContains(response, "gallery/oif-sample-leadership-conference.png", count=2)
+        self.assertContains(response, "Leadership conference gathering")
 
 
 @override_settings(EMAIL_BACKEND=EMAIL)

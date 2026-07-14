@@ -127,9 +127,9 @@
     <tbody>
     {% for r in registrations %}
       <tr>
-	        <td>{{ r.user.get_full_name|default:r.user.username }}</td>
-	        <td>{{ r.user.email|default:"—" }}</td>
-	        <td>{{ r.user.role_badge }}</td>
+	        <td>{{ r.attendee_name }}</td>
+	        <td>{{ r.attendee_email|default:"—" }}</td>
+	        <td>{% if r.user %}{{ r.user.role_badge }}{% else %}Guest{% endif %}</td>
 	        <td>{{ r.get_attendance_mode_display }}</td>
 	        <td>
 	          <small>{{ r.organisation|default:"" }}{% if r.role_title %} · {{ r.role_title }}{% endif %}</small>

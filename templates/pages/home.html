@@ -74,7 +74,7 @@
             <button class="btn-primary" type="submit">Register for free</button>
           </form>
           {% else %}
-          <a class="btn-primary" href="{% url 'accounts:login' %}?next={% url 'dashboard:events' %}">Register for free</a>
+          <a class="btn-primary" href="{% url 'pages:event_detail' upcoming_event.slug %}#event-registration">Register for free</a>
           {% endif %}
         </div>
       </div>

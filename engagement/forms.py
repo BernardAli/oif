@@ -7,10 +7,14 @@ class EventRegistrationForm(forms.ModelForm):
     class Meta:
         model = EventRegistration
         fields = (
+            "guest_name", "guest_email", "guest_phone",
             "attendance_mode", "organisation", "role_title",
             "accessibility_needs", "dietary_needs", "question",
         )
         widgets = {
+            "guest_name": forms.TextInput(attrs={"class": "form-input", "placeholder": "Your full name"}),
+            "guest_email": forms.EmailInput(attrs={"class": "form-input", "placeholder": "you@example.com"}),
+            "guest_phone": forms.TextInput(attrs={"class": "form-input", "placeholder": "+233 ..."}),
             "attendance_mode": forms.Select(attrs={"class": "form-input"}),
             "organisation": forms.TextInput(attrs={
                 "class": "form-input",
@@ -29,9 +33,18 @@ class EventRegistrationForm(forms.ModelForm):
                 "placeholder": "Anything you want the event team to know?"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, guest=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["attendance_mode"].required = False
+        if guest:
+            self.fields["guest_name"].required = True
+            self.fields["guest_email"].required = True
+        else:
+            for field_name in ("guest_name", "guest_email", "guest_phone"):
+                self.fields.pop(field_name)
+
+    def clean_guest_email(self):
+        return self.cleaned_data.get("guest_email", "").strip().lower()
 
     def clean_attendance_mode(self):
         return self.cleaned_data.get("attendance_mode") or EventRegistration.AttendanceMode.EITHER

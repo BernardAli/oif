@@ -1,0 +1,19 @@
+"""Paste this into the WSGI file linked from PythonAnywhere's Web tab."""
+import os
+import sys
+
+from dotenv import load_dotenv
+
+
+# Replace both values with your PythonAnywhere username and project directory.
+PROJECT_HOME = "/home/yourusername/oif_project_final"
+
+if PROJECT_HOME not in sys.path:
+    sys.path.insert(0, PROJECT_HOME)
+
+load_dotenv(os.path.join(PROJECT_HOME, ".env"))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "oif_site.settings")
+
+from django.core.wsgi import get_wsgi_application
+
+application = get_wsgi_application()

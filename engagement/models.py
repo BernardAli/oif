@@ -21,8 +21,12 @@ class EventRegistration(models.Model):
 
     event = models.ForeignKey("pages.Event", on_delete=models.CASCADE,
                               related_name="registrations")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                             on_delete=models.CASCADE,
                              related_name="registrations")
+    guest_name = models.CharField(max_length=160, blank=True)
+    guest_email = models.EmailField(blank=True)
+    guest_phone = models.CharField(max_length=32, blank=True)
     status = models.CharField(max_length=12, choices=Status.choices,
                               default=Status.REGISTERED)
     attendance_mode = models.CharField(
@@ -39,11 +43,34 @@ class EventRegistration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("event", "user")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("event", "user"), condition=models.Q(user__isnull=False),
+                name="unique_member_event_registration",
+            ),
+            models.UniqueConstraint(
+                fields=("event", "guest_email"), condition=models.Q(user__isnull=True),
+                name="unique_guest_event_registration",
+            ),
+        ]
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user} → {self.event}"
+        return f"{self.user or self.guest_name} → {self.event}"
+
+    @property
+    def attendee_name(self):
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        return self.guest_name
+
+    @property
+    def attendee_email(self):
+        return self.user.email if self.user else self.guest_email
+
+    @property
+    def attendee_phone(self):
+        return self.user.phone if self.user else self.guest_phone
 
 
 class Application(models.Model):

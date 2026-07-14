@@ -3,119 +3,131 @@
 {% block title %}{{ program.get_wing_display }} · Programs · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}{{ program.tagline }}{% endblock %}
 {% block content %}
-<section class="page active premium-page program-detail-page">
-  <div class="premium-hero program-detail-hero">
-    <div class="container">
-      <div class="program-detail-hero-grid">
-        <div>
-          <div class="eyebrow">Program detail</div>
-          <h1 class="display">{{ program.get_wing_display }}</h1>
-          <p>{{ program.tagline }}</p>
-          <div class="premium-actions">
-            <a class="btn-primary" href="{% url 'pages:involved' %}">Get involved</a>
-            <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">All programs</a>
-          </div>
+<section class="page active program-showcase">
+  <header class="program-showcase-hero">
+    {% if program.image %}
+    <img class="program-showcase-backdrop" src="{{ program.image.url }}" alt="">
+    {% elif program_gallery %}
+    <img class="program-showcase-backdrop" src="{{ program_gallery.0.image.url }}" alt="">
+    {% endif %}
+    <div class="program-showcase-shade"></div>
+    <div class="container program-showcase-hero-inner">
+      <a class="program-showcase-back" href="{% url 'pages:programs' %}">Programs / {{ program.get_wing_display }}</a>
+      <div class="program-showcase-heading">
+        <div class="eyebrow">OIF flagship program</div>
+        <h1 class="display">{{ program.get_wing_display }}</h1>
+        <p>{{ program.tagline }}</p>
+        <div class="program-showcase-actions">
+          <a class="btn-primary" href="#opportunities">View opportunities</a>
+          <a class="btn-primary premium-ghost-btn" href="{% url 'pages:involved' %}">Get involved</a>
         </div>
-        <div class="program-detail-photo program-wing-photo-{{ program.order|add:1 }}">
-          {% if program.image %}<img src="{{ program.image.url }}" alt="{{ program.get_wing_display }}">{% endif %}
-        </div>
+      </div>
+      <div class="program-showcase-signal" aria-label="Program summary">
+        <div><span>Status</span><strong>{% if program.is_active %}Active program{% else %}Currently paused{% endif %}</strong></div>
+        <div><span>Opportunities</span><strong>{{ program_event_count }} event{{ program_event_count|pluralize }}</strong></div>
+        <div><span>Pathway</span><strong>Learn, connect, lead</strong></div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="premium-band">
-    <div class="container">
-      <div class="program-detail-layout">
-        <article class="program-detail-main">
-          <span>{{ program.get_wing_display }}</span>
-          <h2>{{ program.headline }}</h2>
-          <p>{{ program.description|linebreaksbr }}</p>
-        </article>
-        <aside class="program-detail-aside">
-          <div>
-            <span>Focus</span>
-            <strong>{{ program.tagline }}</strong>
-          </div>
-          <div>
-            <span>Program status</span>
-            <strong>{% if program.is_active %}Active and open{% else %}Currently hidden{% endif %}</strong>
-          </div>
-          <div>
-            <span>Participation path</span>
-            <strong>Apply, volunteer, partner, or attend a related event.</strong>
-          </div>
-        </aside>
-      </div>
+  <section class="program-showcase-intro">
+    <div class="container program-showcase-intro-grid">
+      <div class="program-showcase-index"><span>01</span><small>The mission</small></div>
+      <article>
+        <div class="eyebrow">Why this program exists</div>
+        <h2>{{ program.headline }}</h2>
+        <div class="program-showcase-copy">{{ program.description|linebreaks }}</div>
+      </article>
+      <aside>
+        <span>Built around</span>
+        <ul>
+          <li><strong>Character</strong><small>Conviction that holds under pressure.</small></li>
+          <li><strong>Capacity</strong><small>Practical tools for meaningful leadership.</small></li>
+          <li><strong>Community</strong><small>Mentors and peers committed to growth.</small></li>
+        </ul>
+      </aside>
     </div>
-  </div>
+  </section>
 
-  {% if program.resources.all %}
-  <div class="program-detail-resources">
+  <section class="program-showcase-events" id="opportunities">
     <div class="container">
-      <div class="premium-section-head compact">
+      <div class="program-showcase-section-head">
         <div>
-          <div class="eyebrow">Resources</div>
-          <h2 class="display">Materials for this program.</h2>
+          <div class="eyebrow">Upcoming opportunities</div>
+          <h2 class="display">Step into the experience.</h2>
         </div>
-      </div>
-      <div class="program-resource-grid">
-        {% for resource in program.resources.all %}
-        <a class="program-resource-card" href="{{ resource.link }}"{% if resource.file %} download{% endif %}>
-          <span>{% if resource.file %}Download{% else %}Open link{% endif %}</span>
-          <strong>{{ resource.title }}</strong>
-          <p>{{ resource.description|default:"Program resource prepared by the OIF team." }}</p>
-        </a>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="events-premium">
-    <div class="container">
-      <div class="premium-section-head compact">
-        <div>
-          <div class="eyebrow">Program events</div>
-          <h2 class="display">Related gatherings and highlights.</h2>
-        </div>
+        <p>Join a gathering, cohort, or conversation designed to turn leadership ideas into lived practice.</p>
       </div>
       {% if upcoming_events %}
-      <div class="event-list-premium">
+      <div class="program-opportunity-list">
         {% for event in upcoming_events %}
-        <article class="event-row-premium">
-          <div>
-            <span>{{ event.get_kind_display }}</span>
+        <article>
+          <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d" }}</strong><span>{{ event.starts_at|date:"M Y" }}</span></time>
+          <div class="program-opportunity-copy">
+            <span>{{ event.get_kind_display }} · {% if event.is_virtual %}Virtual{% else %}In person{% endif %}</span>
             <h3>{{ event.title }}</h3>
-            <p>{{ event.starts_at|date:"l, F j, Y · g:i A" }} GMT · {{ event.location }}</p>
+            <p>{{ event.summary|default:event.description|truncatechars:150 }}</p>
+            <small>{{ event.starts_at|date:"g:i A" }} GMT · {{ event.location }}</small>
           </div>
-          <a class="btn-sm" href="{% url 'pages:event_detail' event.slug %}">View details</a>
+          <a class="btn-sm" href="{% url 'pages:event_detail' event.slug %}">View event</a>
         </article>
         {% endfor %}
       </div>
       {% else %}
-      <div class="premium-empty">No upcoming events are attached to this program yet.</div>
-      {% endif %}
-
-      {% if past_events %}
-      <div class="past-events-panel">
-        <h3>Past highlights</h3>
-        <div class="past-events-grid">
-          {% for event in past_events %}
-          <div><span>{{ event.get_kind_display }} · {{ event.starts_at|date:"M Y" }}</span><strong>{{ event.title }}</strong></div>
-          {% endfor %}
-        </div>
-      </div>
+      <div class="premium-empty">New opportunities are being prepared. Check back soon.</div>
       {% endif %}
     </div>
-  </div>
+  </section>
+
+  {% if program_gallery or past_events %}
+  <section class="program-showcase-proof">
+    <div class="container program-showcase-proof-grid">
+      <div class="program-showcase-proof-media">
+        {% if program_gallery %}<img src="{{ program_gallery.0.image.url }}" alt="{{ program_gallery.0.caption|default:program.get_wing_display }}" loading="lazy">{% endif %}
+      </div>
+      <div class="program-showcase-proof-copy">
+        <div class="eyebrow">The work in motion</div>
+        <h2>Leadership is formed through practice.</h2>
+        <p>Each gathering creates room for honest reflection, useful instruction, strong relationships, and a next step participants can carry into their communities.</p>
+      {% if past_events %}
+        <div class="program-showcase-history">
+          {% for event in past_events %}
+          <div><span>{{ event.starts_at|date:"Y" }}</span><strong>{{ event.title }}</strong></div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if program.resources.all %}
+  <section class="program-showcase-resources">
+    <div class="container">
+      <div class="program-showcase-section-head">
+        <div><div class="eyebrow">Program resources</div><h2 class="display">Go deeper.</h2></div>
+        <p>Reference material and practical guidance prepared for participants and partners.</p>
+      </div>
+      <div class="program-showcase-resource-list">
+        {% for resource in program.resources.all %}
+        <a href="{{ resource.link }}"{% if resource.file %} download{% endif %}>
+          <span>{{ forloop.counter|stringformat:"02d" }}</span>
+          <div><strong>{{ resource.title }}</strong><small>{{ resource.description|default:"Program resource prepared by the OIF team." }}</small></div>
+          <b>{% if resource.file %}Download{% else %}Open resource{% endif %} →</b>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   {% if programs %}
-  <div class="program-detail-more">
+  <section class="program-showcase-more">
     <div class="container">
-      <div class="premium-section-head compact">
+      <div class="program-showcase-section-head">
         <div>
           <div class="eyebrow">Explore more</div>
-          <h2 class="display">Other OIF program wings.</h2>
+          <h2 class="display">Continue exploring.</h2>
         </div>
       </div>
       <div class="program-more-grid">
@@ -128,7 +140,7 @@
         {% endfor %}
       </div>
     </div>
-  </div>
+  </section>
   {% endif %}
 </section>
 {% endblock %}

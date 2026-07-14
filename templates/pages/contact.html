@@ -3,49 +3,75 @@
 {% block title %}Contact · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Get in touch with the Onesimus Impact Foundation in Accra, Ghana — send us a message, or reach us by email and phone.{% endblock %}
 {% block content %}
-<section class="page active premium-page contact-premium">
-  <div class="premium-hero contact-hero">
-    <div class="container">
-      <div class="premium-hero-grid">
-        <div>
-          <div class="eyebrow">Get in touch</div>
-          <h1 class="display">Start the conversation with OIF.</h1>
-          <p>Questions, partnerships, speaking invitations, prayer requests, or follow-up from a program. We would love to hear from you.</p>
+<section class="page active contact-profile">
+  <header class="contact-profile-hero">
+    {% if contact_image %}<img src="{{ contact_image.image.url }}" alt="{{ contact_image.caption|default:ORG_NAME }}">{% endif %}
+    <div class="contact-profile-overlay"></div>
+    <div class="container contact-profile-hero-inner">
+      <div>
+        <div class="eyebrow">Contact OIF</div>
+        <h1 class="display">Let’s begin with a conversation.</h1>
+        <p>Reach out about programs, partnerships, speaking, service, or any question about the work of OIF.</p>
+      </div>
+      <a class="contact-profile-email" href="mailto:{{ ORG_EMAIL }}"><span>Email us directly</span><strong>{{ ORG_EMAIL }}</strong></a>
+    </div>
+  </header>
+
+  <section class="contact-profile-main" id="contact-form">
+    <div class="container contact-profile-grid">
+      <aside class="contact-profile-details">
+        <div class="eyebrow">Reach our team</div>
+        <h2>We’re based in Accra and connected wherever the work leads.</h2>
+        <dl>
+          <div><dt>Email</dt><dd><a href="mailto:{{ ORG_EMAIL }}">{{ ORG_EMAIL }}</a></dd></div>
+          <div><dt>Phone</dt><dd><a href="tel:{{ ORG_PHONE }}">{{ ORG_PHONE }}</a></dd></div>
+          <div><dt>Location</dt><dd>{{ ORG_LOCATION }}</dd></div>
+        </dl>
+        {% if site_branding.instagram_url or site_branding.linkedin_url or site_branding.twitter_url or site_branding.youtube_url or site_branding.facebook_url %}
+        <nav class="contact-profile-social" aria-label="OIF social channels">
+          {% if site_branding.instagram_url %}<a href="{{ site_branding.instagram_url }}" target="_blank" rel="noopener">Instagram</a>{% endif %}
+          {% if site_branding.linkedin_url %}<a href="{{ site_branding.linkedin_url }}" target="_blank" rel="noopener">LinkedIn</a>{% endif %}
+          {% if site_branding.twitter_url %}<a href="{{ site_branding.twitter_url }}" target="_blank" rel="noopener">X</a>{% endif %}
+          {% if site_branding.youtube_url %}<a href="{{ site_branding.youtube_url }}" target="_blank" rel="noopener">YouTube</a>{% endif %}
+          {% if site_branding.facebook_url %}<a href="{{ site_branding.facebook_url }}" target="_blank" rel="noopener">Facebook</a>{% endif %}
+        </nav>
+        {% endif %}
+      </aside>
+
+      <div class="contact-profile-form">
+        <div class="contact-profile-form-head">
+          <span>Send a message</span>
+          <h2>How can we help?</h2>
+          <p>Share a few details and the right member of our team will follow up.</p>
         </div>
-        <div class="contact-hero-card">
-          <strong>{{ ORG_EMAIL }}</strong>
-          <span>{{ ORG_PHONE }}</span>
-          <p>Accra, Ghana · serving youth across physical and virtual spaces.</p>
-        </div>
+        {% if form.non_field_errors %}<div class="contact-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" action="{% url 'pages:contact' %}">
+          {% csrf_token %}
+          {{ form.website }}
+          <div class="contact-form-pair">
+            <div class="form-row"><label for="{{ form.name.id_for_label }}">Your name</label>{{ form.name }}{{ form.name.errors }}</div>
+            <div class="form-row"><label for="{{ form.email.id_for_label }}">Email address</label>{{ form.email }}{{ form.email.errors }}</div>
+          </div>
+          <div class="contact-form-pair">
+            <div class="form-row"><label for="{{ form.phone.id_for_label }}">Phone <small>Optional</small></label>{{ form.phone }}{{ form.phone.errors }}</div>
+            <div class="form-row"><label for="{{ form.subject.id_for_label }}">Subject</label>{{ form.subject }}{{ form.subject.errors }}</div>
+          </div>
+          <div class="form-row"><label for="{{ form.message.id_for_label }}">Your message</label>{{ form.message }}{{ form.message.errors }}</div>
+          <div class="contact-form-submit"><button class="btn-primary" type="submit">Send message</button><small>We’ll use your details only to respond to this enquiry.</small></div>
+        </form>
       </div>
     </div>
-  </div>
-  <div class="premium-band">
+  </section>
+
+  <section class="contact-profile-paths">
     <div class="container">
-      <div class="contact-layout premium-contact-layout">
-        <div class="form-card premium-form-card">
-          <h2>Send a message</h2>
-          <p class="sub">We usually respond within a few working days.</p>
-          <form method="post" action="{% url 'pages:contact' %}">
-            {% csrf_token %}
-            {{ form.website }}
-            <div class="form-row"><label>Your name</label>{{ form.name }}{{ form.name.errors }}</div>
-            <div class="form-row"><label>Email</label>{{ form.email }}{{ form.email.errors }}</div>
-            <div class="form-row"><label>Phone (optional)</label>{{ form.phone }}</div>
-            <div class="form-row"><label>Subject</label>{{ form.subject }}</div>
-            <div class="form-row"><label>Message</label>{{ form.message }}{{ form.message.errors }}</div>
-            <div class="form-actions"><button class="btn-primary" type="submit">Send message</button></div>
-          </form>
-        </div>
-        <aside class="contact-aside premium-contact-aside">
-          <h3>Reach us directly</h3>
-          <p><b>Email</b><br><a href="mailto:{{ ORG_EMAIL }}">{{ ORG_EMAIL }}</a></p>
-          <p><b>Phone</b><br><a href="tel:{{ ORG_PHONE }}">{{ ORG_PHONE }}</a></p>
-          <p><b>Location</b><br>Accra, Ghana</p>
-          <div class="socials"><a href="#" title="Instagram">IG</a><a href="#" title="LinkedIn">in</a><a href="#" title="Twitter/X">X</a><a href="#" title="YouTube">YT</a></div>
-        </aside>
+      <div class="contact-profile-paths-head"><span>Looking for something specific?</span><h2>Choose the most direct path.</h2></div>
+      <div class="contact-profile-path-grid">
+        <a href="{% url 'pages:involved' %}"><span>01</span><strong>Partner or volunteer</strong><p>Work with OIF through service, sponsorship, or institutional partnership.</p><b>Get involved →</b></a>
+        <a href="{% url 'pages:programs' %}"><span>02</span><strong>Explore programs</strong><p>Find leadership, mentorship, conference, and community opportunities.</p><b>View programs →</b></a>
+        <a href="{% url 'pages:donate' %}"><span>03</span><strong>Support the work</strong><p>Help equip emerging leaders and extend OIF’s community impact.</p><b>Give to OIF →</b></a>
       </div>
     </div>
-  </div>
+  </section>
 </section>
 {% endblock %}

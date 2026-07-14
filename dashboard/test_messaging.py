@@ -1,10 +1,14 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import Role, User
+from engagement.models import EventRegistration
+from pages.models import Event
 from .forms import IntegrationSettingsForm
 from .messaging import send_campaign, send_sms
 from .models import (IntegrationSettings, MessageCampaign, MessageDelivery,
@@ -38,6 +42,26 @@ class CampaignDeliveryTest(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, "Hello Ama")
         self.assertEqual(campaign.deliveries.get().status, MessageDelivery.Status.SENT)
+
+    def test_event_campaign_includes_guest_registrants(self):
+        sender = user("event_sender", Role.EVENT_MANAGER)
+        event = Event.objects.create(
+            title="Open Forum", starts_at=timezone.now() + timedelta(days=4)
+        )
+        EventRegistration.objects.create(
+            event=event, guest_name="Guest Attendee",
+            guest_email="guest@example.com", guest_phone="+233240000000",
+        )
+        campaign = MessageCampaign.objects.create(
+            title="Event update", channel=MessageCampaign.Channel.EMAIL,
+            audience=MessageCampaign.Audience.EVENT, event=event,
+            subject="Hello {first_name}", body="An update for {name}",
+            created_by=sender,
+        )
+        result = send_campaign(campaign)
+        self.assertEqual(result["sent"], 1)
+        self.assertEqual(mail.outbox[0].to, ["guest@example.com"])
+        self.assertEqual(mail.outbox[0].subject, "Hello Guest")
 
     @patch("dashboard.messaging._json_request", return_value={"data": "ark-123"})
     def test_arkesel_adapter_uses_configured_provider(self, request):

@@ -92,12 +92,17 @@ def program_detail(request, wing):
         is_published=True,
         program=program,
     )
+    program_gallery = GalleryImage.objects.filter(
+        is_published=True, program=program
+    )[:6]
     now = timezone.now()
     ctx = {
         "program": program,
         "programs": Program.objects.filter(is_active=True).exclude(pk=program.pk),
         "upcoming_events": related_events.filter(starts_at__gte=now).order_by("starts_at")[:6],
         "past_events": related_events.filter(starts_at__lt=now).order_by("-starts_at")[:6],
+        "program_gallery": program_gallery,
+        "program_event_count": related_events.count(),
     }
     return render(request, "pages/program_detail.html", ctx)
 
@@ -163,3 +168,11 @@ def robots_txt(request):
         f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+def error_404(request, exception):
+    return render(request, "404.html", status=404)
+
+
+def error_500(request):
+    return render(request, "500.html", status=500)
