@@ -13,7 +13,7 @@ EMAIL = "django.core.mail.backends.locmem.EmailBackend"
 
 @override_settings(EMAIL_BACKEND=EMAIL)
 class SignupEmailTest(TestCase):
-    def test_signup_sends_account_access_email_without_password(self):
+    def test_signup_creates_a_pending_account_and_does_not_sign_in(self):
         response = self.client.post(reverse("accounts:signup"), {
             "first_name": "Ama", "last_name": "Mensah",
             "username": "ama.member", "email": "ama@example.com",
@@ -21,14 +21,47 @@ class SignupEmailTest(TestCase):
             "password1": "A-secure-test-password-123",
             "password2": "A-secure-test-password-123",
         })
+        # New members are not signed in - they must be approved first.
+        self.assertRedirects(response, reverse("accounts:login"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        user = User.objects.get(username="ama.member")
+        self.assertFalse(user.is_active)
+        self.assertEqual(user.role, "MEMBER")
+
+        # One email to the new member, one internal notification to staff.
+        self.assertEqual(len(mail.outbox), 2)
+        member_email = next(m for m in mail.outbox if m.to == ["ama@example.com"])
+        self.assertIn("pending review", member_email.body)
+        self.assertNotIn("A-secure-test-password-123", member_email.body)
+        staff_email = next(m for m in mail.outbox if m != member_email)
+        self.assertIn("pending approval", staff_email.subject)
+
+    def test_pending_account_cannot_sign_in_until_approved(self):
+        self.client.post(reverse("accounts:signup"), {
+            "first_name": "Kofi", "last_name": "Boateng",
+            "username": "kofi.pending", "email": "kofi@example.com",
+            "phone": "0200000001",
+            "password1": "Another-secure-pass-123",
+            "password2": "Another-secure-pass-123",
+        })
+
+        response = self.client.post(reverse("accounts:login"), {
+            "username": "kofi.pending", "password": "Another-secure-pass-123",
+        })
+        self.assertEqual(response.status_code, 200)  # re-rendered with an error, not logged in
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "pending approval")
+
+        user = User.objects.get(username="kofi.pending")
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+
+        response = self.client.post(reverse("accounts:login"), {
+            "username": "kofi.pending", "password": "Another-secure-pass-123",
+        })
         self.assertRedirects(response, reverse("dashboard:home"))
-        self.assertEqual(len(mail.outbox), 1)
-        message = mail.outbox[0]
-        self.assertIn("account is ready", message.subject)
-        self.assertIn("Username: ama.member", message.body)
-        self.assertIn(reverse("accounts:login"), message.body)
-        self.assertIn(reverse("accounts:password_reset"), message.body)
-        self.assertNotIn("A-secure-test-password-123", message.body)
+        self.assertIn("_auth_user_id", self.client.session)
 
 
 @override_settings(EMAIL_BACKEND=EMAIL)

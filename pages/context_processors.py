@@ -1,6 +1,6 @@
 from django.db.utils import OperationalError, ProgrammingError
 
-from .models import Program, SiteBranding, SiteStat
+from .models import Program, SiteBranding, SitePageCopy, SitePageImages, SiteStat
 
 
 def _site_branding():
@@ -8,6 +8,20 @@ def _site_branding():
         return SiteBranding.load()
     except (OperationalError, ProgrammingError):
         return SiteBranding()
+
+
+def _page_images():
+    try:
+        return SitePageImages.load()
+    except (OperationalError, ProgrammingError):
+        return SitePageImages()
+
+
+def _page_copy():
+    try:
+        return SitePageCopy.load()
+    except (OperationalError, ProgrammingError):
+        return SitePageCopy()
 
 
 def site_globals(request):
@@ -37,4 +51,6 @@ def site_globals(request):
         "site_branding": branding,
         "nav_programs": nav_programs,
         "google_fonts_url": branding.google_fonts_url,
+        "page_images": _page_images(),
+        "page_copy": _page_copy(),
     }

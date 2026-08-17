@@ -66,14 +66,33 @@ class PublicPageBehaviourTest(TestCase):
         self.assertEqual(SiteBranding.objects.count(), 1)
 
     def test_policy_body_is_rendered(self):
-        Policy.objects.create(
+        # Privacy policy already exists via migration 0009 - update it in
+        # place rather than creating a second row (kind is unique).
+        Policy.objects.update_or_create(
             kind=Policy.Kind.PRIVACY,
-            title="Privacy",
-            body="We protect participant data.",
-            is_placeholder=False,
+            defaults={
+                "title": "Privacy",
+                "body": "We protect participant data.",
+                "is_placeholder": False,
+            },
         )
         response = self.client.get(reverse("pages:policy", args=["privacy"]))
         self.assertContains(response, "We protect participant data.")
+
+    def test_privacy_terms_and_donation_policies_exist_out_of_the_box(self):
+        """A fresh database (migrations only, no seed_demo) must already have
+        working Privacy, Terms, and Donation Policy pages — the footer links
+        to all three unconditionally and must never 404."""
+        for kind in ["privacy", "terms", "donation"]:
+            self.assertTrue(
+                Policy.objects.filter(kind=kind).exists(), f"missing seeded {kind} policy"
+            )
+            response = self.client.get(reverse("pages:policy", args=[kind]))
+            self.assertEqual(response.status_code, 200, kind)
+
+        footer = self.client.get(reverse("pages:home"))
+        for kind in ["privacy", "terms", "donation"]:
+            self.assertContains(footer, reverse("pages:policy", args=[kind]))
 
 
 class DeploymentConfigurationCheckTest(SimpleTestCase):

@@ -9,14 +9,14 @@
       <div class="premium-hero-grid">
         <div>
           <div class="eyebrow">Leadership</div>
-          <h1 class="display">The people carrying the work.</h1>
-          <p>A governance and operations team serving a movement larger than any single program.</p>
+          <h1 class="display">{{ page_copy.leadership_hero_headline|default:"The people carrying the work." }}</h1>
+          <p>{{ page_copy.leadership_hero_body|default:"A governance and operations team serving a movement larger than any single program." }}</p>
           <div class="premium-actions">
             <a class="btn-primary" href="{% url 'pages:involved' %}">Work with us</a>
             <a class="btn-primary premium-ghost-btn" href="{% url 'pages:about' %}">About OIF</a>
           </div>
         </div>
-        <div class="people-hero-photo leadership-hero-photo"><span>Governance · Formation · Service</span></div>
+        <div class="people-hero-photo leadership-hero-photo"{% if page_images.leadership_hero %} style="background-image:url('{{ page_images.leadership_hero.url }}')"{% endif %}><span>Governance · Formation · Service</span></div>
       </div>
     </div>
   </div>
@@ -24,9 +24,9 @@
   <div class="team-section about-team-premium people-section">
     <div class="container">
       <div class="team-intro">
-        <div class="eyebrow">Executive leadership</div>
-        <h2 class="display">Formation needs stewardship.</h2>
-        <p>OIF leadership keeps the mission aligned, accountable, and ready for the next generation.</p>
+        <div class="eyebrow">{{ page_copy.leadership_intro_eyebrow|default:"Executive leadership" }}</div>
+        <h2 class="display">{{ page_copy.leadership_intro_headline|default:"Formation needs stewardship." }}</h2>
+        <p>{{ page_copy.leadership_intro_body|default:"OIF leadership keeps the mission aligned, accountable, and ready for the next generation." }}</p>
       </div>
 
       <div class="about-leadership-grid">

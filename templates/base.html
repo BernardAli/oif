@@ -141,8 +141,8 @@
   <div class="container">
     <div class="footer-cta">
       <div>
-        <span>Join the movement</span>
-        <h2 class="display">Help raise leaders who serve with conviction.</h2>
+        <span>{{ page_copy.footer_cta_eyebrow|default:"Join the movement" }}</span>
+        <h2 class="display">{{ page_copy.footer_cta_headline|default:"Help raise leaders who serve with conviction." }}</h2>
       </div>
       <div class="footer-cta-actions">
         <a href="{% url 'pages:involved' %}">Get involved</a>
@@ -176,18 +176,18 @@
         <a href="{% url 'pages:about' %}">About OIF</a>
         <a href="{% url 'pages:leadership' %}">Leadership</a>
         <a href="{% url 'pages:speakers' %}">Speakers</a>
-        <a href="{% url 'pages:programs' %}">Programs</a>
+        <a href="{% url 'pages:gallery' %}">Gallery</a>
         <a href="{% url 'pages:impact' %}">Impact</a>
+        <a href="{% url 'pages:involved' %}">Get Involved</a>
         <a href="{% url 'pages:contact' %}">Contact</a>
       </nav>
 
       <nav class="footer-col" aria-label="Programs">
         <h4>Programs</h4>
-        <a href="{% url 'pages:programs' %}">The Forge</a>
-        <a href="{% url 'pages:programs' %}">The Hadassah Project</a>
-        <a href="{% url 'pages:programs' %}">Humanitarian Wing</a>
-        <a href="{% url 'pages:programs' %}">Virtual Conferences</a>
-        <a href="{% url 'pages:programs' %}">Mentorship</a>
+        {% for item in nav_programs %}
+        <a href="{% url 'pages:program_detail' item.wing|lower %}">{{ item.get_wing_display }}</a>
+        {% endfor %}
+        <a href="{% url 'pages:programs' %}">{% if nav_programs %}All programs →{% else %}View all programs{% endif %}</a>
       </nav>
 
       <div class="footer-col">

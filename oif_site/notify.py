@@ -123,6 +123,34 @@ def send_application_decision(application, dashboard_url):
     )
 
 
+def send_account_pending_approval(user):
+    """Acknowledge a new sign-up and flag it to staff for approval.
+
+    The account is created with is_active=False, so no sign-in link is sent
+    here - there is nothing to sign in to yet. send_membership_accepted()
+    carries the sign-in link once staff approve the account.
+    """
+    name = _recipient_name(user)
+    if user.email:
+        notify_person(
+            "Thanks for signing up — Onesimus Impact Foundation",
+            f"Dear {name},\n\n"
+            "Thank you for creating an account with the Onesimus Impact "
+            "Foundation. Your account is now pending review by our team.\n\n"
+            "We will email you as soon as your account is approved and you "
+            "can sign in.\n\n"
+            "Kind regards,\nOnesimus Impact Foundation",
+            user.email,
+        )
+    notify_team(
+        "New member sign-up pending approval",
+        f"{user.get_full_name() or user.username} ({user.email or 'no email'}) "
+        "created a member account and is awaiting approval.\n\n"
+        "Review and approve from Members in the dashboard.",
+    )
+    return True
+
+
 def send_membership_accepted(user, login_url):
     """Welcome a user when staff explicitly accepts or activates membership."""
     if not user.email:

@@ -9,7 +9,7 @@ from accounts.models import User, Role
 from engagement.models import (ContactMessage, PartnerEnquiry,
                                NewsletterSubscriber, Application,
                                EventRegistration)
-from pages.models import Event, GalleryImage, Policy, Program
+from pages.models import Event, GalleryImage, Program
 
 PWD = "testpass123"
 
@@ -24,14 +24,15 @@ def make(username, role=Role.MEMBER, **extra):
 
 class PublicContentPagesTest(TestCase):
     def test_new_public_pages_render(self):
-        Policy.objects.create(kind=Policy.Kind.PRIVACY, title="Privacy",
-                              body="Placeholder.")
+        # Privacy policy is seeded by migration 0009, so no setup is needed here.
         for url in ["/gallery/", "/contact/", "/robots.txt", "/sitemap.xml",
                     "/policy/privacy/"]:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
     def test_missing_policy_404s(self):
-        self.assertEqual(self.client.get("/policy/terms/").status_code, 404)
+        # privacy/terms/donation are seeded by migration 0009 so they always
+        # resolve; a kind that was never seeded must still 404.
+        self.assertEqual(self.client.get("/policy/made-up-kind/").status_code, 404)
 
     def test_public_event_detail_page_renders_and_accepts_rich_registration(self):
         member = make("event_member")

@@ -14,10 +14,10 @@
 {% block dash_content %}
 
 <div class="kpi-grid">
-  <div class="kpi"><div class="v">{{ totals.stats|intcomma }}</div><div class="l">Impact stats</div></div>
-  <div class="kpi olive"><div class="v">{{ totals.testimonials|intcomma }}</div><div class="l">Testimonials</div></div>
-  <div class="kpi gold"><div class="v">{{ totals.gallery|intcomma }}</div><div class="l">Gallery images</div></div>
-  <div class="kpi ink"><div class="v">{{ totals.policies|intcomma }}</div><div class="l">Policies</div></div>
+  <div class="kpi"><div class="v">{{ totals.page_images_uploaded }}/{{ totals.page_images_total }}</div><div class="l">Page photos uploaded</div></div>
+  <div class="kpi olive"><div class="v">{{ totals.page_copy_customized }}/{{ totals.page_copy_total }}</div><div class="l">Writeups customized</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.testimonials|intcomma }}</div><div class="l">Testimonials</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.gallery|intcomma }}</div><div class="l">Gallery images</div></div>
 </div>
 
 <div class="management-gateway-grid">
@@ -42,6 +42,16 @@
     <strong>Steward team profiles</strong>
     <small>Governance, executive, directors, and secretary profiles.</small>
   </a>
+  <a class="management-gateway" href="{% url 'dashboard:content_edit' 'page_images' page_images.pk %}">
+    <span>Page photos</span>
+    <strong>Every hero &amp; decorative photo</strong>
+    <small>Homepage, About, Programs, Impact, Donate, and account-page imagery.</small>
+  </a>
+  <a class="management-gateway" href="{% url 'dashboard:content_edit' 'page_copy' page_copy.pk %}">
+    <span>Page copy</span>
+    <strong>Every headline &amp; writeup</strong>
+    <small>Hero and section eyebrows, headlines, and paragraphs across the public site.</small>
+  </a>
 </div>
 
 <div class="cms-overview">
@@ -65,6 +75,8 @@
 
 <div class="event-tabs cms-tabs" data-tabs>
   <button class="prog-tab active" type="button" data-content-tab="branding">Project Profile</button>
+  <button class="prog-tab" type="button" data-content-tab="page_copy">Page Copy</button>
+  <button class="prog-tab" type="button" data-content-tab="page_images">Page Photos</button>
   <button class="prog-tab" type="button" data-content-tab="stats">Stats</button>
   <button class="prog-tab" type="button" data-content-tab="testimonials">Testimonials</button>
   <button class="prog-tab" type="button" data-content-tab="gallery">Gallery</button>
@@ -127,6 +139,40 @@
         <td><span class="badge green">Google Font</span></td>
         <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
       </tr>
+    </tbody></table>
+  </div>
+</div>
+
+<div class="tab-panel" id="content-tab-page_copy">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Page copy</h2><p>Every hero and section eyebrow, headline, and paragraph writeup on the public site that isn't already attached to a program, speaker, leader, testimonial, or event record. Until a field is filled in, the page shows the built-in default writeup — nothing on the public site breaks.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_edit' 'page_copy' page_copy.pk %}">Edit page copy</a>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Page</th><th>Customized</th></tr></thead><tbody>
+      {% for group in page_copy_groups %}
+      <tr>
+        <td><strong>{{ group.label }}</strong></td>
+        <td>{% if group.customized == group.total %}<span class="badge green">{{ group.customized }}/{{ group.total }} customized</span>{% elif group.customized > 0 %}<span class="badge amber">{{ group.customized }}/{{ group.total }} customized</span>{% else %}<span class="badge grey">Using default writeups</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody></table>
+  </div>
+</div>
+
+<div class="tab-panel" id="content-tab-page_images">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Page imagery</h2><p>Every hero and decorative photo on the public site that isn't already part of a program, speaker, leadership, testimonial, gallery, or event record. Until a photo is uploaded here, the page shows a built-in placeholder — nothing on the public site breaks.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:content_edit' 'page_images' page_images.pk %}">Edit page photos</a>
+    </div>
+    <table class="dtable cms-table"><thead><tr><th>Photo</th><th>Status</th></tr></thead><tbody>
+      {% for slot in page_image_slots %}
+      <tr>
+        <td><strong>{{ slot.label }}</strong></td>
+        <td>{% if slot.file %}<span class="badge green">Uploaded</span>{% else %}<span class="badge amber">Using placeholder</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
     </tbody></table>
   </div>
 </div>

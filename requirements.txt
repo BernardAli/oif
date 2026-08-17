@@ -9,3 +9,5 @@ psycopg[binary]==3.2.3
 PyMySQL>=1.1,<2.0
 # Production WSGI server
 gunicorn>=23.0,<24.0
+# Local development only - only loads/activates when DJANGO_DEBUG=True.
+django-debug-toolbar>=5.0,<8.0

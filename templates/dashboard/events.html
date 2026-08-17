@@ -96,7 +96,7 @@
         <td>{% if e.program %}{{ e.program.get_wing_display }}{% else %}General{% endif %}</td>
         <td>{{ e.starts_at|date:"M j, Y" }}</td>
         <td>{{ e.active_registration_count|intcomma }}</td>
-        <td>{{ e.registrations.count|intcomma }} total records</td>
+        <td>{{ e.registration_count|intcomma }} total records</td>
 	        <td class="table-actions">{% if e.is_published %}<a class="btn-sm ghost" href="{% url 'pages:event_detail' e.slug %}">Public</a>{% endif %}<a class="btn-sm ghost" href="{% url 'dashboard:event_detail' e.pk %}">Analytics</a></td>
       </tr>
     {% endfor %}

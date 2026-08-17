@@ -4,6 +4,7 @@ from django.forms import inlineformset_factory
 from accounts.models import User
 from engagement.models import MentorshipEnrollment
 from pages.models import (Event, Program, ProgramResource, SiteBranding,
+                          SitePageCopy, SitePageImages, PAGE_COPY_GROUPS,
                           SiteStat, Speaker, TeamMember, Testimonial,
                           GalleryImage, Policy)
 from .models import (CashAccount, CashMovement, Expense, IntegrationSettings,
@@ -541,6 +542,59 @@ class SiteBrandingForm(forms.ModelForm):
             "title_font": "Title font",
             "body_font": "Body font",
         }
+
+
+class SitePageImagesForm(forms.ModelForm):
+    class Meta:
+        model = SitePageImages
+        fields = (
+            "home_hero", "about_hero", "about_story",
+            "programs_hero_main", "programs_hero_alt1", "programs_hero_alt2",
+            "impact_hero", "leadership_hero", "speakers_hero", "gallery_hero",
+            "donate_hero", "contact_hero", "involved_mentor", "involved_volunteer",
+            "involved_partner", "give_side", "apply_side", "auth_side",
+            "signup_side",
+        )
+        widgets = {
+            name: forms.ClearableFileInput(attrs={"class": "form-input"})
+            for name in fields
+        }
+        labels = {
+            "home_hero": "Homepage — hero background",
+            "about_hero": "About OIF — hero photo",
+            "about_story": "About OIF — \"Our story\" photo",
+            "programs_hero_main": "Programs — hero photo (large)",
+            "programs_hero_alt1": "Programs — hero photo (small 1)",
+            "programs_hero_alt2": "Programs — hero photo (small 2)",
+            "impact_hero": "Impact — hero photo",
+            "leadership_hero": "Leadership — hero photo",
+            "speakers_hero": "Speakers — hero photo",
+            "gallery_hero": "Gallery — hero photo",
+            "donate_hero": "Donate (info page) — hero photo",
+            "contact_hero": "Contact — hero photo",
+            "involved_mentor": "Get Involved — mentor portrait",
+            "involved_volunteer": "Get Involved — volunteer portrait",
+            "involved_partner": "Get Involved — partner portrait",
+            "give_side": "Give (checkout) — side photo",
+            "apply_side": "Apply — side photo",
+            "auth_side": "Login / password reset — side photo",
+            "signup_side": "Create account — side photo",
+        }
+
+
+class SitePageCopyForm(forms.ModelForm):
+    class Meta:
+        model = SitePageCopy
+        fields = [name for _, names in PAGE_COPY_GROUPS for name in names]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({"class": "form-input", "rows": 3})
+            else:
+                field.widget.attrs.update({"class": "form-input"})
+            field.required = False
 
 
 class SpeakerForm(forms.ModelForm):

@@ -8,10 +8,10 @@
       <div class="premium-hero-grid">
         <div>
           <div class="eyebrow">Media</div>
-          <h1 class="display">A visual archive of the work.</h1>
-          <p>Moments from conferences, mentorship cohorts, humanitarian outreaches, and the people who make the movement real.</p>
+          <h1 class="display">{{ page_copy.gallery_hero_headline|default:"A visual archive of the work." }}</h1>
+          <p>{{ page_copy.gallery_hero_body|default:"Moments from conferences, mentorship cohorts, humanitarian outreaches, and the people who make the movement real." }}</p>
         </div>
-        <div class="gallery-hero-photo"><span>OIF in motion</span></div>
+        <div class="gallery-hero-photo"{% if page_images.gallery_hero %} style="background-image:url('{{ page_images.gallery_hero.url }}')"{% endif %}><span>OIF in motion</span></div>
       </div>
     </div>
   </div>

@@ -37,12 +37,24 @@ class SignUpForm(StyledMixin, UserCreationForm):
         user.phone = self.cleaned_data.get("phone", "")
         # New public sign-ups are always Members; staff roles are assigned internally.
         user.role = "MEMBER"
+        # New members must be approved by staff (Site CMS -> Members) before
+        # they can sign in - Django's auth backend already refuses to
+        # authenticate an inactive account, so this is the actual gate.
+        user.is_active = False
         if commit:
             user.save()
         return user
 
 
 class LoginForm(StyledMixin, AuthenticationForm):
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        "inactive": (
+            "This account is pending approval. We'll email you as soon as "
+            "it's ready to sign in."
+        ),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._style()

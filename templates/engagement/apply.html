@@ -4,7 +4,7 @@
 <section class="page active premium-page form-page-premium apply-page">
   <div class="container">
     <div class="split-form-layout compact">
-      <aside class="split-form-story apply-story">
+      <aside class="split-form-story apply-story"{% if page_images.apply_side %} style="background-image:url('{{ page_images.apply_side.url }}')"{% endif %}>
         <div class="eyebrow">Application</div>
         <h1 class="display">Tell us where you want to serve or grow.</h1>
         <p>Choose the lane that fits your next step. The OIF team will review your application and follow up.</p>

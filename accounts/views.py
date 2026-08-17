@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect, render
@@ -16,16 +15,17 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            notify.send_account_registered(
-                user,
-                request.build_absolute_uri(reverse_lazy("accounts:login")),
-                request.build_absolute_uri(reverse_lazy("accounts:password_reset")),
-            )
-            login(request, user)
+            notify.send_account_pending_approval(user)
+            # New members are created inactive and are not signed in here -
+            # staff must approve the account (Members -> is_active) before
+            # Django's auth backend will allow it to sign in at all.
             messages.success(
-                request, f"Welcome to Onesimus Impact Foundation, {user.first_name}!"
+                request,
+                f"Thanks, {user.first_name}! Your account has been created "
+                "and is pending approval. We'll email you as soon as it's "
+                "ready — then you can sign in.",
             )
-            return redirect("dashboard:home")
+            return redirect("accounts:login")
     else:
         form = SignUpForm()
     return render(request, "accounts/signup.html", {"form": form})

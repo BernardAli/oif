@@ -1,0 +1,256 @@
+@page {
+  size: A4;
+  margin: 22mm 18mm 20mm 18mm;
+  @top-left {
+    content: "ONESIMUS IMPACT FOUNDATION";
+    color: #6c5845;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8pt;
+    letter-spacing: 0.8pt;
+  }
+  @top-right {
+    content: "ADMINISTRATOR MANUAL";
+    color: #6c5845;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8pt;
+    letter-spacing: 0.8pt;
+  }
+  @bottom-left {
+    content: "Internal operating documentation";
+    color: #8a7967;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8pt;
+  }
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    color: #8a7967;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8pt;
+  }
+}
+
+@page:first {
+  margin: 0;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+html {
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  color: #29251f;
+  font-size: 10pt;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+}
+
+header#title-block-header {
+  box-sizing: border-box;
+  width: 100vw;
+  min-height: 100vh;
+  padding: 72mm 24mm 24mm;
+  color: #fff;
+  background:
+    linear-gradient(145deg, rgba(45, 58, 39, 0.96), rgba(113, 79, 52, 0.93)),
+    #3d4936;
+  page-break-after: always;
+}
+
+header#title-block-header::before {
+  display: block;
+  margin-bottom: 22mm;
+  color: #e6c88c;
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 3px;
+  content: "ONESIMUS IMPACT FOUNDATION";
+}
+
+h1.title {
+  max-width: 145mm;
+  margin: 0 0 8mm;
+  color: #fff;
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-size: 32pt;
+  line-height: 1.1;
+}
+
+p.subtitle {
+  max-width: 135mm;
+  margin: 0 0 30mm;
+  color: #f0dfbb;
+  font-size: 15pt;
+  line-height: 1.45;
+}
+
+p.author,
+p.date {
+  margin: 2mm 0;
+  color: #fff;
+  font-size: 10pt;
+}
+
+nav#TOC {
+  page-break-after: always;
+}
+
+nav#TOC > ul {
+  columns: 2;
+  column-gap: 12mm;
+}
+
+nav#TOC ul {
+  padding-left: 5mm;
+}
+
+nav#TOC li {
+  margin: 1.5mm 0;
+}
+
+nav#TOC a {
+  color: #3f5339;
+  text-decoration: none;
+}
+
+h1, h2, h3, h4 {
+  font-family: "DejaVu Serif", Georgia, serif;
+  color: #34442f;
+  page-break-after: avoid;
+}
+
+h1 {
+  margin: 13mm 0 5mm;
+  padding-bottom: 3mm;
+  border-bottom: 2px solid #c69c58;
+  font-size: 22pt;
+  line-height: 1.2;
+}
+
+h1:not(.title) {
+  page-break-before: always;
+}
+
+h2 {
+  margin: 8mm 0 3mm;
+  font-size: 15pt;
+}
+
+h3 {
+  margin: 6mm 0 2mm;
+  color: #6c4f38;
+  font-size: 12pt;
+}
+
+h4 {
+  margin: 4mm 0 2mm;
+  font-size: 10.5pt;
+}
+
+p {
+  margin: 0 0 3mm;
+  orphans: 3;
+  widows: 3;
+}
+
+ul, ol {
+  margin: 2mm 0 4mm;
+  padding-left: 7mm;
+}
+
+li {
+  margin: 1mm 0;
+}
+
+table {
+  width: 100%;
+  margin: 4mm 0 6mm;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+  page-break-inside: auto;
+}
+
+thead {
+  display: table-header-group;
+}
+
+tr {
+  page-break-inside: avoid;
+}
+
+th {
+  padding: 2.2mm;
+  border: 1px solid #9b8a75;
+  color: #fff;
+  background: #4c6045;
+  text-align: left;
+}
+
+td {
+  padding: 2mm;
+  border: 1px solid #cfc5b8;
+  vertical-align: top;
+}
+
+tbody tr:nth-child(even) {
+  background: #f6f2eb;
+}
+
+code {
+  border-radius: 2px;
+  color: #5d3b28;
+  background: #f1ece5;
+  font-family: "DejaVu Sans Mono", monospace;
+  font-size: 8.8pt;
+}
+
+pre {
+  overflow-wrap: anywhere;
+  margin: 4mm 0;
+  padding: 4mm;
+  border-left: 3px solid #b98945;
+  color: #f8f6f2;
+  background: #293326;
+  white-space: pre-wrap;
+  page-break-inside: avoid;
+}
+
+pre code {
+  color: inherit;
+  background: transparent;
+}
+
+blockquote {
+  margin: 4mm 0;
+  padding: 3mm 5mm;
+  border-left: 3px solid #c69c58;
+  color: #584d40;
+  background: #f7f2e9;
+}
+
+a {
+  color: #47643e;
+}
+
+hr {
+  margin: 8mm 0;
+  border: 0;
+  border-top: 1px solid #cfc5b8;
+}
+
+input[type="checkbox"] {
+  transform: scale(0.9);
+}
+
+.footnotes {
+  font-size: 8pt;
+}
+
+@media print {
+  a {
+    text-decoration: none;
+  }
+}

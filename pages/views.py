@@ -9,16 +9,23 @@ from .models import (Program, Speaker, TeamMember, Event, Testimonial,
                      GalleryImage, Policy)
 
 
-def _leadership_context():
+def _leadership_context(members=None):
+    """Split team members by position from a single query instead of one
+    filtered `.first()`/queryset per position (4 near-identical queries)."""
+    if members is None:
+        members = list(TeamMember.objects.all())
+    by_position = {}
+    for member in members:
+        by_position.setdefault(member.position, []).append(member)
+
+    def _first(position):
+        return next(iter(by_position.get(position, [])), None)
+
     return {
-        "team_lead": TeamMember.objects.filter(
-            position=TeamMember.Position.GLOBAL_LEAD).first(),
-        "team_ed": TeamMember.objects.filter(
-            position=TeamMember.Position.EXEC_DIRECTOR).first(),
-        "directors": TeamMember.objects.filter(
-            position=TeamMember.Position.DIRECTOR),
-        "secretary": TeamMember.objects.filter(
-            position=TeamMember.Position.SECRETARY).first(),
+        "team_lead": _first(TeamMember.Position.GLOBAL_LEAD),
+        "team_ed": _first(TeamMember.Position.EXEC_DIRECTOR),
+        "directors": by_position.get(TeamMember.Position.DIRECTOR, []),
+        "secretary": _first(TeamMember.Position.SECRETARY),
     }
 
 
@@ -39,7 +46,6 @@ def home(request):
 def about(request):
     now = timezone.now()
     ctx = {
-        "programs": Program.objects.filter(is_active=True),
         "featured_gallery": GalleryImage.objects.filter(is_published=True)[:6],
         "about_metrics": {
             "events": Event.objects.filter(is_published=True).count(),
@@ -57,10 +63,9 @@ def about(request):
 
 
 def leadership(request):
-    ctx = {
-        "team_members": TeamMember.objects.all(),
-    }
-    ctx.update(_leadership_context())
+    members = list(TeamMember.objects.all())
+    ctx = {"team_members": members}
+    ctx.update(_leadership_context(members))
     return render(request, "pages/leadership.html", ctx)
 
 
@@ -94,7 +99,7 @@ def program_detail(request, wing):
     )
     program_gallery = GalleryImage.objects.filter(
         is_published=True, program=program
-    )[:6]
+    ).exclude(image="").exclude(image__isnull=True)[:6]
     now = timezone.now()
     ctx = {
         "program": program,

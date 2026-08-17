@@ -1,4 +1,7 @@
 """Dashboard-specific models: finance records and admin audit trail."""
+from decimal import Decimal
+from functools import cached_property
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -334,13 +337,25 @@ class JournalEntry(models.Model):
             self.number = f"{prefix}{sequence:04d}"
         super().save(*args, **kwargs)
 
+    @cached_property
+    def _line_totals(self):
+        # Summed in Python over self.lines.all() (not .aggregate()) so that
+        # querysets built with .prefetch_related("lines") - e.g. the
+        # accounting dashboard's journal list - reuse the prefetched rows
+        # instead of firing two fresh SUM queries per journal.
+        debit = credit = Decimal("0.00")
+        for line in self.lines.all():
+            debit += line.debit
+            credit += line.credit
+        return debit, credit
+
     @property
     def total_debits(self):
-        return self.lines.aggregate(total=models.Sum("debit"))["total"] or 0
+        return self._line_totals[0]
 
     @property
     def total_credits(self):
-        return self.lines.aggregate(total=models.Sum("credit"))["total"] or 0
+        return self._line_totals[1]
 
     @property
     def is_balanced(self):

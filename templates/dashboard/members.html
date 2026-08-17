@@ -9,13 +9,20 @@
 <div class="kpi-grid">
   <div class="kpi"><div class="v">{{ totals.users|intcomma }}</div><div class="l">Total accounts</div></div>
   <div class="kpi olive"><div class="v">{{ totals.active|intcomma }}</div><div class="l">Active accounts</div></div>
-  <div class="kpi gold"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Staff leaders</div></div>
+  <div class="kpi gold"><div class="v">{{ totals.pending|intcomma }}</div><div class="l">Pending approval</div></div>
+  <div class="kpi ink"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Staff leaders</div></div>
   {% if can_view_payments %}
-  <div class="kpi ink"><div class="v">{{ totals.paystack_gifts|intcomma }}</div><div class="l">Paystack gifts</div></div>
-  {% else %}
-  <div class="kpi ink"><div class="v">{{ totals.staff|intcomma }}</div><div class="l">Internal leaders</div></div>
+  <div class="kpi"><div class="v">{{ totals.paystack_gifts|intcomma }}</div><div class="l">Paystack gifts</div></div>
   {% endif %}
 </div>
+
+{% if totals.pending %}
+<div class="dash-alert">
+  <div><strong>{{ totals.pending }} member{{ totals.pending|pluralize }} waiting for approval.</strong>
+  <span>New sign-ups can't sign in until you approve them.</span></div>
+  <a class="btn-sm" href="{% url 'dashboard:members' %}?status=pending">Review now</a>
+</div>
+{% endif %}
 
 <form method="get" class="filter-bar">
   <input type="text" name="q" value="{{ q }}" placeholder="Search name, username or email...">
@@ -25,8 +32,13 @@
       <option value="{{ value }}" {% if value == role %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
   </select>
+  <select name="status">
+    <option value="">All statuses</option>
+    <option value="pending" {% if status == "pending" %}selected{% endif %}>Pending approval</option>
+    <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+  </select>
   <button class="btn-sm" type="submit">Filter</button>
-  {% if q or role %}<a class="btn-sm ghost" href="{% url 'dashboard:members' %}">Clear</a>{% endif %}
+  {% if q or role or status %}<a class="btn-sm ghost" href="{% url 'dashboard:members' %}">Clear</a>{% endif %}
 </form>
 
 <div class="event-tabs" data-tabs>

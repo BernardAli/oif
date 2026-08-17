@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -29,12 +29,28 @@ DEFAULT_ACCOUNTS = (
 
 
 def ensure_accounting_defaults():
-    accounts = {}
+    """Guarantee the default chart of accounts and general fund exist.
+
+    Called on every accounting dashboard load, so the steady-state case (all
+    defaults already exist - true after the very first call) must cost a
+    single query, not one get_or_create() round-trip per default account.
+    """
+    codes = [code for code, _, _ in DEFAULT_ACCOUNTS]
+    accounts = {
+        a.code: a for a in LedgerAccount.objects.filter(code__in=codes)
+    }
     for code, name, account_type in DEFAULT_ACCOUNTS:
-        account, _ = LedgerAccount.objects.get_or_create(
-            code=code, defaults={"name": name, "account_type": account_type}
-        )
-        accounts[code] = account
+        if code in accounts:
+            continue
+        try:
+            accounts[code] = LedgerAccount.objects.create(
+                code=code, name=name, account_type=account_type
+            )
+        except IntegrityError:
+            # Created concurrently by another request between the query
+            # above and this insert - fetch what's actually there.
+            accounts[code] = LedgerAccount.objects.get(code=code)
+
     fund, _ = Fund.objects.get_or_create(
         code="GENERAL", defaults={"name": "General Fund"}
     )

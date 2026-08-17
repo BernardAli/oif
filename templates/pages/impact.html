@@ -9,10 +9,10 @@
       <div class="premium-hero-grid">
         <div>
           <div class="eyebrow">Our impact</div>
-          <h1 class="display">Lives changed. Leaders raised. Communities served.</h1>
-          <p>Since {{ ORG_FOUNDED }}, OIF has reached young people through conferences, mentorship, and humanitarian action across Ghana and beyond.</p>
+          <h1 class="display">{{ page_copy.impact_hero_headline|default:"Lives changed. Leaders raised. Communities served." }}</h1>
+          {% if page_copy.impact_hero_body %}<p>{{ page_copy.impact_hero_body }}</p>{% else %}<p>Since {{ ORG_FOUNDED }}, OIF has reached young people through conferences, mentorship, and humanitarian action across Ghana and beyond.</p>{% endif %}
         </div>
-        <div class="impact-hero-photo"><span>From gatherings to field work</span></div>
+        <div class="impact-hero-photo"{% if page_images.impact_hero %} style="background-image:url('{{ page_images.impact_hero.url }}')"{% endif %}><span>From gatherings to field work</span></div>
       </div>
     </div>
   </div>
@@ -34,15 +34,14 @@
     <div class="container">
       <div class="premium-section-head">
         <div>
-          <div class="eyebrow">Impact lanes</div>
-          <h2 class="display">The work shows up in several places at once.</h2>
+          <div class="eyebrow">{{ page_copy.impact_lanes_eyebrow|default:"Impact lanes" }}</div>
+          <h2 class="display">{{ page_copy.impact_lanes_headline|default:"The work shows up in several places at once." }}</h2>
         </div>
-        <p>OIF measures impact through attendance, participation, formation, testimony, and service to real communities.</p>
+        <p>{{ page_copy.impact_lanes_body|default:"OIF measures impact through attendance, participation, formation, testimony, and service to real communities." }}</p>
       </div>
-      <div class="impact-lane-grid">
-        <div class="impact-lane conference"><span>01</span><h3>Conferences</h3><p>Biannual gatherings that bring experienced voices into conversation with emerging leaders.</p></div>
-        <div class="impact-lane mentorship"><span>02</span><h3>Mentorship</h3><p>Structured support through cohorts, assigned mentors, and progress tracking.</p></div>
-        <div class="impact-lane outreach"><span>03</span><h3>Humanitarian action</h3><p>Community outreach aligned with youth empowerment, education, and dignity.</p></div>
+      <div class="impact-lane-grid lanes-2">
+        <div class="impact-lane conference"><span>01</span><h3>Virtual Conferences</h3><p>Biannual gatherings that bring experienced voices into conversation with emerging leaders.</p></div>
+        <div class="impact-lane mentorship"><span>02</span><h3>Mentorship Program</h3><p>Structured support through cohorts, assigned mentors, and progress tracking.</p></div>
       </div>
       {% if impact.cohorts %}
       <div class="cohort-panel-premium">

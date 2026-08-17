@@ -4,7 +4,7 @@
 <section class="page active premium-page form-page-premium auth-page">
   <div class="container">
     <div class="split-form-layout">
-      <aside class="split-form-story signup-story">
+      <aside class="split-form-story signup-story"{% if page_images.signup_side %} style="background-image:url('{{ page_images.signup_side.url }}')"{% endif %}>
         <div class="eyebrow">Join the movement</div>
         <h1 class="display">Create your member account.</h1>
         <p>Register for events, apply to serve, join mentorship pathways, give, and stay connected to the OIF community.</p>

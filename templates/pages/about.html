@@ -9,25 +9,16 @@
       <div class="about-hero-shell">
         <div class="about-hero-copy">
           <div class="eyebrow">About {{ ORG_SHORT }}</div>
-          <h1 class="display">A complete formation platform for <em>African youth leadership.</em></h1>
-          <p class="about-lead">Onesimus Impact Foundation is a youth-led NGO in Accra building the people, programs, partnerships, and digital systems that help emerging leaders grow with clarity, courage, and service.</p>
+          <h1 class="display">{{ page_copy.about_hero_headline|default:"A complete formation platform for African youth leadership." }}</h1>
+          <p class="about-lead">{{ page_copy.about_hero_body|default:"Onesimus Impact Foundation is a youth-led NGO in Accra building the people, programs, partnerships, and digital systems that help emerging leaders grow with clarity, courage, and service." }}</p>
           <div class="about-hero-actions">
             <a class="btn-primary" href="{% url 'pages:programs' %}">Explore programs</a>
             <a class="btn-primary about-ghost-btn" href="{% url 'pages:involved' %}">Join the work</a>
           </div>
         </div>
-        <div class="about-visual-board" aria-label="OIF project areas">
-          <div class="about-photo about-photo-large">
-            <span>Conferences</span>
-          </div>
-          <div class="about-photo about-photo-mentorship">
-            <span>Mentorship</span>
-          </div>
-          <div class="about-photo about-photo-outreach">
-            <span>Outreach</span>
-          </div>
-          <div class="about-photo about-photo-digital">
-            <span>Dashboard</span>
+        <div class="about-visual-board is-single" aria-label="OIF at work">
+          <div class="about-photo about-photo-large"{% if page_images.about_hero %} style="background-image:url('{{ page_images.about_hero.url }}')"{% endif %}>
+            <span>OIF at work</span>
           </div>
         </div>
       </div>
@@ -40,93 +31,20 @@
     </div>
   </div>
 
-  <div class="about-system-section">
-    <div class="container">
-      <div class="about-section-head">
-        <div>
-          <div class="eyebrow">The full project</div>
-          <h2 class="display">One foundation, five connected engines.</h2>
-        </div>
-        <p>Every part of OIF has a job: gather the youth, form them deeply, send them into service, fund the mission responsibly, and manage the work with accountable digital tools.</p>
-      </div>
-      <div class="about-system-grid">
-        <article class="system-card system-card-conference">
-          <div class="system-image"></div>
-          <div class="system-body">
-            <span>01</span>
-            <h3>Virtual Conferences</h3>
-            <p>Flagship gatherings with accomplished speakers, practical teaching, and conversations that open new imagination for young leaders.</p>
-          </div>
-        </article>
-        <article class="system-card system-card-mentorship">
-          <div class="system-image"></div>
-          <div class="system-body">
-            <span>02</span>
-            <h3>Mentorship Pipeline</h3>
-            <p>Structured cohorts, recorded sessions, live mentor conversations, and progress tracking for sustained formation.</p>
-          </div>
-        </article>
-        <article class="system-card system-card-outreach">
-          <div class="system-image"></div>
-          <div class="system-body">
-            <span>03</span>
-            <h3>Humanitarian Outreach</h3>
-            <p>Service moments that connect leadership to real community needs, dignity, and measurable impact.</p>
-          </div>
-        </article>
-        <article class="system-card system-card-giving">
-          <div class="system-image"></div>
-          <div class="system-body">
-            <span>04</span>
-            <h3>Giving and Partnerships</h3>
-            <p>Donations, sponsorship interest, and partnership pathways that help resource the mission with transparency.</p>
-          </div>
-        </article>
-        <article class="system-card system-card-digital">
-          <div class="system-image"></div>
-          <div class="system-body">
-            <span>05</span>
-            <h3>Digital Operations</h3>
-            <p>A role-based dashboard for content, members, applications, events, donations, enquiries, analytics, and audit records.</p>
-          </div>
-        </article>
-      </div>
-    </div>
-  </div>
-
-  <div class="about-numbers-section">
-    <div class="container">
-      <div class="about-number-grid">
-        {% for s in site_stats %}
-        <div class="about-number-card">
-          <strong>{{ s.value }}<sup>{{ s.suffix }}</sup></strong>
-          <span>{{ s.label }}</span>
-        </div>
-        {% endfor %}
-        <div class="about-number-card muted">
-          <strong>{{ about_metrics.events }}</strong>
-          <span>Published events</span>
-        </div>
-        <div class="about-number-card muted">
-          <strong>{{ about_metrics.mentorships }}</strong>
-          <span>Mentorship records</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="about-story-section">
     <div class="container">
       <div class="about-story-grid">
-        <div class="about-story-image"></div>
+        <div class="about-story-image"{% if page_images.about_story %} style="background-image:linear-gradient(180deg, rgba(26,21,18,0.0), rgba(26,21,18,0.34)), url('{{ page_images.about_story.url }}')"{% endif %}></div>
         <div class="about-story-copy">
-          <div class="eyebrow">Our story</div>
-          <h2 class="display">Built by young leaders for young leaders.</h2>
-          <p>OIF began with a conviction that the next generation does not only need inspiration. They need access, mentorship, structure, accountability, and communities that call out their best.</p>
-          <p>That conviction now lives across public programs, mentorship cohorts, outreach, partner relationships, donor stewardship, and a secure member dashboard that keeps the work organized.</p>
+          <div class="eyebrow">{{ page_copy.about_story_eyebrow|default:"Our story" }}</div>
+          <h2 class="display">{{ page_copy.about_story_headline|default:"Built by young leaders for young leaders." }}</h2>
+          <p>{{ page_copy.about_story_body1|default:"OIF began with a conviction that the next generation does not only need inspiration. They need access, mentorship, structure, accountability, and communities that call out their best." }}</p>
+          <p>{{ page_copy.about_story_body2|default:"That conviction now lives across public programs, mentorship cohorts, outreach, partner relationships, donor stewardship, and a secure member dashboard that keeps the work organized." }}</p>
           <div class="about-story-points">
-            <div><span>Vision</span><p>Teaching, mentoring, and training youth in leadership and entrepreneurship.</p></div>
-            <div><span>Mission</span><p>Creating platforms where accomplished personalities meet, mentor, and guide emerging leaders.</p></div>
+            <div><span>Vision</span><p>{{ page_copy.about_vision_body|default:"Teaching, mentoring, and training youth in leadership and entrepreneurship." }}</p></div>
+            <div><span>Mission 1</span><p>{{ page_copy.about_mission1_body|default:"To provide the platform for accomplished personalities to meet, mentor and interact with the youth, setting them on the path for business and success." }}</p></div>
+            <div><span>Mission 2</span><p>{{ page_copy.about_mission2_body|default:"To harness the drive of the youth to be daring enough to achieve their dreams." }}</p></div>
+            <div><span>Mission 3</span><p>{{ page_copy.about_mission3_body|default:"To serve as a national-based network system to aid and support the youth in realizing their full potential." }}</p></div>
           </div>
         </div>
       </div>
@@ -137,10 +55,10 @@
     <div class="container">
       <div class="about-section-head">
         <div>
-          <div class="eyebrow">What holds us</div>
-          <h2 class="display">Values with operational weight.</h2>
+          <div class="eyebrow">{{ page_copy.about_values_eyebrow|default:"What holds us" }}</div>
+          <h2 class="display">{{ page_copy.about_values_headline|default:"Values with operational weight." }}</h2>
         </div>
-        <p>These are not decorative words. They shape how programs are designed, how leaders serve, and how the foundation handles trust.</p>
+        <p>{{ page_copy.about_values_body|default:"These are not decorative words. They shape how programs are designed, how leaders serve, and how the foundation handles trust." }}</p>
       </div>
       <div class="about-values-grid">
         <div class="about-value-card"><span>i.</span><h3>Excellence</h3><p>Careful preparation, elegant delivery, and thoughtful follow-through.</p></div>
@@ -155,10 +73,10 @@
     <div class="container">
       <div class="about-section-head">
         <div>
-          <div class="eyebrow">People of OIF</div>
-          <h2 class="display">Leadership and speakers now have their own rooms.</h2>
+          <div class="eyebrow">{{ page_copy.about_people_eyebrow|default:"People of OIF" }}</div>
+          <h2 class="display">{{ page_copy.about_people_headline|default:"Leadership and speakers now have their own rooms." }}</h2>
         </div>
-        <p>Meet the team stewarding the foundation, and explore the voices who have served OIF gatherings and formation spaces.</p>
+        <p>{{ page_copy.about_people_body|default:"Meet the team stewarding the foundation, and explore the voices who have served OIF gatherings and formation spaces." }}</p>
       </div>
       <div class="people-gateway-grid">
         <a class="people-gateway-card leadership-card" href="{% url 'pages:leadership' %}">
@@ -175,36 +93,13 @@
     </div>
   </div>
 
-  <div class="about-program-strip">
-    <div class="container">
-      <div class="about-section-head compact">
-        <div>
-          <div class="eyebrow">Program wings</div>
-          <h2 class="display">Distinct rooms, one house.</h2>
-        </div>
-      </div>
-      <div class="about-program-grid">
-        {% for p in programs %}
-        <a class="about-program-card" href="{% url 'pages:program_detail' p.wing|lower %}">
-          <div class="about-program-image about-program-image-{{ forloop.counter }}">
-            {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">{% endif %}
-          </div>
-          <span>{{ p.get_wing_display }}</span>
-          <h3>{{ p.headline }}</h3>
-          <p>{{ p.tagline }}</p>
-        </a>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
   <div class="about-cta-premium">
     <div class="container">
       <div class="about-cta-panel">
         <div>
-          <div class="eyebrow">Your place in the story</div>
-          <h2 class="display">Support the next generation with more than applause.</h2>
-          <p>Give, mentor, volunteer, partner, or join the member community. The system is built. The work is moving.</p>
+          <div class="eyebrow">{{ page_copy.about_cta_eyebrow|default:"Your place in the story" }}</div>
+          <h2 class="display">{{ page_copy.about_cta_headline|default:"Support the next generation with more than applause." }}</h2>
+          <p>{{ page_copy.about_cta_body|default:"Give, mentor, volunteer, partner, or join the member community. The system is built. The work is moving." }}</p>
         </div>
         <div class="about-cta-buttons">
           <a class="btn-primary" href="{% url 'pages:donate' %}">Donate now</a>

@@ -5,13 +5,17 @@
 {% block content %}
 <section class="page active contact-profile">
   <header class="contact-profile-hero">
-    {% if contact_image %}<img src="{{ contact_image.image.url }}" alt="{{ contact_image.caption|default:ORG_NAME }}">{% endif %}
+    {% if page_images.contact_hero %}
+    <img src="{{ page_images.contact_hero.url }}" alt="{{ ORG_NAME }}">
+    {% elif contact_image %}
+    <img src="{{ contact_image.image.url }}" alt="{{ contact_image.caption|default:ORG_NAME }}">
+    {% endif %}
     <div class="contact-profile-overlay"></div>
     <div class="container contact-profile-hero-inner">
       <div>
         <div class="eyebrow">Contact OIF</div>
-        <h1 class="display">Let’s begin with a conversation.</h1>
-        <p>Reach out about programs, partnerships, speaking, service, or any question about the work of OIF.</p>
+        <h1 class="display">{{ page_copy.contact_hero_headline|default:"Let’s begin with a conversation." }}</h1>
+        <p>{{ page_copy.contact_hero_body|default:"Reach out about programs, partnerships, speaking, service, or any question about the work of OIF." }}</p>
       </div>
       <a class="contact-profile-email" href="mailto:{{ ORG_EMAIL }}"><span>Email us directly</span><strong>{{ ORG_EMAIL }}</strong></a>
     </div>
@@ -20,8 +24,8 @@
   <section class="contact-profile-main" id="contact-form">
     <div class="container contact-profile-grid">
       <aside class="contact-profile-details">
-        <div class="eyebrow">Reach our team</div>
-        <h2>We’re based in Accra and connected wherever the work leads.</h2>
+        <div class="eyebrow">{{ page_copy.contact_details_eyebrow|default:"Reach our team" }}</div>
+        <h2>{{ page_copy.contact_details_headline|default:"We’re based in Accra and connected wherever the work leads." }}</h2>
         <dl>
           <div><dt>Email</dt><dd><a href="mailto:{{ ORG_EMAIL }}">{{ ORG_EMAIL }}</a></dd></div>
           <div><dt>Phone</dt><dd><a href="tel:{{ ORG_PHONE }}">{{ ORG_PHONE }}</a></dd></div>
@@ -36,13 +40,16 @@
           {% if site_branding.facebook_url %}<a href="{{ site_branding.facebook_url }}" target="_blank" rel="noopener">Facebook</a>{% endif %}
         </nav>
         {% endif %}
+        <div class="contact-profile-map">
+          <iframe src="https://www.google.com/maps?q={{ ORG_LOCATION|urlencode }}&output=embed" title="Map showing {{ ORG_LOCATION }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
       </aside>
 
       <div class="contact-profile-form">
         <div class="contact-profile-form-head">
-          <span>Send a message</span>
-          <h2>How can we help?</h2>
-          <p>Share a few details and the right member of our team will follow up.</p>
+          <span>{{ page_copy.contact_form_eyebrow|default:"Send a message" }}</span>
+          <h2>{{ page_copy.contact_form_headline|default:"How can we help?" }}</h2>
+          <p>{{ page_copy.contact_form_body|default:"Share a few details and the right member of our team will follow up." }}</p>
         </div>
         {% if form.non_field_errors %}<div class="contact-form-errors">{{ form.non_field_errors }}</div>{% endif %}
         <form method="post" action="{% url 'pages:contact' %}">
@@ -57,7 +64,7 @@
             <div class="form-row"><label for="{{ form.subject.id_for_label }}">Subject</label>{{ form.subject }}{{ form.subject.errors }}</div>
           </div>
           <div class="form-row"><label for="{{ form.message.id_for_label }}">Your message</label>{{ form.message }}{{ form.message.errors }}</div>
-          <div class="contact-form-submit"><button class="btn-primary" type="submit">Send message</button><small>We’ll use your details only to respond to this enquiry.</small></div>
+          <div class="contact-form-submit"><button class="btn-primary" type="submit">Send message</button><small>{{ page_copy.contact_response_note|default:"We typically respond within 1–2 business days. Your details are only used to respond to this enquiry." }}</small></div>
         </form>
       </div>
     </div>
@@ -65,7 +72,7 @@
 
   <section class="contact-profile-paths">
     <div class="container">
-      <div class="contact-profile-paths-head"><span>Looking for something specific?</span><h2>Choose the most direct path.</h2></div>
+      <div class="contact-profile-paths-head"><span>{{ page_copy.contact_paths_eyebrow|default:"Looking for something specific?" }}</span><h2>{{ page_copy.contact_paths_headline|default:"Choose the most direct path." }}</h2></div>
       <div class="contact-profile-path-grid">
         <a href="{% url 'pages:involved' %}"><span>01</span><strong>Partner or volunteer</strong><p>Work with OIF through service, sponsorship, or institutional partnership.</p><b>Get involved →</b></a>
         <a href="{% url 'pages:programs' %}"><span>02</span><strong>Explore programs</strong><p>Find leadership, mentorship, conference, and community opportunities.</p><b>View programs →</b></a>

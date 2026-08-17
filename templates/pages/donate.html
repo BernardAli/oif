@@ -8,14 +8,14 @@
       <div class="premium-hero-grid">
         <div>
           <div class="eyebrow">Stand with us</div>
-          <h1 class="display">Fuel leadership formation that outlives the moment.</h1>
-          <p>Your financial support helps fund conferences, mentorship, humanitarian outreach, communications, and the systems that keep OIF accountable.</p>
+          <h1 class="display">{{ page_copy.donate_hero_headline|default:"Fuel leadership formation that outlives the moment." }}</h1>
+          <p>{{ page_copy.donate_hero_body|default:"Your financial support helps fund conferences, mentorship, humanitarian outreach, communications, and the systems that keep OIF accountable." }}</p>
           <div class="premium-actions">
             <a class="btn-primary" href="{% url 'donations:give' %}">Make a donation</a>
             <a class="btn-primary premium-ghost-btn" href="{% url 'pages:policy' 'donation' %}">Donation policy</a>
           </div>
         </div>
-        <div class="donate-hero-photo"><span>Give with purpose</span></div>
+        <div class="donate-hero-photo"{% if page_images.donate_hero %} style="background-image:url('{{ page_images.donate_hero.url }}')"{% endif %}><span>Give with purpose</span></div>
       </div>
     </div>
   </div>

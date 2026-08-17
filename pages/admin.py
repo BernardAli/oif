@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (Program, ProgramResource, Speaker, TeamMember, SiteStat,
-                     Event, Testimonial, GalleryImage, Policy, SiteBranding)
+                     Event, Testimonial, GalleryImage, Policy, SiteBranding,
+                     SitePageImages, SitePageCopy, PAGE_COPY_GROUPS)
 
 
 @admin.register(Program)
@@ -111,3 +112,37 @@ class SiteBrandingAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not SiteBranding.objects.exists()
+
+
+@admin.register(SitePageImages)
+class SitePageImagesAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ("Homepage", {"fields": ("home_hero",)}),
+        ("About OIF", {"fields": ("about_hero", "about_story")}),
+        ("Programs", {"fields": ("programs_hero_main", "programs_hero_alt1",
+                                 "programs_hero_alt2")}),
+        ("Impact", {"fields": ("impact_hero",)}),
+        ("Leadership & Speakers", {"fields": ("leadership_hero", "speakers_hero")}),
+        ("Gallery", {"fields": ("gallery_hero",)}),
+        ("Donate & Give", {"fields": ("donate_hero", "give_side")}),
+        ("Get Involved", {"fields": ("involved_mentor", "involved_volunteer",
+                                     "involved_partner", "apply_side")}),
+        ("Account pages", {"fields": ("auth_side", "signup_side")}),
+    )
+
+    def has_add_permission(self, request):
+        return not SitePageImages.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(SitePageCopy)
+class SitePageCopyAdmin(admin.ModelAdmin):
+    fieldsets = [(label, {"fields": tuple(fields)}) for label, fields in PAGE_COPY_GROUPS]
+
+    def has_add_permission(self, request):
+        return not SitePageCopy.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

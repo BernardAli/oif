@@ -7,12 +7,28 @@
     <div class="container">
       <div class="event-detail-hero-grid">
         <div class="event-detail-copy">
-          <div class="eyebrow">{{ event.get_kind_display }}{% if event.program %} · {{ event.program.get_wing_display }}{% endif %}</div>
+          <div class="event-hero-tags">
+            <div class="eyebrow">{{ event.get_kind_display }}{% if event.program %} · {{ event.program.get_wing_display }}{% endif %}</div>
+            <span class="event-status-badge {% if not event.registration_open %}is-muted{% elif event.is_full %}is-full{% elif event.seats_left is not None and event.seats_left <= 10 %}is-filling{% else %}is-open{% endif %}">
+              {% if not event.registration_open %}Registration closed
+              {% elif event.is_full %}Event full
+              {% elif event.seats_left is not None and event.seats_left <= 10 %}Filling fast · {{ event.seats_left }} left
+              {% else %}Registration open{% endif %}
+            </span>
+          </div>
           <h1 class="display">{{ event.title }}</h1>
           {% if event.summary %}
           <p class="event-detail-lede">{{ event.summary }}</p>
           {% else %}
           <p class="event-detail-lede">{{ event.description|default:"A structured OIF gathering for leadership, mentorship, service, and practical next steps." }}</p>
+          {% endif %}
+          {% if event.is_upcoming %}
+          <div class="event-countdown" id="eventCountdown" data-target="{{ event.starts_at|date:'c' }}">
+            <div><span id="ecd-days">--</span><small>Days</small></div>
+            <div><span id="ecd-hours">--</span><small>Hours</small></div>
+            <div><span id="ecd-mins">--</span><small>Mins</small></div>
+            <div><span id="ecd-secs">--</span><small>Secs</small></div>
+          </div>
           {% endif %}
           <div class="event-detail-actions">
 	            <a class="btn-primary" href="#event-registration">Register or update details</a>
@@ -54,7 +70,13 @@
         <div><span>Date</span><strong>{{ event.starts_at|date:"l, F j, Y" }}</strong></div>
         <div><span>Time</span><strong>{{ event.starts_at|date:"g:i A" }} GMT</strong></div>
         <div><span>Format</span><strong>{% if event.is_virtual %}Virtual{% else %}In person{% endif %}</strong></div>
-        <div><span>Seats</span><strong>{% if event.seats_left is None %}Unlimited{% else %}{{ event.seats_left }} left{% endif %}</strong></div>
+        <div>
+          <span>Seats</span>
+          <strong>{% if event.seats_left is None %}Unlimited{% else %}{{ event.seats_left }} left{% endif %}</strong>
+          {% if event.capacity %}
+          <div class="seat-meter" aria-hidden="true"><span style="width:{% widthratio event.active_registration_count event.capacity 100 %}%"></span></div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -88,27 +110,27 @@
 
           <div class="event-info-grid">
             <section class="event-info-panel">
-              <span>Who it is for</span>
+              <div class="panel-head"><b>01</b><span>Who it is for</span></div>
               {{ event.audience|default:"Young leaders, mentors, volunteers, students, professionals, and friends of OIF who want to learn, serve, or connect."|linebreaks }}
             </section>
             <section class="event-info-panel">
-              <span>Outcomes</span>
+              <div class="panel-head"><b>02</b><span>Outcomes</span></div>
               {{ event.outcomes|default:"Clarity, practical tools, meaningful relationships, and a clear next step into leadership or service."|linebreaks }}
             </section>
           </div>
 
           <section class="event-info-panel wide">
-            <span>Agenda</span>
+            <div class="panel-head"><b>03</b><span>Agenda</span></div>
             {{ event.agenda|default:"Arrival and welcome\nCore teaching or panel conversation\nInteractive discussion or breakout\nNext steps and closing"|linebreaks }}
           </section>
 
           <div class="event-info-grid">
             <section class="event-info-panel">
-              <span>Speakers & facilitators</span>
+              <div class="panel-head"><b>04</b><span>Speakers &amp; facilitators</span></div>
               {{ event.speakers|default:"OIF facilitators and invited contributors will guide this experience."|linebreaks }}
             </section>
             <section class="event-info-panel">
-              <span>Preparation</span>
+              <div class="panel-head"><b>05</b><span>Preparation</span></div>
               {{ event.preparation|default:"Come ready to participate, take notes, ask thoughtful questions, and connect with other participants."|linebreaks }}
             </section>
           </div>
@@ -176,6 +198,12 @@
             {% endif %}
 
               {% if event.registration_open and not event.is_full %}
+              {% if event.capacity %}
+              <div class="reg-seat-status">
+                <span>{% if event.seats_left <= 10 %}Only {{ event.seats_left }} seat{{ event.seats_left|pluralize }} left{% else %}{{ event.seats_left }} of {{ event.capacity }} seats left{% endif %}</span>
+                <div class="seat-meter"><span style="width:{% widthratio event.active_registration_count event.capacity 100 %}%"></span></div>
+              </div>
+              {% endif %}
               <form class="event-register-form" method="post" action="{% url 'engagement:register_event' event.slug %}">{% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
                 {% if not user.is_authenticated %}
@@ -227,6 +255,22 @@
         window.prompt('Copy this event link', url);
       });
     });
+  })();
+  (function initEventCountdown() {
+    var el = document.getElementById('eventCountdown');
+    if (!el) return;
+    var target = new Date(el.dataset.target);
+    function tick() {
+      var diff = target - new Date();
+      var d = document.getElementById('ecd-days'), h = document.getElementById('ecd-hours'),
+          m = document.getElementById('ecd-mins'), s = document.getElementById('ecd-secs');
+      if (diff <= 0) { d.textContent = h.textContent = m.textContent = s.textContent = '00'; return; }
+      var days = Math.floor(diff / 86400000), hrs = Math.floor(diff % 86400000 / 3600000),
+          mins = Math.floor(diff % 3600000 / 60000), secs = Math.floor(diff % 60000 / 1000);
+      d.textContent = String(days).padStart(2, '0'); h.textContent = String(hrs).padStart(2, '0');
+      m.textContent = String(mins).padStart(2, '0'); s.textContent = String(secs).padStart(2, '0');
+    }
+    tick(); setInterval(tick, 1000);
   })();
 </script>
 {% endblock %}

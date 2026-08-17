@@ -7,6 +7,14 @@
 {% block dash_actions %}<a class="btn-sm ghost" href="{% url 'dashboard:members' %}">All members</a>{% endblock %}
 {% block dash_content %}
 
+{% if not member.is_active %}
+<div class="dash-alert">
+  <div><strong>This account is pending approval.</strong>
+  <span>{{ member.get_full_name|default:member.username }} cannot sign in until you check "Active account" below and save.</span></div>
+  <button class="btn-sm" type="button" onclick="document.getElementById('memberAdminTabBtn').click();">Approve</button>
+</div>
+{% endif %}
+
 <div class="kpi-grid">
   <div class="kpi"><div class="v">{{ stats.registrations|intcomma }}</div><div class="l">Event registrations</div></div>
   {% if can_view_payments %}
@@ -26,7 +34,7 @@
   <button class="prog-tab active" type="button" data-member-detail-tab="overview">Overview</button>
   <button class="prog-tab" type="button" data-member-detail-tab="engagement">Engagement</button>
   {% if can_view_payments %}<button class="prog-tab" type="button" data-member-detail-tab="paystack">Paystack giving</button>{% endif %}
-  <button class="prog-tab" type="button" data-member-detail-tab="admin">Admin</button>
+  <button class="prog-tab" type="button" id="memberAdminTabBtn" data-member-detail-tab="admin">Admin</button>
 </div>
 
 <div class="tab-panel active" id="member-detail-tab-overview">
@@ -136,7 +144,7 @@
     </div>
     <div class="form-row member-avatar-upload"><label>Member picture</label>{{ form.avatar }}{{ form.avatar.errors }}</div>
     <div class="check-grid">
-      <label class="check-card">{{ form.is_active }}<span>Active account</span></label>
+      <label class="check-card">{{ form.is_active }}<span>Active account (approved to sign in)</span></label>
       {% if form.is_staff %}
       <label class="check-card">{{ form.is_staff }}<span>Django admin access</span></label>
       {% endif %}

@@ -107,7 +107,9 @@ def event_detail(request, slug):
         .select_related("program")
         .order_by("starts_at")[:3]
     )
-    event_images = GalleryImage.objects.filter(is_published=True)
+    event_images = GalleryImage.objects.filter(is_published=True).exclude(
+        image=""
+    ).exclude(image__isnull=True)
     if event.program_id:
         event_images = event_images.filter(program=event.program)
     else:
@@ -261,9 +263,13 @@ def contact(request):
             return redirect("pages:contact")
     else:
         form = ContactForm()
-    contact_image = GalleryImage.objects.filter(
-        is_published=True, program__wing="HUMANITARIAN"
-    ).first() or GalleryImage.objects.filter(is_published=True).first()
+    published_gallery = GalleryImage.objects.filter(
+        is_published=True
+    ).exclude(image="").exclude(image__isnull=True)
+    contact_image = (
+        published_gallery.filter(program__wing="HUMANITARIAN").first()
+        or published_gallery.first()
+    )
     return render(request, "pages/contact.html", {
         "form": form,
         "contact_image": contact_image,

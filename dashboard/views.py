@@ -21,6 +21,7 @@ from engagement.models import (EventRegistration, Application,
                                MentorshipEnrollment, ContactMessage,
                                PartnerEnquiry, NewsletterSubscriber)
 from pages.models import (Event, Program, ProgramResource, SiteBranding,
+                          SitePageCopy, SitePageImages, PAGE_COPY_GROUPS,
                           SiteStat, Speaker, TeamMember, Testimonial,
                           GalleryImage, Policy)
 from oif_site import notify
@@ -45,8 +46,9 @@ from .messaging import send_campaign
 from .forms import (
     CashAccountForm, CashMovementForm, EventForm, ExpenseForm, MemberAdminForm,
     MentorshipEnrollmentForm, ProgramForm,
-    ProgramResourceForm, SiteBrandingForm, SiteStatForm, SpeakerForm,
-    TeamMemberForm, TestimonialForm, GalleryImageForm, PolicyForm,
+    ProgramResourceForm, SiteBrandingForm, SitePageCopyForm, SitePageImagesForm,
+    SiteStatForm, SpeakerForm, TeamMemberForm, TestimonialForm, GalleryImageForm,
+    PolicyForm,
     IntegrationSettingsForm, MessageCampaignForm, MessageTemplateForm,
     BankReconciliationForm, BudgetForm, BudgetLineFormSet, FiscalPeriodForm,
     FundForm, JournalEntryForm, JournalLineFormSet, LedgerAccountForm,
@@ -87,9 +89,14 @@ def messaging_view(request):
     if channel:
         campaigns = campaigns.filter(channel=channel)
     deliveries = MessageDelivery.objects.all()
-    sent = deliveries.filter(status=MessageDelivery.Status.SENT).count()
-    failed = deliveries.filter(status=MessageDelivery.Status.FAILED).count()
-    skipped = deliveries.filter(status=MessageDelivery.Status.SKIPPED).count()
+    # One grouped query for all delivery-status counts instead of a
+    # separate filter().count() per status.
+    delivery_status_counts = dict(
+        deliveries.values("status").annotate(c=Count("id")).values_list("status", "c")
+    )
+    sent = delivery_status_counts.get(MessageDelivery.Status.SENT, 0)
+    failed = delivery_status_counts.get(MessageDelivery.Status.FAILED, 0)
+    skipped = delivery_status_counts.get(MessageDelivery.Status.SKIPPED, 0)
     attempted = sent + failed
     config = IntegrationSettings.load()
     sms_ready = bool(
@@ -324,7 +331,23 @@ def _reports_context(request):
             status__in=[Expense.Status.APPROVED, Expense.Status.PAID],
             expense_date__gte=start, expense_date__lte=end,
         )
-        finance_income = success.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        # One grouped, date-range-scoped query carrying count + amount total
+        # per donation status, instead of a separate aggregate()/count() per
+        # status below.
+        period_status_rows = {
+            row["status"]: row
+            for row in Donation.objects.filter(
+                created_at__date__gte=start, created_at__date__lte=end,
+            ).values("status").annotate(c=Count("id"), total=Sum("amount"))
+        }
+
+        def _period_total(value):
+            return period_status_rows.get(value, {}).get("total") or Decimal("0.00")
+
+        def _period_count(value):
+            return period_status_rows.get(value, {}).get("c", 0)
+
+        finance_income = _period_total(Donation.Status.SUCCESS)
         finance_expense = posted_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         donation_month_rows = (
             success.annotate(month=TruncMonth("created_at"))
@@ -379,12 +402,12 @@ def _reports_context(request):
             "income": finance_income,
             "expenses": finance_expense,
             "net": finance_income - finance_expense,
-            "pending_amount": pending.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
-            "failed_amount": failed.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+            "pending_amount": _period_total(Donation.Status.PENDING),
+            "failed_amount": _period_total(Donation.Status.FAILED),
             "cash_balance": cash_balance,
-            "successful_gifts": success.count(),
-            "pending_count": pending.count(),
-            "failed_count": failed.count(),
+            "successful_gifts": _period_count(Donation.Status.SUCCESS),
+            "pending_count": _period_count(Donation.Status.PENDING),
+            "failed_count": _period_count(Donation.Status.FAILED),
             "receipts_due": success.filter(receipt_sent=False).exclude(donor_email="").count(),
             "recurring": success.filter(is_recurring=True).count(),
             "income_expense_rows": income_expense_rows[-12:],
@@ -513,12 +536,15 @@ def _reports_context(request):
     if permissions["people"]:
         users_qs = User.objects.filter(date_joined__date__gte=start, date_joined__date__lte=end)
         role_labels = dict(Role.choices)
+        # One grouped query for every role's count - both for the role_rows
+        # breakdown below and for the specific member/mentor/volunteer
+        # counts, instead of a separate filter(role=X).count() per role.
+        role_counts = dict(
+            User.objects.values("role").annotate(count=Count("id")).values_list("role", "count")
+        )
         role_rows = [
-            {
-                "label": role_labels.get(row["role"], row["role"]),
-                "count": row["count"],
-            }
-            for row in User.objects.values("role").annotate(count=Count("id")).order_by("-count")
+            {"label": role_labels.get(role, role), "count": count}
+            for role, count in sorted(role_counts.items(), key=lambda kv: -kv[1])
         ]
         applications = Application.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
         app_status_labels = dict(Application.Status.choices)
@@ -540,9 +566,9 @@ def _reports_context(request):
         context["people_report"] = {
             "new_users": users_qs.count(),
             "total_users": User.objects.count(),
-            "members": User.objects.filter(role=Role.MEMBER).count(),
-            "mentors": User.objects.filter(role=Role.MENTOR).count(),
-            "volunteers": User.objects.filter(role=Role.VOLUNTEER).count(),
+            "members": role_counts.get(Role.MEMBER, 0),
+            "mentors": role_counts.get(Role.MENTOR, 0),
+            "volunteers": role_counts.get(Role.VOLUNTEER, 0),
             "applications": applications.count(),
             "pending_applications": applications.filter(status=Application.Status.PENDING).count(),
             "mentorships": MentorshipEnrollment.objects.count(),
@@ -741,6 +767,9 @@ def home(request):
     if u.can("manage_applications"):
         ctx["work_queue"]["pending_applications"] = Application.objects.filter(
             status=Application.Status.PENDING).count()
+    if u.can("manage_members"):
+        ctx["work_queue"]["pending_members"] = User.objects.filter(
+            is_active=False).count()
     if u.can("manage_events"):
         ctx["work_queue"]["open_events"] = Event.objects.filter(
             registration_open=True, starts_at__gte=now).count()
@@ -756,6 +785,11 @@ def home(request):
         posted_expenses = Expense.objects.filter(
             status__in=[Expense.Status.APPROVED, Expense.Status.PAID]
         )
+        # One grouped query for all donation-status counts instead of a
+        # separate filter().count() per status.
+        donation_status_counts = dict(
+            Donation.objects.values("status").annotate(c=Count("id")).values_list("status", "c")
+        )
         raised = success.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         spent = posted_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         active_accounts = CashAccount.objects.filter(status=CashAccount.Status.ACTIVE)
@@ -766,8 +800,8 @@ def home(request):
             "net": raised - spent,
             "cash_balance": sum(cash_balances.values(), Decimal("0.00")),
             "cash_accounts": active_accounts.count(),
-            "pending": Donation.objects.filter(status=Donation.Status.PENDING).count(),
-            "failed": Donation.objects.filter(status=Donation.Status.FAILED).count(),
+            "pending": donation_status_counts.get(Donation.Status.PENDING, 0),
+            "failed": donation_status_counts.get(Donation.Status.FAILED, 0),
             "pending_expenses": Expense.objects.filter(status=Expense.Status.DRAFT).count(),
             "receipts_due": success.filter(receipt_sent=False).exclude(donor_email="").count(),
         }
@@ -775,7 +809,11 @@ def home(request):
     ctx["upcoming_events"] = (
         Event.objects.filter(is_published=True, starts_at__gte=now)
         .select_related("program")
-        .annotate(active_registrations=Count(
+        # Annotated under the same name as Event.active_registration_count
+        # (a cached_property): the annotation transparently shadows it, so
+        # e.seats_left / e.is_full / e.active_registration_count all reuse
+        # this one annotated value instead of firing a COUNT query each.
+        .annotate(active_registration_count=Count(
             "registrations",
             filter=~Q(registrations__status=EventRegistration.Status.CANCELLED),
         ))
@@ -885,15 +923,28 @@ def events(request):
                   .select_related("event").order_by("-created_at"))
     registered_ids = set(my_regs_qs.exclude(
         status=EventRegistration.Status.CANCELLED).values_list("event_id", flat=True))
+    # Annotated under the same names as the Event.registration_count /
+    # active_registration_count cached_properties, so seats_left/is_full/
+    # registration_count/active_registration_count all reuse these one
+    # annotated value per event instead of a COUNT query per event.
+    registration_annotations = dict(
+        registration_count=Count("registrations"),
+        active_registration_count=Count(
+            "registrations",
+            filter=~Q(registrations__status=EventRegistration.Status.CANCELLED),
+        ),
+    )
     available_qs = Event.objects.filter(
         is_published=True, registration_open=True,
-        starts_at__gte=timezone.now()).exclude(id__in=registered_ids)
+        starts_at__gte=timezone.now()).exclude(id__in=registered_ids).annotate(
+        **registration_annotations).order_by("starts_at")
     ctx = {"my_regs": _paginate(request, my_regs_qs, "my_regs_page", 20),
            "available": _paginate(request, available_qs, "available_page", 20),
            "can_manage": u.can("manage_events")}
     if u.can("manage_events"):
         now = timezone.now()
-        events_qs = Event.objects.select_related("program")
+        events_qs = Event.objects.select_related("program").annotate(
+            **registration_annotations)
         upcoming_qs = events_qs.filter(starts_at__gte=now).order_by("starts_at")
         archived_qs = events_qs.filter(starts_at__lt=now).order_by("-starts_at")
         ctx["upcoming_managed"] = _paginate(
@@ -901,8 +952,10 @@ def events(request):
         ctx["archived_events"] = _paginate(
             request, archived_qs, "archived_page", 20)
         ctx["event_totals"] = {
-            "upcoming": upcoming_qs.count(),
-            "archived": archived_qs.count(),
+            # Reuse the counts Paginator already computed above instead of
+            # re-running the same COUNT query a second time.
+            "upcoming": ctx["upcoming_managed"].paginator.count,
+            "archived": ctx["archived_events"].paginator.count,
             "open": events_qs.filter(registration_open=True, starts_at__gte=now).count(),
             "drafts": events_qs.filter(is_published=False).count(),
         }
@@ -1043,8 +1096,10 @@ def donations_view(request):
         "chart_data": chart_data,
         "totals": {
             "raised": success_scope.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
-            "count": success_scope.count(),
-            "pending": scope.filter(status=Donation.Status.PENDING).count(),
+            # Reuse status_counts (already one grouped query) instead of a
+            # separate filter().count() for the same number.
+            "count": status_counts.get(Donation.Status.SUCCESS, 0),
+            "pending": status_counts.get(Donation.Status.PENDING, 0),
             "recurring": scope.filter(is_recurring=True).count(),
         },
         "can_manage": u.can("manage_donations"),
@@ -1087,7 +1142,7 @@ def accounting_core(request):
         "funds": Fund.objects.filter(is_active=True),
         "budgets": Budget.objects.select_related("fiscal_period", "fund"),
         "periods": FiscalPeriod.objects.all(),
-        "accounts": LedgerAccount.objects.all(),
+        "accounts": LedgerAccount.objects.select_related("parent"),
         "journals": _paginate(request, journals, "journals_page", 20),
         "reconciliations": BankReconciliation.objects.select_related("account")[:10],
         "statements": statements,
@@ -1367,9 +1422,22 @@ def finance_accounting(request):
     posted_movements = CashMovement.objects.filter(status=CashMovement.Status.POSTED)
     draft_expenses = Expense.objects.filter(status=Expense.Status.DRAFT)
     void_expenses = Expense.objects.filter(status=Expense.Status.VOID)
-    status_counts = dict(
-        Donation.objects.values("status").annotate(c=Count("id")).values_list("status", "c")
-    )
+    # One grouped query carrying both the count and the amount total per
+    # donation status - covers status_counts, raised, success_count, and the
+    # pending/failed amount totals below, instead of five separate queries.
+    donation_status_rows = {
+        row["status"]: row
+        for row in Donation.objects.values("status").annotate(
+            c=Count("id"), total=Sum("amount"))
+    }
+
+    def _donation_status_count(value):
+        return donation_status_rows.get(value, {}).get("c", 0)
+
+    def _donation_status_total(value):
+        return donation_status_rows.get(value, {}).get("total") or Decimal("0.00")
+
+    status_counts = {k: v["c"] for k, v in donation_status_rows.items()}
     expense_status_counts = dict(
         Expense.objects.values("status").annotate(c=Count("id")).values_list("status", "c")
     )
@@ -1498,7 +1566,7 @@ def finance_accounting(request):
         .order_by("campaign")
     )
     month_close_rows = list(month_rows)[-6:]
-    raised = success.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    raised = _donation_status_total(Donation.Status.SUCCESS)
     spent = posted_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
     return render(request, "dashboard/finance_accounting.html", {
         "ledger": _paginate(request, donations, "ledger_page", 25),
@@ -1562,14 +1630,14 @@ def finance_accounting(request):
             "active_accounts": CashAccount.objects.filter(status=CashAccount.Status.ACTIVE).count(),
             "draft_movements": CashMovement.objects.filter(status=CashMovement.Status.DRAFT).count(),
             "posted_movements": posted_movements.count(),
-            "pending_amount": pending.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
-            "failed_amount": failed.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+            "pending_amount": _donation_status_total(Donation.Status.PENDING),
+            "failed_amount": _donation_status_total(Donation.Status.FAILED),
             "draft_expense_amount": draft_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
             "void_expense_amount": void_expenses.aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
             "draft_expenses": draft_expenses.count(),
             "receipts_due": success.filter(receipt_sent=False).exclude(donor_email="").count(),
             "recurring": Donation.objects.filter(is_recurring=True).count(),
-            "success_count": success.count(),
+            "success_count": _donation_status_count(Donation.Status.SUCCESS),
         },
         "can_manage": request.user.can("manage_donations"),
     })
@@ -1950,7 +2018,7 @@ def applications_view(request):
     if u.can("manage_applications"):
         ctx["can_manage"] = True
         ctx["queue"] = _paginate(
-            request, Application.objects.select_related("user").all(),
+            request, Application.objects.select_related("user", "reviewed_by").all(),
             "queue_page", 20)
     return render(request, "dashboard/applications.html", ctx)
 
@@ -2440,6 +2508,24 @@ CONTENT_REGISTRY = {
         "add_label": "Project profile",
         "singleton": True,
     },
+    "page_images": {
+        "model": SitePageImages, "form": SitePageImagesForm, "label": "Page imagery",
+        "description": "Control every hero and decorative photo on the public site "
+                       "that isn't already attached to a program, speaker, leader, "
+                       "testimonial, gallery, or event record.",
+        "add_label": "Page imagery",
+        "singleton": True,
+    },
+    "page_copy": {
+        "model": SitePageCopy, "form": SitePageCopyForm, "label": "Page copy",
+        "description": "Control every hero and section eyebrow, headline, and "
+                       "paragraph writeup on the public site that isn't already "
+                       "attached to a program, speaker, leader, testimonial, or "
+                       "event record.",
+        "add_label": "Page copy",
+        "singleton": True,
+        "field_groups": PAGE_COPY_GROUPS,
+    },
     "stats": {
         "model": SiteStat, "form": SiteStatForm, "label": "Site stats",
         "description": "Control headline impact numbers across the public site.",
@@ -2466,6 +2552,19 @@ CONTENT_REGISTRY = {
 @capability_required("manage_content")
 def content_view(request):
     branding = SiteBranding.load()
+    page_images = SitePageImages.load()
+    page_image_slots = [
+        {"key": f.name, "label": SitePageImagesForm.Meta.labels.get(f.name, f.name),
+         "file": getattr(page_images, f.name)}
+        for f in SitePageImages._meta.get_fields()
+        if f.name not in ("id", "updated_at")
+    ]
+    page_copy = SitePageCopy.load()
+    page_copy_groups = [
+        {"label": label, "total": len(fields),
+         "customized": sum(1 for f in fields if getattr(page_copy, f))}
+        for label, fields in PAGE_COPY_GROUPS
+    ]
     published_gallery = GalleryImage.objects.filter(is_published=True).count()
     published_testimonials = Testimonial.objects.filter(is_published=True).count()
     placeholder_policies = Policy.objects.filter(is_placeholder=True).count()
@@ -2473,10 +2572,15 @@ def content_view(request):
     return render(request, "dashboard/content.html", {
         "sections": CONTENT_REGISTRY,
         "branding": branding,
+        "page_images": page_images,
+        "page_image_slots": page_image_slots,
+        "page_copy": page_copy,
+        "page_copy_groups": page_copy_groups,
         "stats": _paginate(request, SiteStat.objects.all(), "stats_page", 15),
         "testimonials": _paginate(
             request, Testimonial.objects.all(), "testimonials_page", 15),
-        "gallery": _paginate(request, GalleryImage.objects.all(), "gallery_page", 15),
+        "gallery": _paginate(
+            request, GalleryImage.objects.select_related("program"), "gallery_page", 15),
         "policies": _paginate(request, Policy.objects.all(), "policies_page", 15),
         "totals": {
             "stats": SiteStat.objects.count(),
@@ -2484,6 +2588,10 @@ def content_view(request):
             "gallery": GalleryImage.objects.count(),
             "policies": Policy.objects.count(),
             "events": Event.objects.count(),
+            "page_images_uploaded": sum(1 for s in page_image_slots if s["file"]),
+            "page_images_total": len(page_image_slots),
+            "page_copy_customized": sum(g["customized"] for g in page_copy_groups),
+            "page_copy_total": sum(g["total"] for g in page_copy_groups),
         },
         "cms_health": {
             "active_programs": Program.objects.filter(is_active=True).count(),
@@ -2493,6 +2601,16 @@ def content_view(request):
             "published_library": published_gallery + published_testimonials,
         },
     })
+
+
+def _grouped_fields(form, config):
+    """Resolve a config's optional field_groups into bound fields, so the
+    template can render large forms (e.g. Page copy) as labeled sections
+    instead of one long undifferentiated list."""
+    groups = config.get("field_groups")
+    if not groups:
+        return None
+    return [(label, [form[name] for name in names]) for label, names in groups]
 
 
 @capability_required("manage_content")
@@ -2518,6 +2636,7 @@ def content_create(request, section):
         form = form_class()
     return render(request, "dashboard/content_form.html", {
         "form": form, "section": section, "config": config, "mode": "Create",
+        "grouped_fields": _grouped_fields(form, config),
     })
 
 
@@ -2546,6 +2665,7 @@ def content_edit(request, section, pk):
     return render(request, "dashboard/content_form.html", {
         "form": form, "section": section, "config": config,
         "mode": "Edit", "object": obj,
+        "grouped_fields": _grouped_fields(form, config),
     })
 
 
@@ -2660,6 +2780,7 @@ def _member_payment_queryset(member):
 def members_view(request):
     q = request.GET.get("q", "").strip()
     role = request.GET.get("role", "").strip()
+    status = request.GET.get("status", "").strip()
     can_view_payments = request.user.can("view_donations")
     members = User.objects.all()
     if q:
@@ -2668,6 +2789,10 @@ def members_view(request):
             | Q(username__icontains=q) | Q(email__icontains=q))
     if role:
         members = members.filter(role=role)
+    if status == "pending":
+        members = members.filter(is_active=False)
+    elif status == "active":
+        members = members.filter(is_active=True)
     role_counts = dict(
         User.objects.values("role").annotate(c=Count("id")).values_list("role", "c")
     )
@@ -2726,16 +2851,20 @@ def members_view(request):
         ).order_by("-registrations_count", "-applications_count", "-gifts_count")
     else:
         engagement_rows = engagement_rows.order_by("-registrations_count", "-applications_count")
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
     return render(request, "dashboard/members.html", {
         "members": _paginate(request, members, "members_page", 25), "q": q, "role": role,
+        "status": status,
         "roles": roles,
         "chart_data": chart_data,
         "staff_members": _paginate(request, staff_members, "staff_page", 20),
         "payment_members": _paginate(request, payment_members, "payments_page", 20),
         "engagement_rows": _paginate(request, engagement_rows, "engagement_page", 20),
         "totals": {
-            "users": User.objects.count(),
-            "active": User.objects.filter(is_active=True).count(),
+            "users": total_users,
+            "active": active_users,
+            "pending": total_users - active_users,
             "staff": User.objects.filter(role__in=[Role.ADMIN, Role.DIRECTOR]).count(),
             "paystack_gifts": Donation.objects.count() if can_view_payments else None,
         },

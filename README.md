@@ -139,9 +139,26 @@ It manages:
 - Testimonials.
 - Gallery/media images.
 - Policies.
+- Page imagery: every hero and decorative photo on the public site that isn't
+  already attached to a program, speaker, leader, testimonial, gallery, or
+  event record — homepage hero, About/Programs/Impact/Leadership/Speakers/
+  Gallery/Donate hero photos, Get Involved portraits, and the side photo on
+  the give, apply, login, and sign-up pages. Until a photo is uploaded, each
+  slot falls back to a built-in placeholder image, so the public site never
+  breaks.
+- Page copy: every hero and section eyebrow, headline, and paragraph writeup
+  on the public site that isn't already attached to a program, speaker,
+  leader, testimonial, or event record — grouped by page (Homepage, About,
+  Programs, Impact, Get Involved, Leadership, Speakers, Gallery, Donate,
+  Contact, and the site-wide footer). Until a field is filled in, the page
+  shows its built-in default writeup, so the public site never breaks or
+  goes blank.
 
-The selected profile, logo, favicon, and fonts affect both the public website
-and dashboard through the global context processor.
+The selected profile, logo, favicon, fonts, page imagery, and page copy
+affect both the public website and dashboard through the global context
+processor. In other words, every image and every editorial writeup a visitor
+sees on the public site is editable from **Site CMS** — there is no picture
+and no headline/paragraph on the site that requires a code change.
 
 ## Roles And Access
 
@@ -285,6 +302,17 @@ When `DEBUG=True`, media is served by Django via `oif_site.urls`.
 - ECharts for dashboard analytics
 - Paystack for payments
 - Custom responsive CSS
+- Django Debug Toolbar for local development (see below)
+
+## Debug Toolbar
+
+[django-debug-toolbar](https://django-debug-toolbar.readthedocs.io/) is installed
+for local development only. It activates automatically when `DJANGO_DEBUG=True`
+(the default) and appears on the right edge of every page for requests from
+`127.0.0.1` (see `INTERNAL_IPS` in `oif_site/settings.py`). It is fully disabled
+whenever `DJANGO_DEBUG=False`, so it never loads or runs in production, and it
+is also disabled while running `python manage.py test` so it can't interfere
+with the test client or CI.
 
 ## Environment Variables
 
@@ -326,6 +354,18 @@ templates/    public, dashboard, accounts, engagement, donation templates
 static/css/   responsive site and dashboard design system
 media/        local uploaded/generated development media
 ```
+
+## Operating Manuals
+
+Detailed operator documentation is available in:
+
+- [`docs/OIF_PLATFORM_ADMINISTRATOR_MANUAL.pdf`](docs/OIF_PLATFORM_ADMINISTRATOR_MANUAL.pdf)
+  — complete printable administrator handbook with runbooks, checklists, module
+  reference, and role/access reference.
+- [`docs/MODULES_MANUAL.md`](docs/MODULES_MANUAL.md) — modules, workflows,
+  statuses, integrations, finance, operations, deployment, and troubleshooting.
+- [`docs/ROLES_MANUAL.md`](docs/ROLES_MANUAL.md) — capabilities, every platform
+  role, assignment guidance, onboarding, role changes, and access reviews.
 
 Dashboard reporting and cash-balance calculations live in
 `dashboard/reporting.py`. New reporting and accounting calculations should stay

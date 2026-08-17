@@ -3,16 +3,15 @@
 {% block content %}
 <section class="page active premium-page home-premium">
   <div class="premium-hero home-hero-premium">
-    <div class="home-hero-image" aria-hidden="true"></div>
+    <div class="home-hero-image" aria-hidden="true"{% if page_images.home_hero %} style="background-image:url('{{ page_images.home_hero.url }}')"{% endif %}></div>
     <div class="home-hero-shade" aria-hidden="true"></div>
     <div class="container home-hero-container">
       <div class="home-hero-copy">
         <div class="eyebrow">Established {{ ORG_FOUNDED }} · Accra, Ghana</div>
-        <h1 class="display">Raising young leaders who serve with clarity, courage, and conviction.</h1>
-        <p>Onesimus Impact Foundation equips emerging leaders through conferences, mentorship, humanitarian action, and digital systems built for lasting impact.</p>
+        <h1 class="display">{{ page_copy.home_hero_headline|default:"Raising young leaders who serve with clarity, courage, and conviction." }}</h1>
+        <p>{{ page_copy.home_hero_body|default:"Onesimus Impact Foundation equips emerging leaders through conferences, mentorship, humanitarian action, and digital systems built for lasting impact." }}</p>
         <div class="premium-actions home-hero-actions">
           <a class="btn-primary" href="{% url 'pages:involved' %}">Get involved</a>
-          <a class="btn-primary premium-ghost-btn home-hero-ghost" href="{% url 'pages:donate' %}">Support the mission</a>
         </div>
       </div>
       <div class="home-hero-proof">
@@ -80,6 +79,25 @@
       </div>
     </div>
   </div>
+  {% else %}
+  <div class="home-event-feature" id="upcoming-event">
+    <div class="container">
+      <div class="home-event-grid">
+        <div class="home-event-media">
+          <div class="premium-flyer">
+            <span>Stay tuned</span>
+            <strong>Our next gathering</strong>
+          </div>
+        </div>
+        <div class="home-event-copy">
+          <div class="eyebrow">Upcoming</div>
+          <h2 class="display">{{ page_copy.home_no_event_headline|default:"[Event Name] is coming." }}</h2>
+          <p>{{ page_copy.home_no_event_body|default:"We're finalizing details for our next conference, mentorship cohort, or outreach. Check back soon, or explore our program wings below." }}</p>
+          <a class="btn-primary premium-ghost-btn" href="{% url 'pages:programs' %}">Explore our programs</a>
+        </div>
+      </div>
+    </div>
+  </div>
   {% endif %}
 
   <div class="impact-metrics-band">
@@ -94,12 +112,11 @@
 
   <div class="premium-band">
     <div class="container">
-      <div class="premium-section-head">
+      <div class="premium-section-head compact">
         <div>
-          <div class="eyebrow">The OIF ecosystem</div>
-          <h2 class="display">Programs that form the whole leader.</h2>
+          <div class="eyebrow">{{ page_copy.home_programs_eyebrow|default:"The OIF ecosystem" }}</div>
+          <h2 class="display">{{ page_copy.home_programs_headline|default:"Three wing, one mission." }}</h2>
         </div>
-        <p>Leadership formation, women's empowerment, humanitarian service, virtual gatherings, and mentorship work together as one system.</p>
       </div>
       <div class="about-program-grid home-program-grid">
         {% for p in programs %}
@@ -107,36 +124,10 @@
           <div class="about-program-image about-program-image-{{ forloop.counter }}">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">{% endif %}</div>
           <span>{{ p.get_wing_display }}</span>
           <h3>{{ p.headline }}</h3>
-          <p>{{ p.tagline }}</p>
+          <p>{{ p.description|truncatewords:28 }}</p>
         </a>
         {% endfor %}
       </div>
-    </div>
-  </div>
-
-  <div class="home-leadership-band">
-    <div class="container">
-      <div class="premium-section-head compact">
-        <div>
-          <div class="eyebrow">Leadership</div>
-          <h2 class="display">Led by an emerging generation.</h2>
-        </div>
-      </div>
-      <div class="about-leadership-grid">
-        {% if team_lead %}
-        <article class="about-leader-card">
-          <div class="about-leader-photo lead-photo-one"></div>
-          <div><span>{{ team_lead.get_position_display }}</span><h3>{{ team_lead.name }}</h3><p>{{ team_lead.bio|default:team_lead.credential }}</p></div>
-        </article>
-        {% endif %}
-        {% if team_ed %}
-        <article class="about-leader-card">
-          <div class="about-leader-photo lead-photo-two"></div>
-          <div><span>{{ team_ed.get_position_display }}</span><h3>{{ team_ed.name }}</h3><p>{{ team_ed.bio|default:team_ed.credential }}</p></div>
-        </article>
-        {% endif %}
-      </div>
-      <div class="center-action"><a class="btn-sm ghost" href="{% url 'pages:leadership' %}">Meet the full team</a></div>
     </div>
   </div>
 
@@ -144,8 +135,8 @@
   <div class="about-speakers-premium home-speakers-premium">
     <div class="container">
       <div class="speakers-head">
-        <div class="eyebrow">Voices who have stood with us</div>
-        <h2 class="display">Leaders shaping leaders.</h2>
+        <div class="eyebrow">{{ page_copy.home_speakers_eyebrow|default:"Voices who have stood with us" }}</div>
+        <h2 class="display">{{ page_copy.home_speakers_headline|default:"Leaders shaping leaders." }}</h2>
       </div>
       <div class="speakers-grid">
         {% for sp in speakers %}
@@ -161,9 +152,9 @@
     <div class="container">
       <div class="about-cta-panel">
         <div>
-          <div class="eyebrow">Support the mission</div>
-          <h2 class="display">Help us shape the next generation of African leadership.</h2>
-          <p>Your gift, time, network, or expertise can strengthen the platform young leaders need.</p>
+          <div class="eyebrow">{{ page_copy.home_cta_eyebrow|default:"Support the mission" }}</div>
+          <h2 class="display">{{ page_copy.home_cta_headline|default:"Help us shape the next generation of African leadership." }}</h2>
+          <p>{{ page_copy.home_cta_body|default:"Your gift, time, network, or expertise can strengthen the platform young leaders need." }}</p>
         </div>
         <div class="about-cta-buttons">
           <a class="btn-primary" href="{% url 'pages:donate' %}">Support our work</a>

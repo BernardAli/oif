@@ -9,8 +9,8 @@
       <div class="involved-hero-grid">
         <div class="involved-hero-copy">
           <div class="eyebrow">Join the movement</div>
-          <h1 class="display">There is a meaningful place for you in <em>the work.</em></h1>
-          <p>Whether you mentor, volunteer, speak, give, sponsor, or join a cohort, your contribution helps build a complete ecosystem for emerging African leaders.</p>
+          <h1 class="display">{{ page_copy.involved_hero_headline|default:"There is a meaningful place for you in the work." }}</h1>
+          <p>{{ page_copy.involved_hero_body|default:"Whether you mentor, volunteer, speak, give, sponsor, or join a cohort, your contribution helps build a complete ecosystem for emerging African leaders." }}</p>
           <div class="involved-hero-actions">
             {% if user.is_authenticated %}
             <a class="btn-primary" href="{% url 'engagement:apply' %}">Start an application</a>
@@ -21,9 +21,9 @@
           </div>
         </div>
         <div class="involved-hero-visual">
-          <div class="involved-portrait portrait-mentor"><span>Mentor</span></div>
-          <div class="involved-portrait portrait-volunteer"><span>Volunteer</span></div>
-          <div class="involved-portrait portrait-partner"><span>Partner</span></div>
+          <div class="involved-portrait portrait-mentor"{% if page_images.involved_mentor %} style="background-image:url('{{ page_images.involved_mentor.url }}')"{% endif %}><span>Mentor</span></div>
+          <div class="involved-portrait portrait-volunteer"{% if page_images.involved_volunteer %} style="background-image:url('{{ page_images.involved_volunteer.url }}')"{% endif %}><span>Volunteer</span></div>
+          <div class="involved-portrait portrait-partner"{% if page_images.involved_partner %} style="background-image:url('{{ page_images.involved_partner.url }}')"{% endif %}><span>Partner</span></div>
         </div>
       </div>
     </div>
@@ -31,12 +31,11 @@
 
   <div class="involved-pathways">
     <div class="container">
-      <div class="involved-section-head">
+      <div class="involved-section-head compact">
         <div>
-          <div class="eyebrow">Choose your path</div>
-          <h2 class="display">Different gifts. One shared mission.</h2>
+          <div class="eyebrow">{{ page_copy.involved_pathways_eyebrow|default:"Choose your path" }}</div>
+          <h2 class="display">{{ page_copy.involved_pathways_headline|default:"Different gifts. One shared mission." }}</h2>
         </div>
-        <p>OIF grows through people who bring wisdom, time, networks, generosity, and courage to the table.</p>
       </div>
 
       <div class="pathway-grid">
@@ -103,8 +102,8 @@
     <div class="container">
       <div class="impact-band-grid">
         <div>
-          <div class="eyebrow">How your support moves</div>
-          <h2 class="display">From interest to impact, the pathway is clear.</h2>
+          <div class="eyebrow">{{ page_copy.involved_steps_eyebrow|default:"How your support moves" }}</div>
+          <h2 class="display">{{ page_copy.involved_steps_headline|default:"From interest to impact, the pathway is clear." }}</h2>
         </div>
         <div class="impact-steps">
           <div><span>01</span><strong>Apply or enquire</strong><p>Tell us how you want to serve, partner, speak, or support the mission.</p></div>
@@ -120,9 +119,9 @@
       <div class="giving-card">
         <div class="giving-image"></div>
         <div class="giving-copy">
-          <div class="eyebrow">Resource the mission</div>
-          <h2 class="display">Give toward leadership formation that lasts.</h2>
-          <p>Financial gifts help fund conferences, mentorship infrastructure, humanitarian outreach, communications, and the systems that keep the foundation accountable.</p>
+          <div class="eyebrow">{{ page_copy.involved_giving_eyebrow|default:"Resource the mission" }}</div>
+          <h2 class="display">{{ page_copy.involved_giving_headline|default:"Give toward leadership formation that lasts." }}</h2>
+          <p>{{ page_copy.involved_giving_body|default:"Financial gifts help fund conferences, mentorship infrastructure, humanitarian outreach, communications, and the systems that keep the foundation accountable." }}</p>
           <a class="btn-primary" href="{% url 'pages:donate' %}">Donate now</a>
         </div>
       </div>
@@ -133,9 +132,9 @@
     <div class="container">
       <div class="partner-layout">
         <div class="partner-copy">
-          <div class="eyebrow">Partnerships and resource mobilisation</div>
-          <h2 class="display">Partner or sponsor the next generation.</h2>
-          <p>Organisations, churches, institutions, and donors help OIF reach further. Share your interest and the partnerships team will follow up.</p>
+          <div class="eyebrow">{{ page_copy.involved_partner_eyebrow|default:"Partnerships and resource mobilisation" }}</div>
+          <h2 class="display">{{ page_copy.involved_partner_headline|default:"Partner or sponsor the next generation." }}</h2>
+          <p>{{ page_copy.involved_partner_body|default:"Organisations, churches, institutions, and donors help OIF reach further. Share your interest and the partnerships team will follow up." }}</p>
           <div class="partner-proof">
             <div><strong>Programs</strong><span>Conference, mentorship, outreach</span></div>
             <div><strong>Support</strong><span>Sponsorship, donors, institutions</span></div>

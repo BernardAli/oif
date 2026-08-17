@@ -9,14 +9,14 @@
       <div class="premium-hero-grid">
         <div>
           <div class="eyebrow">Speaker archive</div>
-          <h1 class="display">Voices that expand the room.</h1>
-          <p>OIF gatherings are shaped by speakers and facilitators who bring practical wisdom, spiritual depth, professional excellence, and service-minded imagination.</p>
+          <h1 class="display">{{ page_copy.speakers_hero_headline|default:"Voices that expand the room." }}</h1>
+          <p>{{ page_copy.speakers_hero_body|default:"OIF gatherings are shaped by speakers and facilitators who bring practical wisdom, spiritual depth, professional excellence, and service-minded imagination." }}</p>
           <div class="premium-actions">
             <a class="btn-primary" href="{% url 'pages:involved' %}">Apply to speak</a>
             <a class="btn-primary premium-ghost-btn" href="{% url 'pages:impact' %}">See impact</a>
           </div>
         </div>
-        <div class="people-hero-photo speakers-hero-photo"><span>Conferences · Panels · Mentorship</span></div>
+        <div class="people-hero-photo speakers-hero-photo"{% if page_images.speakers_hero %} style="background-image:url('{{ page_images.speakers_hero.url }}')"{% endif %}><span>Conferences · Panels · Mentorship</span></div>
       </div>
     </div>
   </div>
@@ -26,8 +26,8 @@
     <div class="container">
       <div class="premium-section-head compact">
         <div>
-          <div class="eyebrow">Featured voices</div>
-          <h2 class="display">Leaders shaping leaders.</h2>
+          <div class="eyebrow">{{ page_copy.speakers_featured_eyebrow|default:"Featured voices" }}</div>
+          <h2 class="display">{{ page_copy.speakers_featured_headline|default:"Leaders shaping leaders." }}</h2>
         </div>
       </div>
       <div class="speakers-grid">
@@ -46,8 +46,8 @@
   <div class="about-speakers-premium speaker-archive-page">
     <div class="container">
       <div class="speakers-head">
-        <div class="eyebrow">Archive</div>
-        <h2 class="display">Every speaker profile in one place.</h2>
+        <div class="eyebrow">{{ page_copy.speakers_archive_eyebrow|default:"Archive" }}</div>
+        <h2 class="display">{{ page_copy.speakers_archive_headline|default:"Every speaker profile in one place." }}</h2>
       </div>
       {% if speakers %}
       <div class="speakers-grid">

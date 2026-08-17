@@ -1,6 +1,7 @@
 """Django settings for the Onesimus Impact Foundation (OIF) site."""
 from pathlib import Path
 import os
+import sys
 
 try:
     from dotenv import load_dotenv
@@ -20,6 +21,11 @@ ALLOWED_HOSTS = os.environ.get(
 )
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS.split(",") if host.strip()]
 
+# Local-development-only profiler. Never active with DEBUG=False (production),
+# and disabled during `manage.py test` so it can't interfere with the test
+# client or CI (the workflow runs with DJANGO_DEBUG unset, i.e. True).
+DEBUG_TOOLBAR_ENABLED = DEBUG and "test" not in sys.argv
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -36,6 +42,8 @@ INSTALLED_APPS = [
     "donations",
     "dashboard",
 ]
+if DEBUG_TOOLBAR_ENABLED:
+    INSTALLED_APPS += ["debug_toolbar"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -46,6 +54,11 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if DEBUG_TOOLBAR_ENABLED:
+    MIDDLEWARE.insert(1, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+# Required by django-debug-toolbar to decide which client IPs may see it.
+INTERNAL_IPS = ["127.0.0.1"]
 
 ROOT_URLCONF = "oif_site.urls"
 

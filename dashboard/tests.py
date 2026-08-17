@@ -18,6 +18,7 @@ from django.utils import timezone
 from accounts.models import User, Role
 from engagement.models import Application, EventRegistration
 from pages.models import Event, GalleryImage, Program, ProgramResource, SiteBranding
+from pages.models import SitePageCopy, SitePageImages, PAGE_COPY_GROUPS
 from pages.models import SiteStat, Speaker, TeamMember
 from donations.models import Donation
 from engagement.models import MentorshipEnrollment
@@ -816,6 +817,36 @@ class MemberManagementTest(TestCase):
         self.assertIn("membership has been accepted", mail.outbox[0].subject)
         self.assertIn("Username: pending_member", mail.outbox[0].body)
 
+    def test_pending_member_flagged_and_approvable_from_dashboard(self):
+        """End to end: a self-signed-up member stays pending until a staff
+        member with manage_members explicitly approves them."""
+        pending = make("self_signup_member", Role.MEMBER, is_active=False)
+        self.client.login(username="member_admin", password=PWD)
+
+        home = self.client.get(reverse("dashboard:home"))
+        self.assertContains(home, "Members awaiting approval")
+
+        members = self.client.get(reverse("dashboard:members"))
+        self.assertContains(members, "Pending approval")
+
+        pending_only = self.client.get(reverse("dashboard:members"), {"status": "pending"})
+        self.assertContains(pending_only, "self_signup_member")
+
+        detail = self.client.get(reverse("dashboard:member_detail", args=[pending.pk]))
+        self.assertContains(detail, "pending approval")
+
+        resp = self.client.post(reverse("dashboard:member_detail", args=[pending.pk]), data={
+            "role": Role.MEMBER,
+            "title": "",
+            "location": "",
+            "is_active": "on",
+            "is_staff": "",
+            "is_public_profile": "",
+        })
+        self.assertRedirects(resp, reverse("dashboard:member_detail", args=[pending.pk]))
+        pending.refresh_from_db()
+        self.assertTrue(pending.is_active)
+
     def test_member_manager_without_user_admin_cannot_change_roles_or_view_payments(self):
         target = make("ops_managed_member", Role.MEMBER, title="New member")
         self.client.login(username="member_ops", password=PWD)
@@ -1011,6 +1042,85 @@ class FullDashboardControlTest(TestCase):
         self.assertContains(dashboard, "OIF Ghana")
         self.assertContains(dashboard, '--font-title: "Playfair Display"')
         self.assertContains(dashboard, '--font-body: "Lato"')
+
+    def test_admin_can_manage_page_imagery_from_dashboard(self):
+        self.client.login(username="control_admin", password=PWD)
+        page_images = SitePageImages.load()
+
+        resp = self.client.get(reverse("dashboard:content"))
+        self.assertContains(resp, "Page Photos")
+        self.assertContains(resp, "Page imagery")
+        self.assertContains(resp, "Using placeholder")
+
+        gif = SimpleUploadedFile(
+            "hero.gif",
+            (b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9"
+             b"\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00"
+             b"\x02\x02D\x01\x00;"),
+            content_type="image/gif",
+        )
+        resp = self.client.post(
+            reverse("dashboard:content_edit", args=["page_images", page_images.pk]),
+            data={"home_hero": gif},
+        )
+        self.assertRedirects(
+            resp, reverse("dashboard:content_edit", args=["page_images", page_images.pk])
+        )
+        page_images.refresh_from_db()
+        self.assertTrue(page_images.home_hero)
+
+        home = self.client.get(reverse("pages:home"))
+        self.assertContains(home, page_images.home_hero.url)
+
+        # Untouched slots still render every public page without breaking.
+        for name in ["pages:about", "pages:programs", "pages:impact",
+                     "pages:leadership", "pages:speakers", "pages:gallery",
+                     "pages:donate"]:
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+
+    def test_admin_can_manage_page_copy_from_dashboard(self):
+        self.client.login(username="control_admin", password=PWD)
+        page_copy = SitePageCopy.load()
+
+        resp = self.client.get(reverse("dashboard:content"))
+        self.assertContains(resp, "Page Copy")
+        self.assertContains(resp, "Page copy")
+        self.assertContains(resp, "Using default writeups")
+
+        resp = self.client.get(reverse("dashboard:content_edit", args=["page_copy", page_copy.pk]))
+        self.assertContains(resp, "<fieldset", count=len(PAGE_COPY_GROUPS))
+        self.assertContains(resp, "Homepage")
+        self.assertContains(resp, "Site-wide footer")
+
+        resp = self.client.post(
+            reverse("dashboard:content_edit", args=["page_copy", page_copy.pk]),
+            data={
+                "home_hero_headline": "A brand new custom headline",
+                "footer_cta_headline": "Custom footer writeup",
+            },
+        )
+        self.assertRedirects(
+            resp, reverse("dashboard:content_edit", args=["page_copy", page_copy.pk])
+        )
+        page_copy.refresh_from_db()
+        self.assertEqual(page_copy.home_hero_headline, "A brand new custom headline")
+
+        home = self.client.get(reverse("pages:home"))
+        self.assertContains(home, "A brand new custom headline")
+        self.assertContains(home, "Custom footer writeup")
+        self.assertNotContains(
+            home, "Raising young leaders who serve with clarity, courage, and conviction."
+        )
+
+        # The site-wide footer writeup applies on every page, not just home.
+        about = self.client.get(reverse("pages:about"))
+        self.assertContains(about, "Custom footer writeup")
+
+        # Untouched fields still render every public page without breaking.
+        for name in ["pages:programs", "pages:impact", "pages:leadership",
+                     "pages:speakers", "pages:gallery", "pages:donate",
+                     "pages:contact", "pages:involved"]:
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
 
     def test_admin_can_create_team_and_stats_from_dashboard(self):
         self.client.login(username="control_admin", password=PWD)

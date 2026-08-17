@@ -8,18 +8,18 @@
     <div class="container">
       <div class="premium-hero-grid">
         <div>
-          <div class="eyebrow">What we build</div>
-          <h1 class="display">Programs that turn potential into <em>practice.</em></h1>
-          <p>OIF forms young leaders through flagship conferences, mentorship cohorts, humanitarian outreach, and practical learning spaces rooted in service.</p>
+          <div class="eyebrow">{{ page_copy.programs_hero_eyebrow|default:"What we build" }}</div>
+          <h1 class="display">{{ page_copy.programs_hero_headline|default:"Programs that turn potential into practice." }}</h1>
+          <p>{{ page_copy.programs_hero_body|default:"OIF forms young leaders through flagship conferences, mentorship cohorts, humanitarian outreach, and practical learning spaces rooted in service." }}</p>
           <div class="premium-actions">
             <a class="btn-primary" href="{% url 'pages:involved' %}">Apply or volunteer</a>
             <a class="btn-primary premium-ghost-btn" href="#open-events">View open events</a>
           </div>
         </div>
         <div class="premium-hero-collage">
-          <div class="phc-large programs-img-one"><span>Conferences</span></div>
-          <div class="phc-small programs-img-two"><span>Mentorship</span></div>
-          <div class="phc-small programs-img-three"><span>Outreach</span></div>
+          <div class="phc-large programs-img-one"{% if page_images.programs_hero_main %} style="background-image:url('{{ page_images.programs_hero_main.url }}')"{% endif %}><span>Conferences</span></div>
+          <div class="phc-small programs-img-two"{% if page_images.programs_hero_alt1 %} style="background-image:url('{{ page_images.programs_hero_alt1.url }}')"{% endif %}><span>Mentorship</span></div>
+          <div class="phc-small programs-img-three"{% if page_images.programs_hero_alt2 %} style="background-image:url('{{ page_images.programs_hero_alt2.url }}')"{% endif %}><span>Outreach</span></div>
         </div>
       </div>
     </div>
@@ -29,10 +29,10 @@
     <div class="container">
       <div class="premium-section-head">
         <div>
-          <div class="eyebrow">Program wings</div>
-          <h2 class="display">Distinct rooms, one house.</h2>
+          <div class="eyebrow">{{ page_copy.programs_wings_eyebrow|default:"Program wings" }}</div>
+          <h2 class="display">{{ page_copy.programs_wings_headline|default:"Distinct rooms, one house." }}</h2>
         </div>
-        <p>Each wing serves a specific audience and moment, while the whole system keeps young people moving toward leadership, character, and impact.</p>
+        <p>{{ page_copy.programs_wings_body|default:"Each wing serves a specific audience and moment, while the whole system keeps young people moving toward leadership, character, and impact." }}</p>
       </div>
       <div class="program-wing-grid">
         {% for p in programs %}
@@ -63,9 +63,9 @@
     <div class="container">
       <div class="mentorship-feature-grid">
         <div>
-          <div class="eyebrow">Mentorship pathway</div>
-          <h2 class="display">A two-phase journey with structure and care.</h2>
-          <p>Young leaders move from foundational recorded sessions into live mentor conversations that deepen clarity, accountability, and next steps.</p>
+          <div class="eyebrow">{{ page_copy.programs_mentorship_eyebrow|default:"Mentorship pathway" }}</div>
+          <h2 class="display">{{ page_copy.programs_mentorship_headline|default:"A two-phase journey with structure and care." }}</h2>
+          <p>{{ page_copy.programs_mentorship_body|default:"Young leaders move from foundational recorded sessions into live mentor conversations that deepen clarity, accountability, and next steps." }}</p>
         </div>
         <div class="phase-grid">
           <div class="phase-card"><span>Phase 1</span><h3>8 recorded sessions</h3><p>Foundational teaching mentees complete at their own pace, supported by reflection and Q&amp;A.</p></div>
@@ -79,8 +79,8 @@
     <div class="container">
       <div class="premium-section-head compact">
         <div>
-          <div class="eyebrow">Events</div>
-          <h2 class="display">Open now and recently hosted.</h2>
+          <div class="eyebrow">{{ page_copy.programs_events_eyebrow|default:"Events" }}</div>
+          <h2 class="display">{{ page_copy.programs_events_headline|default:"Open now and recently hosted." }}</h2>
         </div>
       </div>
       {% if upcoming_events %}

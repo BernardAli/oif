@@ -4,7 +4,7 @@
 <section class="page active premium-page form-page-premium donation-form-page">
   <div class="container">
     <div class="split-form-layout">
-      <aside class="split-form-story donation-story">
+      <aside class="split-form-story donation-story"{% if page_images.give_side %} style="background-image:url('{{ page_images.give_side.url }}')"{% endif %}>
         <div class="eyebrow">Make a gift</div>
         <h1 class="display">Give toward leadership formation that lasts.</h1>
         <p>Your gift fuels conferences, mentorship, and humanitarian action across the OIF ecosystem.</p>
