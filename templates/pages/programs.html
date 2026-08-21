@@ -1,116 +1,97 @@
 {% extends "base.html" %}
 {% block nav_programs %}active{% endblock %}
-{% block title %}Programs · {{ ORG_NAME }}{% endblock %}
-{% block meta_description %}Explore Onesimus Impact Foundation programs: The Forge, The Hadassah Project, humanitarian outreach, virtual conferences, and structured mentorship cohorts.{% endblock %}
+{% block title %}Programs &amp; Initiatives · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}Explore OIF virtual conferences, mentorship programs, in-person events, and humanitarian initiatives.{% endblock %}
 {% block content %}
-<section class="page active premium-page programs-premium">
-  <div class="premium-hero programs-hero">
-    <div class="container">
-      <div class="premium-hero-grid">
-        <div>
-          <div class="eyebrow">{{ page_copy.programs_hero_eyebrow|default:"What we build" }}</div>
-          <h1 class="display">{{ page_copy.programs_hero_headline|default:"Programs that turn potential into practice." }}</h1>
-          <p>{{ page_copy.programs_hero_body|default:"OIF forms young leaders through flagship conferences, mentorship cohorts, humanitarian outreach, and practical learning spaces rooted in service." }}</p>
-          <div class="premium-actions">
-            <a class="btn-primary" href="{% url 'pages:involved' %}">Apply or volunteer</a>
-            <a class="btn-primary premium-ghost-btn" href="#open-events">View open events</a>
-          </div>
-        </div>
-        <div class="premium-hero-collage">
-          <div class="phc-large programs-img-one"{% if page_images.programs_hero_main %} style="background-image:url('{{ page_images.programs_hero_main.url }}')"{% endif %}><span>Conferences</span></div>
-          <div class="phc-small programs-img-two"{% if page_images.programs_hero_alt1 %} style="background-image:url('{{ page_images.programs_hero_alt1.url }}')"{% endif %}><span>Mentorship</span></div>
-          <div class="phc-small programs-img-three"{% if page_images.programs_hero_alt2 %} style="background-image:url('{{ page_images.programs_hero_alt2.url }}')"{% endif %}><span>Outreach</span></div>
-        </div>
+<section class="page active initiative-index">
+  <header class="initiative-index-hero">
+    <div class="container initiative-index-hero-grid">
+      <div>
+        <div class="eyebrow">Programs &amp; Initiatives</div>
+        <h1 class="display">Programs &amp; Initiatives</h1>
+        <p>Three distinct pillars. One mission: to raise, equip, and release the next generation of African leaders.</p>
+      </div>
+      <div class="initiative-index-collage" aria-label="Conferences, mentorship and outreach">
+        <div{% if page_images.programs_hero_main %} style="background-image:url('{{ page_images.programs_hero_main.url }}')"{% endif %}><span>Virtual Conferences</span></div>
+        <div{% if page_images.programs_hero_alt1 %} style="background-image:url('{{ page_images.programs_hero_alt1.url }}')"{% endif %}><span>Mentorship</span></div>
+        <div{% if page_images.programs_hero_alt2 %} style="background-image:url('{{ page_images.programs_hero_alt2.url }}')"{% endif %}><span>Events &amp; Outreach</span></div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="premium-band" id="program-wings">
+  <section class="initiative-overview" aria-labelledby="initiative-overview-title">
     <div class="container">
-      <div class="premium-section-head">
-        <div>
-          <div class="eyebrow">{{ page_copy.programs_wings_eyebrow|default:"Program wings" }}</div>
-          <h2 class="display">{{ page_copy.programs_wings_headline|default:"Distinct rooms, one house." }}</h2>
-        </div>
-        <p>{{ page_copy.programs_wings_body|default:"Each wing serves a specific audience and moment, while the whole system keeps young people moving toward leadership, character, and impact." }}</p>
+      <div class="initiative-section-heading">
+        <div><span class="eyebrow">Three pillars</span><h2 id="initiative-overview-title">One connected mission.</h2></div>
+        <p>Choose a pillar to explore its conferences, cohorts, gatherings, and community work.</p>
       </div>
-      <div class="program-wing-grid">
-        {% for p in programs %}
-        <article class="program-wing-card-premium">
-          <div class="program-wing-photo program-wing-photo-{{ forloop.counter }}">
-            {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.get_wing_display }}">{% endif %}
-          </div>
-          <div class="program-wing-content">
-            <span>{{ p.get_wing_display }}</span>
-            <h3>{{ p.headline }}</h3>
-            <p>{{ p.description }}</p>
-            {% if p.resources.all %}
-            <div class="program-resource-row">
-              {% for r in p.resources.all %}
-              <a href="{{ r.link }}"{% if r.file %} download{% endif %}>{{ r.title }}</a>
-              {% endfor %}
-            </div>
-            {% endif %}
-            <a class="program-detail-link" href="{% url 'pages:program_detail' p.wing|lower %}">View program details</a>
-          </div>
-        </article>
-        {% endfor %}
+      <div class="initiative-overview-grid">
+        <a href="#pillar-conferences" data-program-tab-link="conferences"><span>01</span><h3>Virtual Conferences</h3><p>Our flagship biannual virtual gatherings under The Forge and The Hadassah Project.</p><b>Explore conferences →</b></a>
+        <a href="#pillar-mentorship" data-program-tab-link="mentorship"><span>02</span><h3>Mentorship Program</h3><p>Structured, two-phase mentorship cohorts under The Forge and The Hadassah Project.</p><b>Explore mentorship →</b></a>
+        <a href="#pillar-events" data-program-tab-link="events"><span>03</span><h3>Events</h3><p>In-person events, gatherings, and our humanitarian community outreach.</p><b>Explore events →</b></a>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="mentorship-feature">
+  <section class="initiative-pillars">
     <div class="container">
-      <div class="mentorship-feature-grid">
-        <div>
-          <div class="eyebrow">{{ page_copy.programs_mentorship_eyebrow|default:"Mentorship pathway" }}</div>
-          <h2 class="display">{{ page_copy.programs_mentorship_headline|default:"A two-phase journey with structure and care." }}</h2>
-          <p>{{ page_copy.programs_mentorship_body|default:"Young leaders move from foundational recorded sessions into live mentor conversations that deepen clarity, accountability, and next steps." }}</p>
+      <div class="initiative-tabs" role="tablist" aria-label="Program pillars">
+        <button type="button" role="tab" aria-selected="true" aria-controls="pillar-conferences" id="tab-conferences" data-program-tab="conferences">Virtual Conferences</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="pillar-mentorship" id="tab-mentorship" data-program-tab="mentorship">Mentorship Program</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="pillar-events" id="tab-events" data-program-tab="events">Events</button>
+      </div>
+
+      <div class="initiative-tab-panel active" id="pillar-conferences" role="tabpanel" aria-labelledby="tab-conferences" data-program-panel="conferences">
+        <div class="initiative-section-heading"><div><span class="eyebrow">Virtual Conferences</span><h2>Flagship gatherings for a rising generation.</h2></div><p>Our flagship virtual gatherings — organized biannually — bring accomplished speakers virtually with the next generation. Click a program to view upcoming and past conferences.</p></div>
+        <div class="initiative-program-grid">
+          {% for item in conference_initiatives %}
+          <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>{{ item.frequency_badge|default:"Virtual conference" }}</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>View conferences →</b></div></a>
+          {% empty %}<div class="premium-empty">Conference pages are being prepared.</div>{% endfor %}
         </div>
-        <div class="phase-grid">
-          <div class="phase-card"><span>Phase 1</span><h3>8 recorded sessions</h3><p>Foundational teaching mentees complete at their own pace, supported by reflection and Q&amp;A.</p></div>
-          <div class="phase-card olive"><span>Phase 2</span><h3>4 live mentor sessions</h3><p>Personalized guidance with an assigned mentor for practical movement and accountability.</p></div>
+      </div>
+
+      <div class="initiative-tab-panel" id="pillar-mentorship" role="tabpanel" aria-labelledby="tab-mentorship" data-program-panel="mentorship" hidden>
+        <div class="initiative-section-heading"><div><span class="eyebrow">Mentorship Program</span><h2>Structured formation, personal guidance.</h2></div><p>Our structured, two-phase mentorship programs run under both flagship wings. Click a program to access mentorship resources and details.</p></div>
+        <div class="initiative-program-grid">
+          {% for item in mentorship_initiatives %}
+          <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>Two-phase mentorship</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>Explore the program →</b></div></a>
+          {% empty %}<div class="premium-empty">Mentorship pages are being prepared.</div>{% endfor %}
         </div>
+      </div>
+
+      <div class="initiative-tab-panel" id="pillar-events" role="tabpanel" aria-labelledby="tab-events" data-program-panel="events" hidden>
+        <div class="initiative-section-heading"><div><span class="eyebrow">Events</span><h2>Gather in person. Serve in community.</h2></div><p>Beyond our virtual programs, OIF engages in in-person events and humanitarian action. Click a program to explore our past activities.</p></div>
+        <div class="initiative-program-grid">
+          {% for item in event_initiatives %}
+          <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>{{ item.get_page_type_display }}</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>View past activities →</b></div></a>
+          {% empty %}<div class="premium-empty">Event and outreach pages are being prepared.</div>{% endfor %}
+        </div>
+        {% if upcoming_events %}
+        <div class="initiative-live-events">
+          <div class="initiative-section-heading compact"><div><span class="eyebrow">Open registrations</span><h2>Upcoming across OIF.</h2></div></div>
+          {% for event in upcoming_events %}<a href="{% url 'pages:event_detail' event.slug %}"><span>{{ event.get_kind_display }}</span><strong>{{ event.title }}</strong><small>{{ event.starts_at|date:"F j, Y" }} · {{ event.location }}</small><b>View event →</b></a>{% endfor %}
+        </div>
+        {% endif %}
       </div>
     </div>
-  </div>
-
-  <div class="events-premium" id="open-events">
-    <div class="container">
-      <div class="premium-section-head compact">
-        <div>
-          <div class="eyebrow">{{ page_copy.programs_events_eyebrow|default:"Events" }}</div>
-          <h2 class="display">{{ page_copy.programs_events_headline|default:"Open now and recently hosted." }}</h2>
-        </div>
-      </div>
-      {% if upcoming_events %}
-      <div class="event-list-premium">
-        {% for e in upcoming_events %}
-        <article class="event-row-premium">
-          <div>
-            <span>{{ e.get_kind_display }}</span>
-            <h3>{{ e.title }}</h3>
-            <p>{{ e.starts_at|date:"l, F j, Y · g:i A" }} GMT · {{ e.location }}</p>
-          </div>
-          <a class="btn-sm" href="{% url 'pages:event_detail' e.slug %}">View details</a>
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="premium-empty">No upcoming conferences are open right now. Check back soon.</div>
-      {% endif %}
-
-      {% if past_events %}
-      <div class="past-events-panel">
-        <h3>Past highlights</h3>
-        <div class="past-events-grid">
-          {% for e in past_events %}
-          <div><span>{{ e.get_kind_display }} · {{ e.starts_at|date:"M Y" }}</span><strong>{{ e.title }}</strong></div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-  </div>
+  </section>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-program-tab]'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('[data-program-panel]'));
+  function activate(name, updateHash) {
+    tabs.forEach(function (tab) { var active = tab.dataset.programTab === name; tab.classList.toggle('active', active); tab.setAttribute('aria-selected', active ? 'true' : 'false'); });
+    panels.forEach(function (panel) { var active = panel.dataset.programPanel === name; panel.classList.toggle('active', active); panel.hidden = !active; });
+    if (updateHash) history.replaceState(null, '', '#pillar-' + name);
+  }
+  tabs.forEach(function (tab) { tab.addEventListener('click', function () { activate(tab.dataset.programTab, true); }); });
+  document.querySelectorAll('[data-program-tab-link]').forEach(function (link) { link.addEventListener('click', function () { activate(link.dataset.programTabLink, false); }); });
+  var hash = window.location.hash.replace('#pillar-', '');
+  if (['conferences', 'mentorship', 'events'].indexOf(hash) !== -1) activate(hash, false);
+}());
+</script>
 {% endblock %}

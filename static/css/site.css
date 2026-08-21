@@ -7094,3 +7094,193 @@ h4,
 .mini-stat .v {
   font-family: var(--font-title), Georgia, serif;
 }
+
+/* ===== PROGRAMS & INITIATIVES ===== */
+.initiative-index-hero {
+  background: var(--dark);
+  color: var(--paper);
+  padding: 88px 0 76px;
+}
+.initiative-index-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(460px, 1.1fr);
+  gap: 72px;
+  align-items: center;
+}
+.initiative-index-hero h1 { font-size: clamp(50px, 7vw, 94px); max-width: 760px; }
+.initiative-index-hero p { color: rgba(255,255,255,.72); font-size: 20px; max-width: 650px; margin-top: 24px; }
+.initiative-index-hero .eyebrow { color: var(--tan); margin-bottom: 18px; }
+.initiative-index-collage {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  grid-template-rows: repeat(2, 190px);
+  gap: 12px;
+}
+.initiative-index-collage > div {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #7c5a3e, #2e241d);
+  background-position: center;
+  background-size: cover;
+}
+.initiative-index-collage > div:first-child { grid-row: 1 / 3; }
+.initiative-index-collage > div:nth-child(2) { background-color: #5f6241; }
+.initiative-index-collage > div:nth-child(3) { background-color: #9b714d; }
+.initiative-index-collage > div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, rgba(18,14,11,.82));
+}
+.initiative-index-collage span { position: absolute; z-index: 1; left: 20px; bottom: 18px; font-weight: 700; }
+.initiative-overview { padding: 92px 0; background: var(--paper-2); }
+.initiative-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
+  gap: 56px;
+  align-items: end;
+  margin-bottom: 38px;
+}
+.initiative-section-heading h2 { font-size: clamp(34px, 4vw, 55px); line-height: 1.08; letter-spacing: -.035em; margin-top: 8px; }
+.initiative-section-heading > p,
+.initiative-section-heading > div:last-child { color: var(--ink-soft); }
+.initiative-section-heading.compact { grid-template-columns: 1fr; }
+.initiative-overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.initiative-overview-grid > a {
+  min-height: 330px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.initiative-overview-grid > a:hover { transform: translateY(-5px); border-color: var(--coffee-soft); box-shadow: 0 24px 55px rgba(42,30,21,.09); }
+.initiative-overview-grid span { color: var(--coffee); font-weight: 800; letter-spacing: .1em; }
+.initiative-overview-grid h3 { font-size: 29px; margin: 46px 0 13px; }
+.initiative-overview-grid p { color: var(--ink-soft); }
+.initiative-overview-grid b { color: var(--coffee); margin-top: auto; padding-top: 28px; }
+.initiative-pillars { padding: 92px 0 110px; }
+.initiative-tabs { display: flex; gap: 8px; padding: 7px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); margin-bottom: 64px; }
+.initiative-tabs button { flex: 1; border: 0; border-radius: 10px; padding: 15px 20px; background: transparent; color: var(--ink-soft); font-weight: 750; cursor: pointer; }
+.initiative-tabs button.active,
+.initiative-tabs button[aria-selected="true"] { color: var(--paper); background: var(--coffee); box-shadow: 0 8px 20px rgba(82,52,31,.22); }
+.initiative-tab-panel[hidden] { display: none; }
+.initiative-program-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.initiative-program-card { border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: var(--paper); transition: transform .2s ease, box-shadow .2s ease; }
+.initiative-program-card:hover { transform: translateY(-5px); box-shadow: 0 25px 60px rgba(42,30,21,.1); }
+.initiative-program-image { height: 280px; position: relative; background: linear-gradient(135deg, #9b795f, #30241c); overflow: hidden; }
+.initiative-program-image img { width: 100%; height: 100%; object-fit: cover; }
+.initiative-program-image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(20,15,12,.72)); }
+.initiative-program-image span { position: absolute; left: 22px; bottom: 18px; z-index: 1; color: white; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.initiative-program-card > div:last-child { padding: 28px 30px 32px; }
+.initiative-program-card small { color: var(--coffee); font-weight: 800; letter-spacing: .08em; }
+.initiative-program-card h3 { font-size: 31px; margin: 8px 0 12px; }
+.initiative-program-card p { color: var(--ink-soft); }
+.initiative-program-card b { display: inline-block; color: var(--coffee); margin-top: 22px; }
+.initiative-live-events { margin-top: 70px; padding-top: 58px; border-top: 1px solid var(--line); }
+.initiative-live-events > a { display: grid; grid-template-columns: 150px 1fr 1fr auto; gap: 24px; align-items: center; padding: 22px 0; border-top: 1px solid var(--line); }
+.initiative-live-events > a span { color: var(--coffee); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.initiative-live-events > a small { color: var(--ink-soft); }
+
+/* Dedicated initiative pages */
+.initiative-detail-hero { min-height: 620px; background: #261d17; color: white; position: relative; display: flex; align-items: end; overflow: hidden; }
+.initiative-detail-hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.initiative-detail-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(19,14,11,.94), rgba(19,14,11,.56) 60%, rgba(19,14,11,.35)); }
+.initiative-detail-hero .container { position: relative; z-index: 1; width: 100%; padding-bottom: 82px; }
+.initiative-back { display: inline-block; color: var(--tan); font-size: 13px; font-weight: 750; margin-bottom: 55px; }
+.initiative-detail-heading { max-width: 880px; }
+.initiative-detail-heading h1 { font-size: clamp(50px, 7vw, 94px); margin: 13px 0 22px; }
+.initiative-detail-heading p { max-width: 780px; color: rgba(255,255,255,.78); font-size: 19px; }
+.initiative-frequency { display: inline-block; margin-top: 25px; padding: 9px 14px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; color: var(--tan); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.initiative-content-section { padding: 96px 0; }
+.initiative-content-section:nth-of-type(even) { background: var(--paper-2); }
+.conference-feature { display: grid; grid-template-columns: minmax(320px, .82fr) minmax(0, 1.18fr); gap: 58px; align-items: start; }
+.conference-main-flyer { min-height: 500px; border-radius: 18px; overflow: hidden; background: var(--dark); color: var(--tan); display: grid; place-items: center; }
+.conference-main-flyer img { width: 100%; height: 100%; max-height: 720px; object-fit: cover; }
+.conference-feature-copy > span { color: var(--coffee); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.conference-feature-copy h3 { font-size: clamp(34px, 4vw, 56px); line-height: 1.08; margin: 10px 0; }
+.conference-feature-copy time,
+.initiative-archive-card time { color: var(--coffee); font-weight: 700; }
+.conference-feature-copy > div { color: var(--ink-soft); margin: 22px 0; }
+.conference-speaker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.conference-speaker-grid figure { border-radius: 10px; overflow: hidden; background: var(--paper-2); }
+.conference-speaker-grid img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.conference-speaker-grid figcaption { padding: 8px; color: var(--ink); font-size: 12px; }
+.initiative-disabled-action { display: inline-block; padding: 12px 18px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-soft); }
+.initiative-archive-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+.initiative-archive-card { display: grid; grid-template-columns: 200px 1fr; min-height: 280px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--paper); }
+.initiative-archive-card > div { background: var(--dark); color: var(--tan); display: grid; place-items: center; text-align: center; padding: 16px; }
+.initiative-archive-card > div img { width: 100%; height: 100%; object-fit: cover; }
+.initiative-archive-card > section { padding: 25px; }
+.initiative-archive-card small { color: var(--coffee); font-weight: 800; text-transform: uppercase; }
+.initiative-archive-card h3 { font-size: 25px; line-height: 1.15; margin: 8px 0; }
+.initiative-archive-card p { color: var(--ink-soft); margin-top: 12px; }
+.initiative-empty { grid-column: 1 / -1; padding: 44px; border: 1px dashed var(--line-strong); border-radius: 16px; background: var(--paper-2); text-align: center; }
+.initiative-empty strong { display: block; font-size: 22px; }
+.initiative-empty p { color: var(--ink-soft); margin-top: 8px; }
+.initiative-empty.compact { padding: 30px; }
+.mentorship-track-heading { font-size: 25px; margin: 36px 0 17px; }
+.mentorship-session-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.mentorship-session { display: grid; grid-template-columns: 62px 1fr auto; gap: 18px; align-items: center; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.mentorship-session > span { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: var(--coffee); color: white; font-weight: 800; }
+.mentorship-session small { color: var(--coffee); text-transform: uppercase; font-weight: 800; }
+.mentorship-session h3 { font-size: 19px; line-height: 1.2; }
+.mentorship-session p { color: var(--ink-soft); font-size: 13px; }
+.mentorship-session button { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--paper-2); color: var(--ink-soft); cursor: not-allowed; }
+.mentorship-track-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.mentorship-track-grid article { padding: 34px; border-radius: 16px; background: var(--dark); color: white; }
+.mentorship-track-grid span { color: var(--tan); font-weight: 800; text-transform: uppercase; font-size: 12px; }
+.mentorship-track-grid h3 { font-size: 29px; margin: 8px 0; }
+.mentorship-track-grid b { color: var(--tan); }
+.mentorship-track-grid p { color: rgba(255,255,255,.72); margin-top: 16px; }
+.mentorship-scheduling-note { color: var(--ink-soft); font-size: 14px; margin-top: 22px; }
+.sdg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.sdg-grid article { min-height: 310px; padding: 28px; border-radius: 16px; background: var(--dark); color: white; }
+.sdg-grid article > span { display: block; color: var(--tan); font-size: 52px; line-height: 1; font-weight: 800; }
+.sdg-grid small { display: block; color: rgba(255,255,255,.55); margin: 15px 0 5px; }
+.sdg-grid h3 { font-size: 24px; }
+.sdg-grid p { color: rgba(255,255,255,.72); margin-top: 14px; }
+
+/* Initiative content management */
+.initiative-admin-summary { padding: 26px 30px; border-radius: 14px; background: var(--dark); color: white; margin-bottom: 24px; }
+.initiative-admin-summary span { display: block; color: var(--tan); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.initiative-admin-summary strong { display: block; font-size: 22px; margin: 5px 0; }
+.initiative-admin-summary p { color: rgba(255,255,255,.7); }
+.initiative-admin-section { margin-top: 22px; padding: 25px; }
+.initiative-admin-section .section-head { margin-bottom: 18px; }
+
+@media (max-width: 980px) {
+  .initiative-index-hero-grid { grid-template-columns: 1fr; }
+  .initiative-index-collage { grid-template-rows: repeat(2, 155px); }
+  .initiative-overview-grid { grid-template-columns: 1fr; }
+  .initiative-overview-grid > a { min-height: 250px; }
+  .initiative-program-grid,
+  .conference-feature,
+  .initiative-archive-grid,
+  .mentorship-session-grid { grid-template-columns: 1fr; }
+  .initiative-live-events > a { grid-template-columns: 120px 1fr; }
+  .initiative-live-events > a b { text-align: left; }
+}
+
+@media (max-width: 720px) {
+  .initiative-index-hero { padding-top: 64px; }
+  .initiative-index-hero-grid { gap: 42px; }
+  .initiative-index-collage { grid-template-columns: 1fr; grid-template-rows: repeat(3, 145px); }
+  .initiative-index-collage > div:first-child { grid-row: auto; }
+  .initiative-section-heading { grid-template-columns: 1fr; gap: 18px; }
+  .initiative-tabs { overflow-x: auto; }
+  .initiative-tabs button { min-width: 170px; }
+  .initiative-program-image { height: 220px; }
+  .initiative-detail-hero { min-height: 560px; }
+  .initiative-back { margin-bottom: 35px; }
+  .conference-speaker-grid { grid-template-columns: repeat(2, 1fr); }
+  .initiative-archive-card { grid-template-columns: 1fr; }
+  .initiative-archive-card > div { min-height: 230px; }
+  .mentorship-session { grid-template-columns: 55px 1fr; }
+  .mentorship-session button { grid-column: 1 / -1; }
+  .mentorship-track-grid,
+  .sdg-grid { grid-template-columns: 1fr; }
+}

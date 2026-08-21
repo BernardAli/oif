@@ -40,7 +40,7 @@ that supports their current work.
 | `manage_mentorship` | Create and update mentorship enrollments |
 | `view_mentees` | See mentorships assigned to the current mentor |
 | `view_assignments` | See personal assignments/mentorship context |
-| `manage_content` | Manage programmes, resources, speakers, leadership, branding, stats, testimonials, gallery, and policies |
+| `manage_content` | Manage programme initiatives, conference editions, mentorship curriculum, event/outreach archives, resources, speakers, leadership, branding, stats, testimonials, gallery, and policies |
 | `manage_media` | Media-management authority in the role model; current CMS routes principally require `manage_content` |
 | `manage_speakers` | Speaker-management authority in the role model; current speaker routes principally require `manage_content` |
 | `manage_testimonials` | Testimonial-management authority in the role model; current CMS routes principally require `manage_content` |
@@ -253,6 +253,10 @@ programme communications.
 ### Normal responsibilities
 
 - maintain programme information and resources;
+- maintain the three Programs & Initiatives pillars and their six dedicated
+  pages;
+- publish conference editions, speaker flyers, mentorship sessions/tracks,
+  SDG focus cards, and event/outreach archive entries;
 - plan and publish programme events;
 - monitor registration and attendance;
 - create and update mentorship cohorts;
@@ -312,7 +316,8 @@ campaigns.
 
 ### Normal responsibilities
 
-- maintain brand, public copy, programmes, resources, speakers, leadership,
+- maintain brand, public copy, programme initiatives, conference and event
+  archive media, mentorship curriculum, resources, speakers, leadership,
   metrics, testimonials, gallery, and policies;
 - optimize and publish media;
 - create reusable message templates;
@@ -413,6 +418,8 @@ A staff member performing routine website and campaign-content maintenance.
 ### Normal responsibilities
 
 - update approved public content and assets;
+- update approved conference editions, mentorship session titles, SDG focus
+  cards, and past-activity archives;
 - maintain publication flags and display order;
 - check public rendering and links;
 - prepare and send authorized communications;
@@ -457,7 +464,9 @@ the current event dashboard action changes registration status only.
 
 No general member management, organization analytics, finance, applications,
 mentorship, CMS library, enquiries, integrations, or audit trail. Editing an
-event is not the same as managing programme CMS content.
+operational event is not the same as managing programme CMS content. The
+conference editions and past-event/outreach archives shown under Programs &
+Initiatives require `manage_content`, not `manage_events`.
 
 ## 17. Mentor
 

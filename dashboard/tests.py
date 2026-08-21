@@ -17,7 +17,8 @@ from django.utils import timezone
 
 from accounts.models import User, Role
 from engagement.models import Application, EventRegistration
-from pages.models import Event, GalleryImage, Program, ProgramResource, SiteBranding
+from pages.models import (ConferenceEdition, Event, GalleryImage, Program,
+                          ProgramInitiative, ProgramResource, SiteBranding)
 from pages.models import SitePageCopy, SitePageImages, PAGE_COPY_GROUPS
 from pages.models import SiteStat, Speaker, TeamMember
 from donations.models import Donation
@@ -958,6 +959,45 @@ class FullDashboardControlTest(TestCase):
         resource = ProgramResource.objects.get(title="Mentorship Brief")
         self.assertRedirects(
             resp, reverse("dashboard:resource_edit", args=[resource.pk])
+        )
+
+    def test_admin_can_manage_structured_program_initiative_content(self):
+        self.client.login(username="control_admin", password=PWD)
+        for page in ProgramInitiative.objects.all():
+            page_response = self.client.get(
+                reverse("dashboard:initiative_manage", args=[page.pk])
+            )
+            self.assertEqual(page_response.status_code, 200, page.slug)
+        initiative = ProgramInitiative.objects.get(slug="the-emerging-leader")
+        response = self.client.get(
+            reverse("dashboard:initiative_manage", args=[initiative.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Conference editions")
+        self.assertContains(response, "Speaker flyers")
+
+        response = self.client.post(
+            reverse(
+                "dashboard:initiative_item_create",
+                args=[initiative.pk, "conference"],
+            ),
+            data={
+                "status": ConferenceEdition.Status.UPCOMING,
+                "edition_label": "Next edition",
+                "name": "Emerging Leader 2027",
+                "description": "A new conference edition.",
+                "registration_url": "https://forms.google.com/example",
+                "order": 1,
+                "is_published": "on",
+            },
+        )
+        self.assertRedirects(
+            response, reverse("dashboard:initiative_manage", args=[initiative.pk])
+        )
+        self.assertTrue(
+            ConferenceEdition.objects.filter(
+                initiative=initiative, name="Emerging Leader 2027"
+            ).exists()
         )
 
     def test_admin_can_delete_program_from_program_cards(self):

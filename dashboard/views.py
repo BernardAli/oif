@@ -20,7 +20,10 @@ from donations.views import _mark_success, _payment_matches_donation
 from engagement.models import (EventRegistration, Application,
                                MentorshipEnrollment, ContactMessage,
                                PartnerEnquiry, NewsletterSubscriber)
-from pages.models import (Event, Program, ProgramResource, SiteBranding,
+from pages.models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                          InitiativeArchiveEntry, MentorshipSession,
+                          MentorshipTrack, Program, ProgramInitiative,
+                          ProgramResource, SDGFocus, SiteBranding,
                           SitePageCopy, SitePageImages, PAGE_COPY_GROUPS,
                           SiteStat, Speaker, TeamMember, Testimonial,
                           GalleryImage, Policy)
@@ -45,7 +48,10 @@ from .accounting import (ensure_accounting_defaults, financial_statements,
 from .messaging import send_campaign
 from .forms import (
     CashAccountForm, CashMovementForm, EventForm, ExpenseForm, MemberAdminForm,
-    MentorshipEnrollmentForm, ProgramForm,
+    ConferenceEditionForm, ConferenceSpeakerFlyerForm,
+    InitiativeArchiveEntryForm, MentorshipEnrollmentForm,
+    MentorshipSessionForm, MentorshipTrackForm, ProgramForm,
+    ProgramInitiativeForm, SDGFocusForm,
     ProgramResourceForm, SiteBrandingForm, SitePageCopyForm, SitePageImagesForm,
     SiteStatForm, SpeakerForm, TeamMemberForm, TestimonialForm, GalleryImageForm,
     PolicyForm,
@@ -2158,7 +2164,7 @@ def _content_redirect(section, pk=None, create=False):
 
 
 def _management_form(request, *, form_class, instance=None, mode, config,
-                     section, back_url, success_url, audit_action):
+                     section, back_url, success_url, audit_action, back_url_pk=None):
     if request.method == "POST":
         form = form_class(request.POST, request.FILES, instance=instance)
         if form.is_valid():
@@ -2175,6 +2181,7 @@ def _management_form(request, *, form_class, instance=None, mode, config,
         "config": config,
         "section": section,
         "back_url": back_url,
+        "back_url_pk": back_url_pk,
     })
 
 
@@ -2202,10 +2209,18 @@ def programs_manage(request):
         programs = programs.filter(is_active=False)
     return render(request, "dashboard/programs_manage.html", {
         "programs": _paginate(request, programs, "programs_page", 12),
+        "initiative_pages": ProgramInitiative.objects.annotate(
+            edition_count=Count("conference_editions", distinct=True),
+            session_count=Count("mentorship_sessions", distinct=True),
+            track_count=Count("mentorship_tracks", distinct=True),
+            sdg_count=Count("sdg_focuses", distinct=True),
+            archive_count=Count("archive_entries", distinct=True),
+        ).order_by("pillar", "order", "title"),
         "q": q,
         "status": status,
         "wing_choices": Program.Wing.choices,
         "totals": {
+            "initiatives": ProgramInitiative.objects.count(),
             "programs": Program.objects.count(),
             "active": Program.objects.filter(is_active=True).count(),
             "resources": ProgramResource.objects.count(),
@@ -2272,6 +2287,169 @@ def program_delete(request, pk):
         ),
     )
     return redirect("dashboard:programs_manage")
+
+
+@capability_required("manage_content")
+def initiative_create(request):
+    return _management_form(
+        request,
+        form_class=ProgramInitiativeForm,
+        mode="Create",
+        config={
+            "label": "Program initiative",
+            "description": "Add a dedicated page within Conferences, Mentorship, or Events.",
+        },
+        section="Programs",
+        back_url="dashboard:programs_manage",
+        success_url="dashboard:initiative_edit",
+        audit_action="initiative.create",
+    )
+
+
+@capability_required("manage_content")
+def initiative_edit(request, pk):
+    initiative = get_object_or_404(ProgramInitiative, pk=pk)
+    return _management_form(
+        request,
+        form_class=ProgramInitiativeForm,
+        instance=initiative,
+        mode="Edit",
+        config={
+            "label": initiative.title,
+            "description": "Update the initiative page identity, approved copy, phase introductions, imagery, and visibility.",
+        },
+        section="Programs",
+        back_url="dashboard:initiative_manage",
+        back_url_pk=initiative.pk,
+        success_url="dashboard:initiative_edit",
+        audit_action="initiative.update",
+    )
+
+
+INITIATIVE_CONTENT = {
+    "conference": {
+        "model": ConferenceEdition, "form": ConferenceEditionForm,
+        "label": "Conference edition", "plural": "Conference editions",
+        "relation": "initiative",
+    },
+    "speaker-flyer": {
+        "model": ConferenceSpeakerFlyer, "form": ConferenceSpeakerFlyerForm,
+        "label": "Speaker flyer", "plural": "Speaker flyers",
+        "relation": "edition__initiative", "form_uses_initiative": True,
+    },
+    "session": {
+        "model": MentorshipSession, "form": MentorshipSessionForm,
+        "label": "Mentorship session", "plural": "Phase 1 sessions",
+        "relation": "initiative",
+    },
+    "track": {
+        "model": MentorshipTrack, "form": MentorshipTrackForm,
+        "label": "Mentorship track", "plural": "Phase 2 tracks / pairing",
+        "relation": "initiative",
+    },
+    "sdg": {
+        "model": SDGFocus, "form": SDGFocusForm,
+        "label": "SDG focus", "plural": "SDG focus areas",
+        "relation": "initiative",
+    },
+    "archive": {
+        "model": InitiativeArchiveEntry, "form": InitiativeArchiveEntryForm,
+        "label": "Archive entry", "plural": "Past activities",
+        "relation": "initiative",
+    },
+}
+
+
+def _initiative_kinds(initiative):
+    return {
+        ProgramInitiative.PageType.CONFERENCE: ("conference", "speaker-flyer"),
+        ProgramInitiative.PageType.MENTORSHIP: ("session", "track"),
+        ProgramInitiative.PageType.OUTREACH: ("sdg", "archive"),
+        ProgramInitiative.PageType.IN_PERSON: ("archive",),
+    }[initiative.page_type]
+
+
+def _initiative_config(initiative, kind):
+    if kind not in _initiative_kinds(initiative):
+        raise PermissionDenied("This content type does not belong to this initiative page.")
+    return INITIATIVE_CONTENT[kind]
+
+
+@capability_required("manage_content")
+def initiative_manage(request, pk):
+    initiative = get_object_or_404(ProgramInitiative, pk=pk)
+    sections = []
+    for kind in _initiative_kinds(initiative):
+        config = INITIATIVE_CONTENT[kind]
+        items = config["model"].objects.filter(
+            **{config["relation"]: initiative}
+        )
+        sections.append({"kind": kind, "config": config, "items": items})
+    return render(request, "dashboard/initiative_manage.html", {
+        "initiative": initiative,
+        "sections": sections,
+    })
+
+
+def _initiative_item_form(request, initiative, kind, instance=None):
+    config = _initiative_config(initiative, kind)
+    kwargs = {"instance": instance}
+    if config.get("form_uses_initiative"):
+        kwargs["initiative"] = initiative
+    if request.method == "POST":
+        form = config["form"](request.POST, request.FILES, **kwargs)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            if config["relation"] == "initiative":
+                obj.initiative = initiative
+            obj.save()
+            log_action(request.user, f"initiative.{kind}.save", str(obj))
+            messages.success(request, f"{config['label']} saved.")
+            return redirect("dashboard:initiative_manage", pk=initiative.pk)
+    else:
+        form = config["form"](**kwargs)
+    return render(request, "dashboard/management_form.html", {
+        "form": form, "object": instance,
+        "mode": "Edit" if instance else "Create",
+        "config": {
+            "label": config["label"],
+            "description": f"Manage {config['label'].lower()} content for {initiative.title}.",
+        },
+        "section": initiative.title,
+        "back_url": "dashboard:initiative_manage",
+        "back_url_pk": initiative.pk,
+    })
+
+
+@capability_required("manage_content")
+def initiative_item_create(request, pk, kind):
+    initiative = get_object_or_404(ProgramInitiative, pk=pk)
+    return _initiative_item_form(request, initiative, kind)
+
+
+@capability_required("manage_content")
+def initiative_item_edit(request, pk, kind, item_pk):
+    initiative = get_object_or_404(ProgramInitiative, pk=pk)
+    config = _initiative_config(initiative, kind)
+    item = get_object_or_404(
+        config["model"], pk=item_pk, **{config["relation"]: initiative}
+    )
+    return _initiative_item_form(request, initiative, kind, instance=item)
+
+
+@capability_required("manage_content")
+@require_POST
+def initiative_item_delete(request, pk, kind, item_pk):
+    initiative = get_object_or_404(ProgramInitiative, pk=pk)
+    config = _initiative_config(initiative, kind)
+    item = get_object_or_404(
+        config["model"], pk=item_pk, **{config["relation"]: initiative}
+    )
+    label = str(item)
+    item.delete()
+    log_action(request.user, f"initiative.{kind}.delete", label)
+    messages.success(request, f"{config['label']} deleted.")
+    return redirect("dashboard:initiative_manage", pk=initiative.pk)
 
 
 @capability_required("manage_content")

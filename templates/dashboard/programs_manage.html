@@ -3,20 +3,48 @@
 {% block n_programs %}active{% endblock %}
 {% block dash_title %}Programs{% endblock %}
 {% block dash_h1 %}Programs{% endblock %}
-{% block dash_sub %}Manage public program wings, positioning, imagery, visibility, and order.{% endblock %}
+{% block dash_sub %}Manage the three public pillars, dedicated initiative pages, supporting archives, and legacy program wings.{% endblock %}
 {% block dash_actions %}
 <div class="action-row">
   <a class="btn-sm ghost" href="{% url 'pages:programs' %}">Preview programs</a>
-  <a class="btn-sm" href="{% url 'dashboard:program_create' %}">Add program</a>
+  <a class="btn-sm ghost" href="{% url 'dashboard:program_create' %}">Add legacy wing</a>
+  <a class="btn-sm" href="{% url 'dashboard:initiative_create' %}">Add initiative</a>
 </div>
 {% endblock %}
 {% block dash_content %}
 <div class="kpi-grid">
-  <div class="kpi"><div class="v">{{ totals.programs|intcomma }}</div><div class="l">Program wings</div></div>
+  <div class="kpi"><div class="v">{{ totals.initiatives|intcomma }}</div><div class="l">Initiative pages</div></div>
   <div class="kpi olive"><div class="v">{{ totals.active|intcomma }}</div><div class="l">Active</div></div>
   <div class="kpi gold"><div class="v">{{ totals.resources|intcomma }}</div><div class="l">Attached resources</div></div>
   <div class="kpi ink"><div class="v">{{ totals.events|intcomma }}</div><div class="l">Linked events</div></div>
 </div>
+
+<div class="section-head" style="margin-top:28px;">
+  <div><span class="eyebrow">Programs &amp; Initiatives</span><h2>Dedicated public pages</h2></div>
+  <p>Open a page to manage conference editions, speaker flyers, mentorship sessions, tracks, SDGs, or past-event archives.</p>
+</div>
+<div class="management-card-grid initiative-management-grid">
+  {% for item in initiative_pages %}
+  <article class="management-card program-management-card">
+    <div class="management-card-media">
+      {% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% else %}<span>{{ item.title|slice:":1" }}</span>{% endif %}
+    </div>
+    <div class="management-card-body">
+      <div class="management-card-topline"><span>{{ item.get_pillar_display }}</span>{% if item.is_active %}<b class="badge green">Active</b>{% else %}<b class="badge grey">Hidden</b>{% endif %}</div>
+      <h2>{{ item.title }}</h2><p>{{ item.description|truncatechars:170 }}</p>
+      <div class="management-metrics">
+        {% if item.page_type == "CONFERENCE" %}<div><strong>{{ item.edition_count }}</strong><small>Editions</small></div>
+        {% elif item.page_type == "MENTORSHIP" %}<div><strong>{{ item.session_count }}</strong><small>Sessions</small></div><div><strong>{{ item.track_count }}</strong><small>Tracks</small></div>
+        {% elif item.page_type == "OUTREACH" %}<div><strong>{{ item.sdg_count }}</strong><small>SDGs</small></div><div><strong>{{ item.archive_count }}</strong><small>Activities</small></div>
+        {% else %}<div><strong>{{ item.archive_count }}</strong><small>Past events</small></div>{% endif %}
+      </div>
+      <div class="table-actions"><a class="btn-sm ghost" href="{% url 'pages:initiative_detail' item.slug %}">Preview</a><a class="btn-sm" href="{% url 'dashboard:initiative_manage' item.pk %}">Manage content</a><a class="btn-sm ghost" href="{% url 'dashboard:initiative_edit' item.pk %}">Edit page</a></div>
+    </div>
+  </article>
+  {% empty %}<div class="empty">No initiative pages exist yet.</div>{% endfor %}
+</div>
+
+<div class="section-head" style="margin-top:34px;"><div><span class="eyebrow">Legacy content</span><h2>Program wings</h2></div><p>These records continue to support linked operational events, resources, gallery items, and mentorship enrollments.</p></div>
 
 <form class="management-toolbar" method="get">
   <input type="search" name="q" value="{{ q }}" placeholder="Search programs">

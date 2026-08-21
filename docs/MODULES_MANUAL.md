@@ -190,7 +190,8 @@ The public site provides:
 - About;
 - Leadership;
 - Speakers;
-- Programs and programme detail;
+- Programs & Initiatives overview, six dedicated initiative pages, and legacy
+  programme detail;
 - Event detail;
 - Impact;
 - Get Involved;
@@ -198,7 +199,7 @@ The public site provides:
 - Gallery;
 - Contact;
 - Privacy, Terms, and Donation policies;
-- sitemap and `robots.txt`;
+- sitemap (including active initiative pages) and `robots.txt`;
 - custom 404 and 500 pages.
 
 Only published or active records are intended to appear publicly.
@@ -220,29 +221,130 @@ Because branding is global, verify changes on both the public site and
 dashboard. Uploaded logo variants should be optimized for the web and remain
 legible on light and dark backgrounds.
 
-### 5.3 Programs and resources
+### 5.3 Programs & Initiatives
 
-Programs represent the supported OIF wings:
+The public `/programs/` page is organized into three pillars:
 
-- The Forge;
-- The Hadassah Project;
-- Humanitarian Wing;
-- Virtual Conferences;
-- Mentorship Programme.
+1. **Virtual Conferences**;
+2. **Mentorship Program**;
+3. **Events**.
 
-Each programme has a tagline, headline, description, image, accent, display
-order, and active flag. The wing is unique, so a second record for the same
-wing cannot be created.
+The overview cards link to matching tab panels on the same page. Each panel
+contains dedicated initiative cards. Selecting an initiative opens its own
+public page under `/programs/initiatives/<slug>/`.
 
-Resources belong to a programme. A resource may link to an uploaded file or an
-external URL. Operators should supply at least one usable destination and test
-the public link after saving.
+Six initiative pages are created automatically by migration:
 
-A programme's detail page shows every published Gallery image associated with
-that programme (not only the first one) in a photo gallery with the same
-click-to-expand lightbox used on the main Gallery page, and shows a photo on
-each "explore more" related-programme card. Both fall back to a muted
-placeholder until real photos are uploaded through Programs or Gallery.
+| Pillar | Dedicated page | Page type |
+|---|---|---|
+| Virtual Conferences | The Emerging Leader | The Forge virtual conference |
+| Virtual Conferences | The Emerging Lady | The Hadassah Project virtual conference |
+| Mentorship Program | Forge Mentorship Program | Two-phase mentorship |
+| Mentorship Program | Bloom 360 Mentorship Program | Two-phase mentorship for young women |
+| Events | Onesimus Community Outreach Initiative (OCOI) | Humanitarian outreach |
+| Events | In-Person Events & Gatherings | Event archive |
+
+An initiative stores its pillar, page type, title, URL slug, eyebrow, approved
+description, optional frequency badge and hero image, display order, active
+state, and optional Phase 1/Phase 2 headings and introductions. An inactive
+initiative does not resolve publicly.
+
+#### 5.3.1 Virtual conference pages
+
+The Emerging Leader and The Emerging Lady use the same public layout. Content
+differences are data, not separate templates. Each page contains:
+
+- **Upcoming Conference** — one or more upcoming edition records with edition
+  label, conference name/theme, description, optional date, main flyer,
+  publication state, display order, and optional Google Form registration URL;
+- **Speaker/personality flyers** — image and optional caption records attached
+  to an edition, limited to four per edition;
+- **Past Conferences** — an unlimited archive of past edition records using
+  the same name, description, date, flyer, order, and publication fields.
+
+If no upcoming or past record exists, the public page displays a deliberate
+"coming soon" or archive-ready state. Do not create invented editions merely
+to fill the layout. Add real records as OIF supplies approved themes, dates,
+attendance, speaker details, and media.
+
+#### 5.3.2 Mentorship programme pages
+
+Forge Mentorship and Bloom 360 share one mentorship layout:
+
+- Phase 1 displays up to eight numbered session records;
+- each session stores a number from 1–8, title, optional track label, optional
+  future video URL, display order, and publication state;
+- Phase 2 displays one or more track/pairing records with a label, name,
+  session count, description, and order.
+
+Forge is seeded with eight session placeholders grouped as Career Development
+(Sessions 1–4) and Entrepreneurship (Sessions 5–8), plus Career Development
+and Entrepreneurship Phase 2 tracks. Bloom 360 is seeded with eight sequential
+session placeholders without required sub-track labels and one one-to-one
+mentor-pairing record for Weeks 9–12.
+
+The public **Watch** controls are intentionally disabled and labelled "Coming
+soon". A video URL may be stored now for the future learning experience, but
+the current website does not embed or play it. Phase 2 scheduling remains an
+offline coordinator responsibility; the page does not provide scheduling.
+
+#### 5.3.3 Events and outreach initiative pages
+
+OCOI contains two editable content families:
+
+- SDG focus cards with a UN goal number from 1–17, goal name, OIF contribution
+  statement, order, and active state;
+- past outreach entries with label, activity name, narrative, optional date,
+  image, order, and publication state.
+
+Until OIF approves specific SDGs, the public page states that the priorities
+are still being decided. In-Person Events & Gatherings uses the same expandable
+archive-entry structure for workshop, networking, venue, date, attendance, and
+event-summary content. Both archives accept additional records without a
+redesign.
+
+These archive entries are editorial public content. They are not operational
+`Event` records and do not accept registrations. See section 6 for the
+registration-capable event module.
+
+#### 5.3.4 Managing initiative content
+
+Users with `manage_content` open **Programs** from the dashboard. The page now
+has two content layers:
+
+1. **Dedicated public pages** — the six initiative pages. Use **Manage
+   content** to add or edit the content family appropriate to that page, and
+   **Edit page** to change its identity, introductory copy, hero, phases,
+   order, or active state.
+2. **Legacy program wings** — records still used by operational events,
+   resources, galleries, and mentorship enrollments.
+
+The available **Manage content** sections depend on page type:
+
+| Page type | Managed records |
+|---|---|
+| Virtual conference | Conference editions and speaker flyers |
+| Mentorship program | Phase 1 sessions and Phase 2 tracks/pairing |
+| Humanitarian outreach | SDG focus areas and past activities |
+| In-person events | Past event/archive entries |
+
+After every change, use **Preview page** and verify images, wording, links,
+ordering, publication state, and mobile presentation. A stored Google Form or
+video URL is still external content and must be checked separately.
+
+#### 5.3.5 Legacy programs and resources
+
+Legacy `Program` records represent The Forge, The Hadassah Project,
+Humanitarian Wing, Virtual Conferences, and Mentorship Programme. They remain
+in place because existing operational events, downloadable resources, gallery
+items, and mentorship enrollments reference them.
+
+Each legacy programme has a tagline, headline, description, image, accent,
+display order, and active flag. Resources belong to a legacy programme and may
+link to an uploaded file or external URL. Its original detail page continues
+to show related operational events, resources, and published Gallery images.
+Do not delete a legacy programme solely because its new initiative page exists;
+deletion can unlink operational records and remove attached resources.
 
 ### 5.4 Speakers and leadership
 
@@ -328,6 +430,14 @@ photo for real OIF photography, or adjusting marketing copy without a code
 change or deployment.
 
 ## 6. Events module
+
+This module governs dated, registration-capable operational `Event` records.
+It is separate from the conference-edition and past-activity archive content
+described in section 5.3. Use an operational Event when visitors must register,
+capacity or attendance must be tracked, calendar links are needed, or staff
+must communicate with registrants. Use an initiative archive/edition when the
+purpose is editorial programme storytelling or a Google Form registration
+link supplied by OIF.
 
 ### 6.1 Event content
 
@@ -418,6 +528,11 @@ Applicant to Mentor for a mentor application, or Volunteer for a volunteer
 application. Mentee and Speaker approval do not automatically change roles.
 
 ### 7.2 Mentorship
+
+This section describes participant enrollment and progress tracking. The eight
+public curriculum session cards and Phase 2 track descriptions under Programs
+& Initiatives are CMS content (section 5.3.2); they do not automatically create
+enrollments, schedule mentor meetings, or update a participant's progress.
 
 An enrollment connects a mentee to an optional mentor and programme. It records
 the cohort, current phase, completed sessions, and total sessions.

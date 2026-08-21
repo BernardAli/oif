@@ -8,7 +8,7 @@
 {% block dash_sub %}{{ config.description }}{% endblock %}
 {% block dash_actions %}
 <div class="action-row">
-  <a class="btn-sm ghost" href="{% url back_url %}">Back to {{ section }}</a>
+  <a class="btn-sm ghost" href="{% if back_url_pk %}{% url back_url back_url_pk %}{% else %}{% url back_url %}{% endif %}">Back to {{ section }}</a>
   {% if object %}
   <span class="badge grey">Editing #{{ object.pk }}</span>
   {% else %}
@@ -35,7 +35,7 @@
       {% endfor %}
       <div class="form-actions">
         <button class="btn-sm" type="submit">Save changes</button>
-        <a class="btn-sm ghost" href="{% url back_url %}">Cancel</a>
+        <a class="btn-sm ghost" href="{% if back_url_pk %}{% url back_url back_url_pk %}{% else %}{% url back_url %}{% endif %}">Cancel</a>
       </div>
     </form>
   </div>

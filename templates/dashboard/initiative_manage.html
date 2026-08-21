@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+{% block n_programs %}active{% endblock %}
+{% block dash_title %}{{ initiative.title }}{% endblock %}
+{% block dash_h1 %}{{ initiative.title }}{% endblock %}
+{% block dash_sub %}Manage the structured content displayed on this {{ initiative.get_page_type_display|lower }} page.{% endblock %}
+{% block dash_actions %}
+<div class="action-row"><a class="btn-sm ghost" href="{% url 'dashboard:programs_manage' %}">Back to Programs</a><a class="btn-sm ghost" href="{% url 'pages:initiative_detail' initiative.slug %}">Preview page</a><a class="btn-sm" href="{% url 'dashboard:initiative_edit' initiative.pk %}">Edit page copy</a></div>
+{% endblock %}
+{% block dash_content %}
+<div class="initiative-admin-summary">
+  <span>{{ initiative.get_pillar_display }}</span><strong>{{ initiative.eyebrow }}</strong><p>{{ initiative.description }}</p>
+</div>
+
+{% for section in sections %}
+<section class="dash-card initiative-admin-section">
+  <div class="section-head"><div><span class="eyebrow">{{ initiative.title }}</span><h2>{{ section.config.plural }}</h2></div><a class="btn-sm" href="{% url 'dashboard:initiative_item_create' initiative.pk section.kind %}">Add {{ section.config.label|lower }}</a></div>
+  <div class="table-wrap"><table><thead><tr><th>Item</th><th>Details</th><th>Order / status</th><th></th></tr></thead><tbody>
+    {% for item in section.items %}
+    <tr>
+      <td>
+        {% if section.kind == "conference" %}<strong>{{ item.name }}</strong><small>{{ item.get_status_display }}</small>
+        {% elif section.kind == "speaker-flyer" %}<strong>{{ item.caption|default:"Speaker flyer" }}</strong><small>{{ item.edition.name }}</small>
+        {% elif section.kind == "session" %}<strong>Session {{ item.session_number|stringformat:"02d" }} · {{ item.title }}</strong><small>{{ item.track_label|default:"No track label" }}</small>
+        {% elif section.kind == "track" %}<strong>{{ item.title }}</strong><small>{{ item.label|default:"Mentor pathway" }}</small>
+        {% elif section.kind == "sdg" %}<strong>SDG {{ item.sdg_number }} · {{ item.goal_name }}</strong>
+        {% else %}<strong>{{ item.name }}</strong><small>{{ item.label|default:"Archive entry" }}</small>{% endif %}
+      </td>
+      <td>
+        {% if section.kind == "conference" %}{{ item.description|truncatechars:120 }}
+        {% elif section.kind == "speaker-flyer" %}{% if item.image %}Image uploaded{% endif %}
+        {% elif section.kind == "session" %}{% if item.video_url %}Video URL stored for future Watch feature{% else %}Video URL pending{% endif %}
+        {% elif section.kind == "track" %}{{ item.sessions_count }} sessions · {{ item.description|truncatechars:100 }}
+        {% elif section.kind == "sdg" %}{{ item.description|truncatechars:120 }}
+        {% else %}{{ item.description|truncatechars:120 }}{% endif %}
+      </td>
+      <td>#{{ item.order }}{% if item.is_published is not None %} · {% if item.is_published %}Published{% else %}Hidden{% endif %}{% endif %}</td>
+      <td><div class="table-actions"><a class="btn-sm ghost" href="{% url 'dashboard:initiative_item_edit' initiative.pk section.kind item.pk %}">Edit</a><form class="inline-action-form" method="post" action="{% url 'dashboard:initiative_item_delete' initiative.pk section.kind item.pk %}" onsubmit="return confirm('Delete this item?');">{% csrf_token %}<button class="btn-sm red" type="submit">Delete</button></form></div></td>
+    </tr>
+    {% empty %}<tr><td colspan="4"><div class="empty">No {{ section.config.plural|lower }} have been added.</div></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endfor %}
+{% endblock %}

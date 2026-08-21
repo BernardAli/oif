@@ -5,7 +5,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .checks import production_configuration_check
-from .models import Event, Policy, Program, SiteBranding
+from .models import (ConferenceEdition, Event, MentorshipSession,
+                     MentorshipTrack, Policy, Program, ProgramInitiative,
+                     SiteBranding)
 from .views import error_500
 
 
@@ -93,6 +95,64 @@ class PublicPageBehaviourTest(TestCase):
         footer = self.client.get(reverse("pages:home"))
         for kind in ["privacy", "terms", "donation"]:
             self.assertContains(footer, reverse("pages:policy", args=[kind]))
+
+
+class ProgramInitiativeStructureTest(TestCase):
+    def test_required_six_initiative_pages_are_seeded(self):
+        expected = {
+            "the-emerging-leader", "the-emerging-lady",
+            "forge-mentorship-program", "bloom-360-mentorship-program",
+            "onesimus-community-outreach-initiative",
+            "in-person-events-and-gatherings",
+        }
+        self.assertEqual(
+            set(ProgramInitiative.objects.values_list("slug", flat=True)), expected
+        )
+
+    def test_programs_page_uses_three_required_pillars(self):
+        response = self.client.get(reverse("pages:programs"))
+        self.assertContains(response, "Programs &amp; Initiatives")
+        self.assertContains(response, "Three distinct pillars. One mission")
+        self.assertContains(response, "Virtual Conferences")
+        self.assertContains(response, "Mentorship Program")
+        self.assertContains(response, "Events")
+        for initiative in ProgramInitiative.objects.all():
+            self.assertContains(
+                response, reverse("pages:initiative_detail", args=[initiative.slug])
+            )
+
+    def test_conference_pages_share_upcoming_and_archive_structure(self):
+        for slug in ("the-emerging-leader", "the-emerging-lady"):
+            response = self.client.get(reverse("pages:initiative_detail", args=[slug]))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Upcoming Conference")
+            self.assertContains(response, "Past Conferences")
+
+    def test_mentorship_pages_seed_eight_sessions_and_phase_two(self):
+        for slug in ("forge-mentorship-program", "bloom-360-mentorship-program"):
+            initiative = ProgramInitiative.objects.get(slug=slug)
+            self.assertEqual(
+                MentorshipSession.objects.filter(initiative=initiative).count(), 8
+            )
+            self.assertTrue(MentorshipTrack.objects.filter(initiative=initiative).exists())
+            response = self.client.get(
+                reverse("pages:initiative_detail", args=[initiative.slug])
+            )
+            self.assertContains(response, "Watch · Coming soon", count=8)
+            self.assertContains(response, "Phase 2")
+
+    def test_published_conference_edition_appears_on_public_page(self):
+        initiative = ProgramInitiative.objects.get(slug="the-emerging-leader")
+        ConferenceEdition.objects.create(
+            initiative=initiative, status=ConferenceEdition.Status.UPCOMING,
+            name="Leadership Across Frontiers", description="Theme and speaker details.",
+            registration_url="https://forms.google.com/example",
+        )
+        response = self.client.get(
+            reverse("pages:initiative_detail", args=[initiative.slug])
+        )
+        self.assertContains(response, "Leadership Across Frontiers")
+        self.assertContains(response, "Register via Google Form")
 
 
 class DeploymentConfigurationCheckTest(SimpleTestCase):

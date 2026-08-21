@@ -2,7 +2,7 @@
 title: "OIF Platform Administrator Manual"
 subtitle: "Complete Administration, Operations, Access, Finance, and Governance Handbook"
 author: "Onesimus Impact Foundation"
-date: "17 August 2026"
+date: "21 August 2026"
 lang: "en"
 ---
 
@@ -48,12 +48,23 @@ rules in this handbook always apply.
 | Item | Value |
 |---|---|
 | Document | OIF Platform Administrator Manual |
-| Edition | 1.1 |
-| Effective date | 17 August 2026 |
+| Edition | 1.2 |
+| Effective date | 21 August 2026 |
 | System | Onesimus Impact Foundation Django Platform |
 | Classification | Internal operating documentation |
 | Review trigger | Role, workflow, integration, security, or deployment change |
 | Recommended review | At least every six months |
+
+### Changes in edition 1.2
+
+- The Programs page is now organized around Virtual Conferences, Mentorship
+  Program, and Events, with six seeded dedicated initiative pages.
+- The Programs dashboard now manages conference editions and speaker flyers,
+  eight-session mentorship curricula and Phase 2 tracks, SDG focus cards, and
+  expandable outreach/in-person event archives.
+- Programme initiative archives are documented separately from operational
+  Events, which continue to manage capacity, registrations, attendance,
+  calendars, and event-recipient messaging.
 
 ### Changes in edition 1.1
 
@@ -165,6 +176,8 @@ organizational authorization. For example:
 | Django Admin | `/admin/` | Technical model administration |
 | Sitemap | `/sitemap.xml` | Search-engine sitemap |
 | Robots file | `/robots.txt` | Crawler instructions |
+| Programs & Initiatives | `/programs/` | Public three-pillar programme overview |
+| Programs manager | `/dashboard/programs/` | Initiative pages, structured content, and legacy programme records |
 
 Dashboard navigation adapts to capabilities. Overview, Events, Donations,
 Applications, Mentorship, and Profile contain personal information for every
@@ -200,14 +213,16 @@ Complete these tasks before the platform is used in production:
 10. create the first Super Administrator;
 11. set organization branding and contact details;
 12. replace placeholder phone numbers, policies, and sample assets;
-13. create or verify programmes and resources;
-14. review public pages and responsive presentation;
-15. test signup, login, password reset, and profile updates;
-16. test event registration and email confirmation;
-17. test Paystack with the appropriate test environment;
-18. open accounting and review the default chart/fund;
-19. assign staff roles;
-20. run the production checks and complete the launch checklist.
+13. verify all six Programs & Initiatives pages and replace session/content
+    placeholders as approved material becomes available;
+14. create or verify legacy programmes, resources, and operational events;
+15. review public pages and responsive presentation;
+16. test signup, login, password reset, and profile updates;
+17. test event registration and email confirmation;
+18. test Paystack with the appropriate test environment;
+19. open accounting and review the default chart/fund;
+20. assign staff roles;
+21. run the production checks and complete the launch checklist.
 
 ## Organization profile setup
 
@@ -242,6 +257,8 @@ For each staff member:
 Review every public content family:
 
 - programmes;
+- Programs & Initiatives pages, including conference editions, mentorship
+  sessions/tracks, SDG cards, and event/outreach archives;
 - resources;
 - speakers;
 - leadership;
@@ -434,6 +451,81 @@ page image and writeup (MODULES_MANUAL.md section 5.8).
 8. check links, files, images, dates, and contact details;
 9. correct or unpublish promptly if verification fails.
 
+## Programs & Initiatives publishing
+
+Open **Programs** in the dashboard to manage the public three-pillar programme
+experience. The top section contains the six dedicated pages; the lower
+**Legacy content** section retains programme records used by registrations,
+resources, galleries, and mentorship enrollments.
+
+The six dedicated pages are:
+
+| Pillar | Page |
+|---|---|
+| Virtual Conferences | The Emerging Leader; The Emerging Lady |
+| Mentorship Program | Forge Mentorship Program; Bloom 360 Mentorship Program |
+| Events | Onesimus Community Outreach Initiative; In-Person Events & Gatherings |
+
+Use **Edit page** for the page title, slug, eyebrow, description, hero,
+frequency badge, phase copy, display order, or active state. Use **Manage
+content** for the records inside the page:
+
+- conference pages: Upcoming/Past editions and up to four speaker flyers per
+  edition;
+- mentorship pages: Sessions 01–08 and Phase 2 tracks or mentor pairing;
+- OCOI: SDG focus cards and past outreach activities;
+- in-person events: past gathering/archive entries.
+
+### Conference edition procedure
+
+1. Open the appropriate conference page and select **Manage content**.
+2. add or edit a Conference edition;
+3. choose Upcoming or Past;
+4. enter the approved edition label, name/theme, narrative, and date;
+5. upload the main flyer;
+6. for an upcoming conference, add the supplied Google Form URL;
+7. save, then add up to four speaker/personality flyers;
+8. verify publication state and order;
+9. preview the public page and test the Google Form in a new tab.
+
+The page supports any number of past editions. Do not publish placeholder
+attendance, speaker, or event claims. When the next conference concludes,
+change or recreate it as a Past record with the final approved archive copy.
+
+### Mentorship curriculum procedure
+
+1. Open Forge Mentorship or Bloom 360 and select **Manage content**.
+2. replace each seeded "Session title to be announced" value when approved;
+3. keep session numbers unique and within 01–08;
+4. use track labels for Forge Sessions 1–4 and 5–8 as required; Bloom sessions
+   may remain sequential without labels;
+5. store a supplied video URL only after checking it;
+6. maintain Phase 2 track/pairing descriptions and the four-session count;
+7. preview both phases after saving.
+
+The public Watch buttons remain disabled and say **Coming soon**, even when a
+video URL is stored. Do not promise video playback until that future feature is
+implemented. Mentor scheduling is coordinated outside the website.
+
+### OCOI and in-person archive procedure
+
+- Add an SDG card only after OIF confirms the goal number, goal name, and
+  contribution statement. Valid goal numbers are 1–17.
+- Add past activities/events with an approved label, name, narrative, date,
+  and flyer/photo. Include venue, attendance, or impact counts only when they
+  are verified.
+- Use publication/active controls instead of deletion when content may need to
+  be retained or corrected.
+- Preview card ordering and mobile presentation after every batch update.
+
+### Important event distinction
+
+Conference editions and past outreach/in-person archive entries are editorial
+CMS records. They do not provide platform registration, capacity, attendance,
+calendar files, or event-recipient messaging. Create an operational Event when
+those functions are required. A supplied Google Form belongs on the conference
+edition; an OIF-platform registration form belongs to an operational Event.
+
 ## Media standards
 
 - Use descriptive, appropriate images.
@@ -461,6 +553,10 @@ For materially wrong or unsafe public information:
 6. record the incident and resolution.
 
 # Event administration runbook
+
+This runbook applies to operational, registration-capable Events. Programme
+initiative conference editions and past-activity archives are maintained in
+the Programs CMS runbook above.
 
 ## Creating an event
 
@@ -958,6 +1054,21 @@ authorization.
 - [ ] Calendar file tested
 - [ ] Communications owner identified
 
+## Programs & Initiatives publishing checklist
+
+- [ ] Correct pillar and dedicated page selected
+- [ ] Approved title/theme and narrative
+- [ ] Main flyer/photo rights confirmed
+- [ ] Date, venue, attendance, and impact claims verified
+- [ ] Google Form URL tested when applicable
+- [ ] No more than four conference speaker flyers
+- [ ] Mentorship session number is unique and within 01–08
+- [ ] Watch feature described as coming soon
+- [ ] SDG number and contribution statement approved
+- [ ] Order and publication/active state checked
+- [ ] Public desktop and mobile page previewed
+- [ ] Operational Event created separately if platform registration is needed
+
 ## Campaign checklist
 
 - [ ] Authorized purpose
@@ -1047,4 +1158,3 @@ update to this handbook.
 
 The following section is incorporated from the maintained OIF Platform Module
 and Operations Manual.
-

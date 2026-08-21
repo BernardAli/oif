@@ -1,0 +1,10 @@
+<section class="initiative-content-section initiative-archive-section">
+  <div class="container">
+    <div class="initiative-section-heading"><div><span class="eyebrow">Archive</span><h2>{{ archive_heading }}</h2></div><p>{{ archive_intro }}</p></div>
+    <div class="initiative-archive-grid">
+      {% for entry in archive_entries %}
+      <article class="initiative-archive-card"><div>{% if entry.image %}<img src="{{ entry.image.url }}" alt="{{ entry.name }}">{% else %}<span>{{ entry.label|default:"Past activity" }}</span>{% endif %}</div><section>{% if entry.label %}<small>{{ entry.label }}</small>{% endif %}<h3>{{ entry.name }}</h3>{% if entry.event_date %}<time>{{ entry.event_date|date:"F Y" }}</time>{% endif %}<p>{{ entry.description }}</p></section></article>
+      {% empty %}<div class="initiative-empty compact"><strong>This archive is ready for OIF content.</strong><p>Flyers, photos, activity details, locations, attendance, and impact can be added from the Programs dashboard.</p></div>{% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,13 +1,37 @@
 from django.contrib import admin
-from .models import (Program, ProgramResource, Speaker, TeamMember, SiteStat,
-                     Event, Testimonial, GalleryImage, Policy, SiteBranding,
-                     SitePageImages, SitePageCopy, PAGE_COPY_GROUPS)
+from .models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                     GalleryImage, InitiativeArchiveEntry, MentorshipSession,
+                     MentorshipTrack, Policy, Program, ProgramInitiative,
+                     ProgramResource, SDGFocus, Speaker, TeamMember, SiteStat,
+                     SiteBranding, SitePageImages, SitePageCopy,
+                     Testimonial, PAGE_COPY_GROUPS)
 
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     list_display = ("get_wing_display", "tagline", "accent", "order", "is_active")
     list_editable = ("order", "is_active")
+
+
+@admin.register(ProgramInitiative)
+class ProgramInitiativeAdmin(admin.ModelAdmin):
+    list_display = ("title", "pillar", "page_type", "order", "is_active")
+    list_filter = ("pillar", "page_type", "is_active")
+    list_editable = ("order", "is_active")
+    prepopulated_fields = {"slug": ("title",)}
+
+
+@admin.register(ConferenceEdition)
+class ConferenceEditionAdmin(admin.ModelAdmin):
+    list_display = ("name", "initiative", "status", "event_date", "is_published")
+    list_filter = ("initiative", "status", "is_published")
+
+
+admin.site.register(ConferenceSpeakerFlyer)
+admin.site.register(MentorshipSession)
+admin.site.register(MentorshipTrack)
+admin.site.register(SDGFocus)
+admin.site.register(InitiativeArchiveEntry)
 
 
 @admin.register(Speaker)

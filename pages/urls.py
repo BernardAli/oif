@@ -10,6 +10,8 @@ urlpatterns = [
     path("leadership/", views.leadership, name="leadership"),
     path("speakers/", views.speakers, name="speakers"),
     path("programs/", views.programs, name="programs"),
+    path("programs/initiatives/<slug:slug>/", views.initiative_detail,
+         name="initiative_detail"),
     path("programs/<str:wing>/", views.program_detail, name="program_detail"),
     path("events/<slug:slug>/", engagement_views.event_detail, name="event_detail"),
     path("events/<slug:slug>/calendar.ics", engagement_views.event_calendar,

@@ -497,6 +497,204 @@ class ProgramResource(models.Model):
         return self.external_url
 
 
+class ProgramInitiative(models.Model):
+    """A dedicated programme page within one of the three public pillars."""
+
+    class Pillar(models.TextChoices):
+        CONFERENCES = "CONFERENCES", "Virtual Conferences"
+        MENTORSHIP = "MENTORSHIP", "Mentorship Program"
+        EVENTS = "EVENTS", "Events"
+
+    class PageType(models.TextChoices):
+        CONFERENCE = "CONFERENCE", "Virtual conference"
+        MENTORSHIP = "MENTORSHIP", "Mentorship program"
+        OUTREACH = "OUTREACH", "Humanitarian outreach"
+        IN_PERSON = "IN_PERSON", "In-person events"
+
+    pillar = models.CharField(max_length=16, choices=Pillar.choices, db_index=True)
+    page_type = models.CharField(max_length=16, choices=PageType.choices, db_index=True)
+    title = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    eyebrow = models.CharField(max_length=180)
+    description = models.TextField()
+    frequency_badge = models.CharField(max_length=80, blank=True)
+    hero_image = models.ImageField(upload_to="program-initiatives/", blank=True, null=True)
+    phase_one_title = models.CharField(max_length=180, blank=True)
+    phase_one_intro = models.TextField(blank=True)
+    phase_two_title = models.CharField(max_length=180, blank=True)
+    phase_two_intro = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["pillar", "order", "title"]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)[:180] or "initiative"
+            slug, i = base, 2
+            while ProgramInitiative.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{i}"
+                i += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class ConferenceEdition(models.Model):
+    """An upcoming or archived edition on a virtual-conference page."""
+
+    class Status(models.TextChoices):
+        UPCOMING = "UPCOMING", "Upcoming conference"
+        PAST = "PAST", "Past conference"
+
+    initiative = models.ForeignKey(
+        ProgramInitiative, on_delete=models.CASCADE, related_name="conference_editions"
+    )
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PAST)
+    edition_label = models.CharField(max_length=80, blank=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    event_date = models.DateField(blank=True, null=True)
+    flyer = models.ImageField(upload_to="conference-editions/", blank=True, null=True)
+    registration_url = models.URLField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["status", "order", "-event_date", "name"]
+
+    def __str__(self):
+        return f"{self.initiative}: {self.name}"
+
+
+class ConferenceSpeakerFlyer(models.Model):
+    """A speaker/personality image attached to a conference edition (maximum four)."""
+
+    edition = models.ForeignKey(
+        ConferenceEdition, on_delete=models.CASCADE, related_name="speaker_flyers"
+    )
+    image = models.ImageField(upload_to="conference-speakers/")
+    caption = models.CharField(max_length=160, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "pk"]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.edition_id and self.edition.speaker_flyers.exclude(pk=self.pk).count() >= 4:
+            raise ValidationError("A conference edition can have no more than four speaker flyers.")
+
+    def __str__(self):
+        return self.caption or f"Speaker flyer for {self.edition.name}"
+
+
+class MentorshipSession(models.Model):
+    initiative = models.ForeignKey(
+        ProgramInitiative, on_delete=models.CASCADE, related_name="mentorship_sessions"
+    )
+    session_number = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=200)
+    track_label = models.CharField(
+        max_length=120, blank=True,
+        help_text="Optional grouping, e.g. Career Development or Entrepreneurship.",
+    )
+    video_url = models.URLField(
+        blank=True,
+        help_text="Stored for the future Watch feature; playback is not enabled yet.",
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "session_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["initiative", "session_number"],
+                name="unique_initiative_session_number",
+            )
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.session_number and not 1 <= self.session_number <= 8:
+            raise ValidationError({"session_number": "Session number must be between 1 and 8."})
+
+    def __str__(self):
+        return f"{self.initiative} · Session {self.session_number:02d}"
+
+
+class MentorshipTrack(models.Model):
+    initiative = models.ForeignKey(
+        ProgramInitiative, on_delete=models.CASCADE, related_name="mentorship_tracks"
+    )
+    label = models.CharField(max_length=80, blank=True)
+    title = models.CharField(max_length=180)
+    sessions_count = models.PositiveSmallIntegerField(default=4)
+    description = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "title"]
+
+    def __str__(self):
+        return f"{self.initiative} · {self.title}"
+
+
+class SDGFocus(models.Model):
+    initiative = models.ForeignKey(
+        ProgramInitiative, on_delete=models.CASCADE, related_name="sdg_focuses"
+    )
+    sdg_number = models.PositiveSmallIntegerField()
+    goal_name = models.CharField(max_length=180)
+    description = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "sdg_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["initiative", "sdg_number"], name="unique_initiative_sdg"
+            )
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.sdg_number and not 1 <= self.sdg_number <= 17:
+            raise ValidationError({"sdg_number": "Select a UN SDG number from 1 to 17."})
+
+    def __str__(self):
+        return f"SDG {self.sdg_number}: {self.goal_name}"
+
+
+class InitiativeArchiveEntry(models.Model):
+    """A past outreach activity or in-person event displayed as an archive card."""
+
+    initiative = models.ForeignKey(
+        ProgramInitiative, on_delete=models.CASCADE, related_name="archive_entries"
+    )
+    label = models.CharField(max_length=80, blank=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    event_date = models.DateField(blank=True, null=True)
+    image = models.ImageField(upload_to="program-archives/", blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "-event_date", "name"]
+
+    def __str__(self):
+        return f"{self.initiative}: {self.name}"
+
+
 class Speaker(models.Model):
     name = models.CharField(max_length=160)
     role = models.CharField(max_length=240)

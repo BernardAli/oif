@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block nav_programs %}active{% endblock %}
+{% block title %}{{ initiative.title }} · Programs · {{ ORG_NAME }}{% endblock %}
+{% block meta_description %}{{ initiative.description|truncatechars:155 }}{% endblock %}
+{% block content %}
+<article class="initiative-detail initiative-type-{{ initiative.page_type|lower }}">
+  <header class="initiative-detail-hero">
+    {% if initiative.hero_image %}<img src="{{ initiative.hero_image.url }}" alt="">{% endif %}
+    <div class="initiative-detail-shade"></div>
+    <div class="container">
+      <a class="initiative-back" href="{% url 'pages:programs' %}#pillar-{{ initiative.pillar|lower }}">Programs &amp; Initiatives / {{ initiative.get_pillar_display }}</a>
+      <div class="initiative-detail-heading">
+        <span class="eyebrow">{{ initiative.eyebrow }}</span>
+        <h1 class="display">{{ initiative.title }}</h1>
+        <p>{{ initiative.description }}</p>
+        {% if initiative.frequency_badge %}<b class="initiative-frequency">{{ initiative.frequency_badge }}</b>{% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% if initiative.page_type == "CONFERENCE" %}
+  <section class="initiative-content-section initiative-upcoming">
+    <div class="container">
+      <div class="initiative-section-heading"><div><span class="eyebrow">Upcoming Conference</span><h2>Join the next edition.</h2></div><p>Registration is open for our next edition. See the conference flyer below and sign up via the link provided.</p></div>
+      {% for edition in upcoming_editions %}
+      <article class="conference-feature">
+        <div class="conference-main-flyer">{% if edition.flyer %}<img src="{{ edition.flyer.url }}" alt="{{ edition.name }} conference flyer">{% else %}<span>Conference flyer coming soon</span>{% endif %}</div>
+        <div class="conference-feature-copy">
+          {% if edition.edition_label %}<span>{{ edition.edition_label }}</span>{% endif %}
+          <h3>{{ edition.name }}</h3>
+          {% if edition.event_date %}<time>{{ edition.event_date|date:"F j, Y" }}</time>{% endif %}
+          <div>{{ edition.description|linebreaks }}</div>
+          {% if edition.speaker_flyers.all %}
+          <div class="conference-speaker-grid">
+            {% for speaker in edition.speaker_flyers.all %}<figure><img src="{{ speaker.image.url }}" alt="{{ speaker.caption|default:'Conference speaker' }}">{% if speaker.caption %}<figcaption>{{ speaker.caption }}</figcaption>{% endif %}</figure>{% endfor %}
+          </div>
+          {% endif %}
+          {% if edition.registration_url %}<a class="btn-primary" href="{{ edition.registration_url }}" target="_blank" rel="noopener">Register via Google Form →</a>{% else %}<span class="initiative-disabled-action">Registration link coming soon</span>{% endif %}
+        </div>
+      </article>
+      {% empty %}
+      <div class="initiative-empty"><strong>Next conference details coming soon.</strong><p>The OIF team will publish the theme, flyer, speakers, date, and registration link here.</p></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="initiative-content-section initiative-archive-section">
+    <div class="container">
+      <div class="initiative-section-heading"><div><span class="eyebrow">Past Conferences</span><h2>Previous editions.</h2></div><p>An evolving archive of conference themes, speakers, attendance, and defining moments.</p></div>
+      <div class="initiative-archive-grid">
+        {% for edition in past_editions %}
+        <article class="initiative-archive-card"><div>{% if edition.flyer %}<img src="{{ edition.flyer.url }}" alt="{{ edition.name }} flyer">{% else %}<span>{{ edition.edition_label|default:"Past edition" }}</span>{% endif %}</div><section>{% if edition.edition_label %}<small>{{ edition.edition_label }}</small>{% endif %}<h3>{{ edition.name }}</h3>{% if edition.event_date %}<time>{{ edition.event_date|date:"F Y" }}</time>{% endif %}<p>{{ edition.description }}</p></section></article>
+        {% empty %}<div class="initiative-empty compact"><strong>The conference archive is ready for OIF content.</strong><p>Past editions can be added from the Programs dashboard as details and flyers are finalized.</p></div>{% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {% elif initiative.page_type == "MENTORSHIP" %}
+  <section class="initiative-content-section mentorship-phase">
+    <div class="container">
+      <div class="initiative-section-heading"><div><span class="eyebrow">Phase 1</span><h2>{{ initiative.phase_one_title|default:"Sessions" }}</h2></div><div>{{ initiative.phase_one_intro|linebreaks }}</div></div>
+      {% regroup sessions by track_label as session_groups %}
+      {% for group in session_groups %}
+        {% if group.grouper %}<h3 class="mentorship-track-heading">{{ group.grouper }}</h3>{% endif %}
+        <div class="mentorship-session-grid">
+          {% for session in group.list %}
+          <article class="mentorship-session"><span>{{ session.session_number|stringformat:"02d" }}</span><div><small>Session {{ session.session_number }}</small><h3>{{ session.title }}</h3>{% if session.video_url %}<p>Video link is prepared for the future learning portal.</p>{% endif %}</div><button type="button" disabled title="The Watch feature will be available in a future mentorship release">Watch · Coming soon</button></article>
+          {% endfor %}
+        </div>
+      {% empty %}<div class="initiative-empty"><strong>Session titles are being finalized.</strong><p>This page is ready for eight sequential sessions, with optional track labels.</p></div>{% endfor %}
+    </div>
+  </section>
+  <section class="initiative-content-section mentorship-phase-two">
+    <div class="container">
+      <div class="initiative-section-heading"><div><span class="eyebrow">Phase 2</span><h2>{{ initiative.phase_two_title|default:"Mentor pairing" }}</h2></div><div>{{ initiative.phase_two_intro|linebreaks }}</div></div>
+      <div class="mentorship-track-grid">
+        {% for track in tracks %}<article><span>{{ track.label|default:"Mentor pathway" }}</span><h3>{{ track.title }}</h3><b>{{ track.sessions_count }} live session{{ track.sessions_count|pluralize }}</b><p>{{ track.description }}</p></article>{% empty %}<div class="initiative-empty compact"><strong>Mentor grouping details coming soon.</strong></div>{% endfor %}
+      </div>
+      <p class="mentorship-scheduling-note">Scheduling details are communicated directly by the program coordinator.</p>
+    </div>
+  </section>
+
+  {% elif initiative.page_type == "OUTREACH" %}
+  <section class="initiative-content-section sdg-section">
+    <div class="container">
+      <div class="initiative-section-heading"><div><span class="eyebrow">SDG Focus Areas</span><h2>Impact aligned with global goals.</h2></div><p>The specific UN Sustainable Development Goals we will align our work with are still being decided.</p></div>
+      <div class="sdg-grid">
+        {% for goal in sdg_focuses %}<article><span>{{ goal.sdg_number|stringformat:"02d" }}</span><small>UN Sustainable Development Goal</small><h3>{{ goal.goal_name }}</h3><p>{{ goal.description }}</p></article>{% empty %}<div class="initiative-empty compact"><strong>SDG priorities are being finalized.</strong><p>The selected goals and OIF contribution statements will appear here.</p></div>{% endfor %}
+      </div>
+    </div>
+  </section>
+  {% include "pages/_initiative_archive.html" with archive_heading="Past Outreach Activities" archive_intro="Community initiatives, places served, and people impacted." %}
+
+  {% else %}
+  {% include "pages/_initiative_archive.html" with archive_heading="Past In-Person Events & Gatherings" archive_intro="Workshops, networking events, and community gatherings hosted across Ghana and beyond." %}
+  {% endif %}
+</article>
+{% endblock %}

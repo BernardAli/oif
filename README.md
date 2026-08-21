@@ -84,8 +84,12 @@ a brochure. It includes:
 - A premium homepage hero, upcoming event feature, metrics, programs, leadership
   preview, speakers preview, and donation CTA.
 - Separate Leadership and Speakers pages.
-- Program listing and detail pages for The Forge, Hadassah Project,
-  Humanitarian Wing, Virtual Conferences, and Mentorship Programme.
+- A three-pillar Programs & Initiatives page for Virtual Conferences,
+  Mentorship Program, and Events, with dedicated pages for The Emerging
+  Leader, The Emerging Lady, Forge Mentorship, Bloom 360, OCOI, and in-person
+  gatherings.
+- Reusable conference, mentorship, SDG, outreach, and event-archive content
+  structures that the OIF content team can expand without a redesign.
 - Event detail pages with rich sections, registration, share links, Google
   Calendar, Apple Calendar, and `.ics` download.
 - Impact page with metrics, testimonials, cohorts, gallery highlights, and
@@ -133,6 +137,12 @@ It manages:
 - Logos: full logo, compact logo mark, favicon.
 - Typography: selectable Google fonts for title and body text.
 - Programs and downloadable resources.
+- Programs & Initiatives hierarchy: Virtual Conferences, Mentorship Program,
+  and Events, with dedicated pages for The Emerging Leader, The Emerging
+  Lady, Forge Mentorship, Bloom 360, OCOI, and in-person gatherings. The
+  Programs dashboard manages conference editions and up to four speaker
+  flyers, eight-session mentorship curricula, Phase 2 tracks, SDG focus cards,
+  Google Form registration links, and expandable past-activity archives.
 - Speakers.
 - Leadership team.
 - Site stats.

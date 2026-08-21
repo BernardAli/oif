@@ -3,7 +3,10 @@ from django.forms import inlineformset_factory
 
 from accounts.models import User
 from engagement.models import MentorshipEnrollment
-from pages.models import (Event, Program, ProgramResource, SiteBranding,
+from pages.models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                          InitiativeArchiveEntry, MentorshipSession,
+                          MentorshipTrack, Program, ProgramInitiative,
+                          ProgramResource, SDGFocus, SiteBranding,
                           SitePageCopy, SitePageImages, PAGE_COPY_GROUPS,
                           SiteStat, Speaker, TeamMember, Testimonial,
                           GalleryImage, Policy)
@@ -477,6 +480,122 @@ class ProgramForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["is_active"].widget.attrs["class"] = "check-input"
+
+
+class ProgramInitiativeForm(forms.ModelForm):
+    class Meta:
+        model = ProgramInitiative
+        fields = (
+            "pillar", "page_type", "title", "slug", "eyebrow", "description",
+            "frequency_badge", "hero_image", "phase_one_title", "phase_one_intro",
+            "phase_two_title", "phase_two_intro", "order", "is_active",
+        )
+        widgets = {
+            "pillar": forms.Select(attrs={"class": "form-input"}),
+            "page_type": forms.Select(attrs={"class": "form-input"}),
+            "title": forms.TextInput(attrs={"class": "form-input"}),
+            "slug": forms.TextInput(attrs={"class": "form-input"}),
+            "eyebrow": forms.TextInput(attrs={"class": "form-input"}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 5}),
+            "frequency_badge": forms.TextInput(attrs={"class": "form-input"}),
+            "hero_image": forms.ClearableFileInput(attrs={"class": "form-input"}),
+            "phase_one_title": forms.TextInput(attrs={"class": "form-input"}),
+            "phase_one_intro": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
+            "phase_two_title": forms.TextInput(attrs={"class": "form-input"}),
+            "phase_two_intro": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["is_active"].widget.attrs["class"] = "check-input"
+
+
+class ConferenceEditionForm(forms.ModelForm):
+    class Meta:
+        model = ConferenceEdition
+        exclude = ("initiative",)
+        widgets = {
+            "status": forms.Select(attrs={"class": "form-input"}),
+            "edition_label": forms.TextInput(attrs={"class": "form-input"}),
+            "name": forms.TextInput(attrs={"class": "form-input"}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 5}),
+            "event_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "flyer": forms.ClearableFileInput(attrs={"class": "form-input"}),
+            "registration_url": forms.URLInput(attrs={"class": "form-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+
+class ConferenceSpeakerFlyerForm(forms.ModelForm):
+    class Meta:
+        model = ConferenceSpeakerFlyer
+        fields = ("edition", "image", "caption", "order")
+        widgets = {
+            "edition": forms.Select(attrs={"class": "form-input"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-input"}),
+            "caption": forms.TextInput(attrs={"class": "form-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+    def __init__(self, *args, initiative=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if initiative is not None:
+            self.fields["edition"].queryset = ConferenceEdition.objects.filter(
+                initiative=initiative
+            )
+
+
+class MentorshipSessionForm(forms.ModelForm):
+    class Meta:
+        model = MentorshipSession
+        exclude = ("initiative",)
+        widgets = {
+            "session_number": forms.NumberInput(attrs={"class": "form-input", "min": 1, "max": 8}),
+            "title": forms.TextInput(attrs={"class": "form-input"}),
+            "track_label": forms.TextInput(attrs={"class": "form-input"}),
+            "video_url": forms.URLInput(attrs={"class": "form-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+
+class MentorshipTrackForm(forms.ModelForm):
+    class Meta:
+        model = MentorshipTrack
+        exclude = ("initiative",)
+        widgets = {
+            "label": forms.TextInput(attrs={"class": "form-input"}),
+            "title": forms.TextInput(attrs={"class": "form-input"}),
+            "sessions_count": forms.NumberInput(attrs={"class": "form-input", "min": 1}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+
+class SDGFocusForm(forms.ModelForm):
+    class Meta:
+        model = SDGFocus
+        exclude = ("initiative",)
+        widgets = {
+            "sdg_number": forms.NumberInput(attrs={"class": "form-input", "min": 1, "max": 17}),
+            "goal_name": forms.TextInput(attrs={"class": "form-input"}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+
+
+class InitiativeArchiveEntryForm(forms.ModelForm):
+    class Meta:
+        model = InitiativeArchiveEntry
+        exclude = ("initiative",)
+        widgets = {
+            "label": forms.TextInput(attrs={"class": "form-input"}),
+            "name": forms.TextInput(attrs={"class": "form-input"}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 5}),
+            "event_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
 
 
 class ProgramResourceForm(forms.ModelForm):

@@ -5,8 +5,10 @@ from django.utils import timezone
 
 from engagement.forms import PartnerEnquiryForm
 from engagement.models import EventRegistration, MentorshipEnrollment
-from .models import (Program, Speaker, TeamMember, Event, Testimonial,
-                     GalleryImage, Policy)
+from .models import (ConferenceEdition, Event, GalleryImage,
+                     InitiativeArchiveEntry, MentorshipSession,
+                     MentorshipTrack, Policy, Program, ProgramInitiative,
+                     SDGFocus, Speaker, TeamMember, Testimonial)
 
 
 def _leadership_context(members=None):
@@ -77,14 +79,55 @@ def speakers(request):
 
 
 def programs(request):
+    initiatives = ProgramInitiative.objects.filter(is_active=True).order_by(
+        "pillar", "order", "title"
+    )
+    by_pillar = {
+        value: [item for item in initiatives if item.pillar == value]
+        for value, _label in ProgramInitiative.Pillar.choices
+    }
     ctx = {
         "programs": Program.objects.filter(is_active=True).prefetch_related("resources"),
+        "conference_initiatives": by_pillar[ProgramInitiative.Pillar.CONFERENCES],
+        "mentorship_initiatives": by_pillar[ProgramInitiative.Pillar.MENTORSHIP],
+        "event_initiatives": by_pillar[ProgramInitiative.Pillar.EVENTS],
         "upcoming_events": Event.objects.filter(
             is_published=True, starts_at__gte=timezone.now()),
         "past_events": Event.objects.filter(
             is_published=True, starts_at__lt=timezone.now())[:6],
     }
     return render(request, "pages/programs.html", ctx)
+
+
+def initiative_detail(request, slug):
+    initiative = get_object_or_404(
+        ProgramInitiative.objects.filter(is_active=True), slug=slug
+    )
+    ctx = {"initiative": initiative}
+    if initiative.page_type == ProgramInitiative.PageType.CONFERENCE:
+        editions = ConferenceEdition.objects.filter(
+            initiative=initiative, is_published=True
+        ).prefetch_related("speaker_flyers")
+        ctx.update({
+            "upcoming_editions": editions.filter(status=ConferenceEdition.Status.UPCOMING),
+            "past_editions": editions.filter(status=ConferenceEdition.Status.PAST),
+        })
+    elif initiative.page_type == ProgramInitiative.PageType.MENTORSHIP:
+        ctx.update({
+            "sessions": MentorshipSession.objects.filter(
+                initiative=initiative, is_published=True
+            ),
+            "tracks": MentorshipTrack.objects.filter(initiative=initiative),
+        })
+    else:
+        ctx["archive_entries"] = InitiativeArchiveEntry.objects.filter(
+            initiative=initiative, is_published=True
+        )
+        if initiative.page_type == ProgramInitiative.PageType.OUTREACH:
+            ctx["sdg_focuses"] = SDGFocus.objects.filter(
+                initiative=initiative, is_active=True
+            )
+    return render(request, "pages/initiative_detail.html", ctx)
 
 
 def program_detail(request, wing):
