@@ -115,6 +115,11 @@ def event_detail(request, slug):
     else:
         event_images = event_images.none()
     event_images = list(event_images[:4])
+    all_event_contributors = list(event.contributors.all())
+    event_contributors = [
+        contributor for contributor in all_event_contributors
+        if contributor.is_published
+    ]
     event_url = request.build_absolute_uri(reverse("pages:event_detail", args=[event.slug]))
     return render(request, "engagement/event_detail.html", {
         "event": event,
@@ -124,6 +129,8 @@ def event_detail(request, slug):
         ),
         "related_events": related_events,
         "event_images": event_images,
+        "event_contributors": event_contributors,
+        "has_structured_event_contributors": bool(all_event_contributors),
         "calendar_links": {
             "google": _google_calendar_url(event, event_url),
             "apple": reverse("pages:event_calendar", args=[event.slug]),

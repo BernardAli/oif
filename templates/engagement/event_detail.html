@@ -124,12 +124,46 @@
             {{ event.agenda|default:"Arrival and welcome\nCore teaching or panel conversation\nInteractive discussion or breakout\nNext steps and closing"|linebreaks }}
           </section>
 
+          {% if event_contributors %}
+          <section class="event-contributors-section" id="event-contributors" aria-labelledby="event-contributors-title">
+            <div class="premium-section-head compact">
+              <div>
+                <div class="eyebrow">Speakers &amp; facilitators</div>
+                <h2 class="display" id="event-contributors-title">Meet the people guiding the room.</h2>
+              </div>
+            </div>
+            <div class="event-contributor-grid">
+              {% for contributor in event_contributors %}
+              <article class="event-contributor-card">
+                <div class="event-contributor-photo">
+                  {% if contributor.photo %}
+                  <img src="{{ contributor.photo.url }}" alt="{{ contributor.photo_alt_text|default:contributor.name }}" loading="lazy">
+                  {% else %}
+                  <span aria-hidden="true">{{ contributor.name|slice:":1" }}</span>
+                  {% endif %}
+                </div>
+                <div class="event-contributor-copy">
+                  <span>{{ contributor.get_contribution_type_display }}</span>
+                  <h3>{{ contributor.name }}</h3>
+                  {% if contributor.role_title or contributor.organisation %}<p class="event-contributor-role">{% if contributor.role_title %}{{ contributor.role_title }}{% endif %}{% if contributor.role_title and contributor.organisation %} · {% endif %}{{ contributor.organisation }}</p>{% endif %}
+                  {% if contributor.topic %}<p class="event-contributor-topic"><b>Session</b>{{ contributor.topic }}</p>{% endif %}
+                  {% if contributor.bio %}<div class="event-contributor-bio">{{ contributor.bio|linebreaks }}</div>{% endif %}
+                  {% if contributor.profile_url %}<a href="{{ contributor.profile_url }}" target="_blank" rel="noopener noreferrer">View public profile →</a>{% endif %}
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
+
           <div class="event-info-grid">
+            {% if not has_structured_event_contributors %}
             <section class="event-info-panel">
               <div class="panel-head"><b>04</b><span>Speakers &amp; facilitators</span></div>
               {{ event.speakers|default:"OIF facilitators and invited contributors will guide this experience."|linebreaks }}
             </section>
-            <section class="event-info-panel">
+            {% endif %}
+            <section class="event-info-panel{% if has_structured_event_contributors %} wide{% endif %}">
               <div class="panel-head"><b>05</b><span>Preparation</span></div>
               {{ event.preparation|default:"Come ready to participate, take notes, ask thoughtful questions, and connect with other participants."|linebreaks }}
             </section>

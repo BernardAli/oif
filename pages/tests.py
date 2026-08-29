@@ -7,34 +7,41 @@ from django.utils import timezone
 from .checks import production_configuration_check
 from .models import (ConferenceEdition, Event, MentorshipSession,
                      MentorshipTrack, Policy, Program, ProgramInitiative,
-                     SiteBranding)
+                     SiteBranding, SitePageCopy)
 from .views import error_500
 
 
 class PublicPageBehaviourTest(TestCase):
-    def test_program_mega_nav_only_shows_active_database_programs(self):
-        active = Program.objects.create(
-            wing=Program.Wing.FORGE,
-            tagline="Active leadership pathway",
-            headline="Forge leaders",
-            description="Active program",
+    def test_program_mega_nav_shows_pillars_and_active_initiatives(self):
+        active = ProgramInitiative.objects.create(
+            pillar=ProgramInitiative.Pillar.CONFERENCES,
+            page_type=ProgramInitiative.PageType.CONFERENCE,
+            title="Active leadership conference",
+            eyebrow="The Forge Initiative",
+            description="Active initiative",
             is_active=True,
         )
-        Program.objects.create(
-            wing=Program.Wing.HADASSAH,
-            tagline="Hidden pathway",
-            headline="Hidden program",
-            description="Inactive program",
+        inactive = ProgramInitiative.objects.create(
+            pillar=ProgramInitiative.Pillar.EVENTS,
+            page_type=ProgramInitiative.PageType.IN_PERSON,
+            title="Hidden community gathering",
+            eyebrow="Unpublished initiative",
+            description="Inactive initiative",
             is_active=False,
         )
 
         response = self.client.get(reverse("pages:home"))
         self.assertContains(
-            response, reverse("pages:program_detail", args=[active.wing.lower()])
+            response, reverse("pages:initiative_detail", args=[active.slug])
         )
-        self.assertContains(response, "Active leadership pathway")
-        self.assertNotContains(response, "Hidden pathway")
-        self.assertNotContains(response, "Open Events")
+        self.assertContains(response, "Active leadership conference")
+        self.assertNotContains(response, inactive.title)
+        for pillar in ("Virtual Conferences", "Mentorship Program", "Events"):
+            self.assertContains(response, pillar)
+        for initiative in ProgramInitiative.objects.filter(is_active=True):
+            self.assertContains(
+                response, reverse("pages:initiative_detail", args=[initiative.slug])
+            )
 
     def test_unpublished_event_is_not_public(self):
         event = Event.objects.create(
@@ -113,13 +120,39 @@ class ProgramInitiativeStructureTest(TestCase):
         response = self.client.get(reverse("pages:programs"))
         self.assertContains(response, "Programs &amp; Initiatives")
         self.assertContains(response, "Three distinct pillars. One mission")
-        self.assertContains(response, "Virtual Conferences")
-        self.assertContains(response, "Mentorship Program")
-        self.assertContains(response, "Events")
+        self.assertContains(
+            response,
+            "Our flagship biannual virtual gatherings under The Forge and "
+            "The Hadassah Project.",
+        )
+        self.assertContains(
+            response,
+            "Structured, two-phase mentorship cohorts under The Forge and "
+            "The Hadassah Project.",
+        )
+        self.assertContains(
+            response,
+            "In-person events, gatherings, and our humanitarian community outreach.",
+        )
+        self.assertContains(response, "Explore conferences →")
+        self.assertContains(response, "Explore mentorship →")
+        self.assertContains(response, "Explore events →")
         for initiative in ProgramInitiative.objects.all():
             self.assertContains(
                 response, reverse("pages:initiative_detail", args=[initiative.slug])
             )
+
+    def test_programs_document_copy_is_editable_from_page_copy_cms(self):
+        page_copy = SitePageCopy.load()
+        page_copy.programs_hero_body = "A custom programs introduction."
+        page_copy.programs_conferences_body = "A custom conference introduction."
+        page_copy.programs_events_body = "A custom events introduction."
+        page_copy.save()
+
+        response = self.client.get(reverse("pages:programs"))
+        self.assertContains(response, "A custom programs introduction.")
+        self.assertContains(response, "A custom conference introduction.")
+        self.assertContains(response, "A custom events introduction.")
 
     def test_conference_pages_share_upcoming_and_archive_structure(self):
         for slug in ("the-emerging-leader", "the-emerging-lady"):
@@ -140,6 +173,39 @@ class ProgramInitiativeStructureTest(TestCase):
             )
             self.assertContains(response, "Watch · Coming soon", count=8)
             self.assertContains(response, "Phase 2")
+
+        forge = self.client.get(
+            reverse("pages:initiative_detail", args=["forge-mentorship-program"])
+        )
+        self.assertContains(forge, "<b>4 live sessions</b>", count=2, html=True)
+        bloom = self.client.get(
+            reverse("pages:initiative_detail", args=["bloom-360-mentorship-program"])
+        )
+        self.assertContains(
+            bloom,
+            "<b>4 sessions across weeks 9–12</b>",
+            count=1,
+            html=True,
+        )
+
+    def test_event_archives_explain_the_document_fields_when_empty(self):
+        outreach = self.client.get(
+            reverse(
+                "pages:initiative_detail",
+                args=["onesimus-community-outreach-initiative"],
+            )
+        )
+        self.assertContains(outreach, "activity number or label")
+        self.assertContains(outreach, "number of people impacted")
+
+        gatherings = self.client.get(
+            reverse(
+                "pages:initiative_detail",
+                args=["in-person-events-and-gatherings"],
+            )
+        )
+        self.assertContains(gatherings, "event number or label")
+        self.assertContains(gatherings, "venue, date, activity summary, and attendee count")
 
     def test_published_conference_edition_appears_on_public_page(self):
         initiative = ProgramInitiative.objects.get(slug="the-emerging-leader")

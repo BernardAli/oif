@@ -7,9 +7,9 @@
   <header class="initiative-index-hero">
     <div class="container initiative-index-hero-grid">
       <div>
-        <div class="eyebrow">Programs &amp; Initiatives</div>
-        <h1 class="display">Programs &amp; Initiatives</h1>
-        <p>Three distinct pillars. One mission: to raise, equip, and release the next generation of African leaders.</p>
+        <div class="eyebrow">{{ page_copy.programs_hero_eyebrow|default:"Programs & Initiatives" }}</div>
+        <h1 class="display">{{ page_copy.programs_hero_headline|default:"Programs & Initiatives" }}</h1>
+        <p>{{ page_copy.programs_hero_body|default:"Three distinct pillars. One mission: to raise, equip, and release the next generation of African leaders." }}</p>
       </div>
       <div class="initiative-index-collage" aria-label="Conferences, mentorship and outreach">
         <div{% if page_images.programs_hero_main %} style="background-image:url('{{ page_images.programs_hero_main.url }}')"{% endif %}><span>Virtual Conferences</span></div>
@@ -22,8 +22,8 @@
   <section class="initiative-overview" aria-labelledby="initiative-overview-title">
     <div class="container">
       <div class="initiative-section-heading">
-        <div><span class="eyebrow">Three pillars</span><h2 id="initiative-overview-title">One connected mission.</h2></div>
-        <p>Choose a pillar to explore its conferences, cohorts, gatherings, and community work.</p>
+        <div><span class="eyebrow">{{ page_copy.programs_overview_eyebrow|default:"Three pillars" }}</span><h2 id="initiative-overview-title">{{ page_copy.programs_overview_headline|default:"One connected mission." }}</h2></div>
+        <p>{{ page_copy.programs_overview_body|default:"Choose a pillar to explore its conferences, cohorts, gatherings, and community work." }}</p>
       </div>
       <div class="initiative-overview-grid">
         <a href="#pillar-conferences" data-program-tab-link="conferences"><span>01</span><h3>Virtual Conferences</h3><p>Our flagship biannual virtual gatherings under The Forge and The Hadassah Project.</p><b>Explore conferences →</b></a>
@@ -42,7 +42,7 @@
       </div>
 
       <div class="initiative-tab-panel active" id="pillar-conferences" role="tabpanel" aria-labelledby="tab-conferences" data-program-panel="conferences">
-        <div class="initiative-section-heading"><div><span class="eyebrow">Virtual Conferences</span><h2>Flagship gatherings for a rising generation.</h2></div><p>Our flagship virtual gatherings — organized biannually — bring accomplished speakers virtually with the next generation. Click a program to view upcoming and past conferences.</p></div>
+        <div class="initiative-section-heading"><div><span class="eyebrow">{{ page_copy.programs_conferences_eyebrow|default:"Virtual Conferences" }}</span><h2>{{ page_copy.programs_conferences_headline|default:"Flagship gatherings for a rising generation." }}</h2></div><p>{{ page_copy.programs_conferences_body|default:"Our flagship virtual gatherings — organized biannually — bring accomplished speakers virtually with the next generation. Click a program to view upcoming and past conferences." }}</p></div>
         <div class="initiative-program-grid">
           {% for item in conference_initiatives %}
           <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>{{ item.frequency_badge|default:"Virtual conference" }}</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>View conferences →</b></div></a>
@@ -51,7 +51,7 @@
       </div>
 
       <div class="initiative-tab-panel" id="pillar-mentorship" role="tabpanel" aria-labelledby="tab-mentorship" data-program-panel="mentorship" hidden>
-        <div class="initiative-section-heading"><div><span class="eyebrow">Mentorship Program</span><h2>Structured formation, personal guidance.</h2></div><p>Our structured, two-phase mentorship programs run under both flagship wings. Click a program to access mentorship resources and details.</p></div>
+        <div class="initiative-section-heading"><div><span class="eyebrow">{{ page_copy.programs_mentorship_eyebrow|default:"Mentorship Program" }}</span><h2>{{ page_copy.programs_mentorship_headline|default:"Structured formation, personal guidance." }}</h2></div><p>{{ page_copy.programs_mentorship_body|default:"Our structured, two-phase mentorship programs run under both flagship wings. Click a program to access mentorship resources and details." }}</p></div>
         <div class="initiative-program-grid">
           {% for item in mentorship_initiatives %}
           <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>Two-phase mentorship</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>Explore the program →</b></div></a>
@@ -60,7 +60,7 @@
       </div>
 
       <div class="initiative-tab-panel" id="pillar-events" role="tabpanel" aria-labelledby="tab-events" data-program-panel="events" hidden>
-        <div class="initiative-section-heading"><div><span class="eyebrow">Events</span><h2>Gather in person. Serve in community.</h2></div><p>Beyond our virtual programs, OIF engages in in-person events and humanitarian action. Click a program to explore our past activities.</p></div>
+        <div class="initiative-section-heading"><div><span class="eyebrow">{{ page_copy.programs_events_eyebrow|default:"Events" }}</span><h2>{{ page_copy.programs_events_headline|default:"Gather in person. Serve in community." }}</h2></div><p>{{ page_copy.programs_events_body|default:"Beyond our virtual programs, OIF engages in in-person events and humanitarian action. Click a program to explore our past activities." }}</p></div>
         <div class="initiative-program-grid">
           {% for item in event_initiatives %}
           <a class="initiative-program-card" href="{% url 'pages:initiative_detail' item.slug %}"><div class="initiative-program-image">{% if item.hero_image %}<img src="{{ item.hero_image.url }}" alt="{{ item.title }}">{% endif %}<span>{{ item.get_page_type_display }}</span></div><div><small>{{ item.eyebrow }}</small><h3>{{ item.title }}</h3><p>{{ item.description }}</p><b>View past activities →</b></div></a>

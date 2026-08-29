@@ -17,7 +17,8 @@ from django.utils import timezone
 
 from accounts.models import User, Role
 from engagement.models import Application, EventRegistration
-from pages.models import (ConferenceEdition, Event, GalleryImage, Program,
+from pages.models import (ConferenceEdition, Event, EventContributor,
+                          GalleryImage, Program,
                           ProgramInitiative, ProgramResource, SiteBranding)
 from pages.models import SitePageCopy, SitePageImages, PAGE_COPY_GROUPS
 from pages.models import SiteStat, Speaker, TeamMember
@@ -75,19 +76,20 @@ class PublicPagesTest(TestCase):
         self.assertContains(resp, 'id="galleryLightbox"')
         self.assertContains(resp, "galleryLightboxImage")
 
-    def test_program_detail_renders_and_is_linked(self):
-        Program.objects.create(
-            wing=Program.Wing.FORGE,
-            tagline="Leadership formation for emerging builders.",
-            headline="Build with conviction.",
+    def test_program_initiative_detail_renders_and_is_linked(self):
+        initiative = ProgramInitiative.objects.create(
+            pillar=ProgramInitiative.Pillar.CONFERENCES,
+            page_type=ProgramInitiative.PageType.CONFERENCE,
+            title="Leadership Formation Conference",
+            eyebrow="THE FORGE · VIRTUAL CONFERENCE",
             description="A practical space for young leaders to grow.",
             is_active=True,
         )
-        detail_url = reverse("pages:program_detail", args=["forge"])
+        detail_url = reverse("pages:initiative_detail", args=[initiative.slug])
         resp = self.client.get(detail_url)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "The Forge")
-        self.assertContains(resp, "Build with conviction.")
+        self.assertContains(resp, "Leadership Formation Conference")
+        self.assertContains(resp, "A practical space for young leaders to grow.")
 
         listing = self.client.get(reverse("pages:programs"))
         self.assertContains(listing, detail_url)
@@ -390,6 +392,108 @@ class EventManagementTest(TestCase):
             self.client.get(reverse("dashboard:event_detail", args=[self.event.pk])).status_code,
             403,
         )
+        self.assertEqual(
+            self.client.get(
+                reverse("dashboard:event_contributor_create", args=[self.event.pk])
+            ).status_code,
+            403,
+        )
+
+    def test_director_can_manage_event_contributors_with_pictures(self):
+        self.client.login(username="event_director", password=PWD)
+        with tempfile.TemporaryDirectory() as tmp:
+            with override_settings(MEDIA_ROOT=tmp):
+                photo = SimpleUploadedFile(
+                    "ama.gif",
+                    b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02L\x01\x00;",
+                    content_type="image/gif",
+                )
+                response = self.client.post(
+                    reverse(
+                        "dashboard:event_contributor_create", args=[self.event.pk]
+                    ),
+                    data={
+                        "name": "Ama Mensah",
+                        "contribution_type": EventContributor.ContributionType.KEYNOTE,
+                        "role_title": "Leadership Strategist",
+                        "organisation": "Purpose Africa",
+                        "topic": "Leading with conviction",
+                        "bio": "Ama equips emerging leaders across the continent.",
+                        "photo": photo,
+                        "photo_alt_text": "Ama Mensah smiling",
+                        "profile_url": "https://example.com/ama",
+                        "order": 2,
+                        "is_published": "on",
+                    },
+                )
+                contributor = EventContributor.objects.get(
+                    event=self.event, name="Ama Mensah"
+                )
+                self.assertRedirects(
+                    response,
+                    reverse("dashboard:event_detail", args=[self.event.pk])
+                    + "#detail-tab-contributors",
+                )
+                self.assertTrue(contributor.photo.name.startswith("event-contributors/"))
+
+                dashboard = self.client.get(
+                    reverse("dashboard:event_detail", args=[self.event.pk])
+                )
+                self.assertContains(dashboard, "Ama Mensah")
+                self.assertContains(dashboard, contributor.photo.url)
+                self.assertContains(
+                    dashboard,
+                    reverse(
+                        "dashboard:event_contributor_edit",
+                        args=[self.event.pk, contributor.pk],
+                    ),
+                )
+
+                public = self.client.get(
+                    reverse("pages:event_detail", args=[self.event.slug])
+                )
+                self.assertContains(public, 'class="event-contributor-card"')
+                self.assertContains(public, "Ama Mensah")
+                self.assertContains(public, "Leading with conviction")
+                self.assertContains(public, "Ama Mensah smiling")
+
+                response = self.client.post(
+                    reverse(
+                        "dashboard:event_contributor_edit",
+                        args=[self.event.pk, contributor.pk],
+                    ),
+                    data={
+                        "name": "Ama Mensah",
+                        "contribution_type": EventContributor.ContributionType.FACILITATOR,
+                        "role_title": "Leadership Strategist",
+                        "organisation": "Purpose Africa",
+                        "topic": "Interactive leadership lab",
+                        "bio": "Updated biography.",
+                        "photo_alt_text": "Ama facilitating a session",
+                        "profile_url": "https://example.com/ama",
+                        "order": 1,
+                    },
+                )
+                self.assertEqual(response.status_code, 302)
+                contributor.refresh_from_db()
+                self.assertFalse(contributor.is_published)
+                self.event.speakers = "Ama Mensah — legacy speaker notes"
+                self.event.save(update_fields=["speakers"])
+                public = self.client.get(
+                    reverse("pages:event_detail", args=[self.event.slug])
+                )
+                self.assertNotContains(public, 'class="event-contributor-card"')
+                self.assertNotContains(public, "Interactive leadership lab")
+                self.assertNotContains(public, "legacy speaker notes")
+
+                response = self.client.post(
+                    reverse(
+                        "dashboard:event_contributor_delete",
+                        args=[self.event.pk, contributor.pk],
+                    )
+                )
+                self.assertEqual(response.status_code, 302)
+                self.assertFalse(EventContributor.objects.filter(pk=contributor.pk).exists())
 
     def test_director_can_create_and_edit_event(self):
         self.client.login(username="event_director", password=PWD)
@@ -410,6 +514,24 @@ class EventManagementTest(TestCase):
         self.assertRedirects(resp, reverse("dashboard:event_detail", args=[event.pk]))
         self.assertEqual(event.title, "Updated Admin Summit")
         self.assertEqual(event.capacity, 200)
+
+    def test_event_editor_is_a_four_step_wizard(self):
+        self.client.login(username="event_director", password=PWD)
+        response = self.client.get(reverse("dashboard:event_create"))
+
+        self.assertContains(response, 'role="tablist"')
+        for key, label in (
+            ("basics", "Basics"),
+            ("logistics", "Logistics"),
+            ("details", "Public details"),
+            ("publish", "Publish"),
+        ):
+            self.assertContains(response, f'data-event-step-trigger="{key}"')
+            self.assertContains(response, f'data-event-step="{key}"')
+            self.assertContains(response, label)
+        self.assertContains(response, 'id="eventStepBack"')
+        self.assertContains(response, 'id="eventStepNext"')
+        self.assertContains(response, 'id="eventStepSubmit"')
 
     def test_event_detail_shows_registration_analytics_and_updates_status(self):
         self.client.login(username="event_director", password=PWD)
@@ -1019,6 +1141,37 @@ class FullDashboardControlTest(TestCase):
         self.assertRedirects(resp, reverse("dashboard:programs_manage"))
         self.assertFalse(Program.objects.filter(pk=self.program.pk).exists())
         self.assertFalse(ProgramResource.objects.filter(pk=resource.pk).exists())
+
+    def test_program_manager_uses_document_pillar_tabs(self):
+        self.client.login(username="control_admin", password=PWD)
+        resp = self.client.get(reverse("dashboard:programs_manage"))
+
+        self.assertContains(resp, 'role="tablist"')
+        for key, label in (
+            ("conferences", "Virtual Conferences"),
+            ("mentorship", "Mentorship Program"),
+            ("events", "Events"),
+            ("wings", "Legacy Program Wings"),
+        ):
+            self.assertContains(resp, f'data-programs-tab="{key}"')
+            self.assertContains(resp, f'id="programs-tab-{key}"')
+            self.assertContains(resp, label)
+        grouped = {group["key"]: group["items"] for group in resp.context["initiative_tabs"]}
+        self.assertTrue(grouped["conferences"])
+        self.assertTrue(grouped["mentorship"])
+        self.assertTrue(grouped["events"])
+        self.assertTrue(all(
+            item.pillar == ProgramInitiative.Pillar.CONFERENCES
+            for item in grouped["conferences"]
+        ))
+        self.assertTrue(all(
+            item.pillar == ProgramInitiative.Pillar.MENTORSHIP
+            for item in grouped["mentorship"]
+        ))
+        self.assertTrue(all(
+            item.pillar == ProgramInitiative.Pillar.EVENTS
+            for item in grouped["events"]
+        ))
 
     def test_admin_can_open_sidebar_content_managers(self):
         self.client.login(username="control_admin", password=PWD)

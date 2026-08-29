@@ -17,7 +17,21 @@
 </head>
 <body>
 <div class="dash-wrap">
-	  <aside class="dash-side">
+	  <header class="dash-mobile-bar">
+	    <a href="{% url 'dashboard:home' %}" class="dash-mobile-brand" aria-label="Dashboard home">
+	      {% if site_branding.logo_mark %}
+	      <img class="logo-mark logo-mark-img" src="{{ site_branding.logo_mark.url }}" alt="">
+	      {% else %}
+	      <span class="logo-mark">{{ ORG_SHORT|slice:":1" }}</span>
+	      {% endif %}
+	      <span><strong>{{ ORG_SHORT }}</strong><small>Dashboard</small></span>
+	    </a>
+	    <button class="dash-nav-toggle" id="dashNavToggle" type="button" aria-label="Open dashboard navigation" aria-controls="dashSidebar" aria-expanded="false">
+	      <span></span><span></span><span></span>
+	    </button>
+	  </header>
+	  <aside class="dash-side" id="dashSidebar" aria-label="Dashboard navigation">
+	    <button class="dash-side-close" id="dashSideClose" type="button" aria-label="Close dashboard navigation">&times;</button>
 	    <a href="{% url 'pages:home' %}" class="brand">
 	      {% if site_branding.logo_mark %}
 	      <img class="logo-mark logo-mark-img" src="{{ site_branding.logo_mark.url }}" alt="{{ ORG_SHORT }} logo">
@@ -82,8 +96,9 @@
       <a href="{% url 'accounts:profile' %}" class="{% block n_profile %}{% endblock %}">My Profile</a>
       <a href="#" onclick="event.preventDefault();document.getElementById('lf').submit();">Log out</a>
     </nav>
-    <form id="lf" method="post" action="{% url 'accounts:logout' %}" style="display:none;">{% csrf_token %}</form>
-  </aside>
+	    <form id="lf" method="post" action="{% url 'accounts:logout' %}" style="display:none;">{% csrf_token %}</form>
+	  </aside>
+	  <button class="dash-scrim" id="dashScrim" type="button" aria-label="Close dashboard navigation" tabindex="-1"></button>
 
   <main class="dash-main">
     {% if messages %}<ul class="messages" style="padding:0;margin:0 0 20px;">
@@ -99,6 +114,67 @@
 {% block dash_scripts %}{% endblock %}
 <script>
   (function () {
+    var sidebar = document.getElementById("dashSidebar");
+    var toggle = document.getElementById("dashNavToggle");
+    var closeButton = document.getElementById("dashSideClose");
+    var scrim = document.getElementById("dashScrim");
+
+    function setDashboardNavigation(open) {
+      if (!sidebar || !toggle || !scrim) return;
+      var isMobile = window.matchMedia("(max-width: 980px)").matches;
+      if (!isMobile) open = false;
+      if (isMobile) sidebar.toggleAttribute("inert", !open);
+      else sidebar.removeAttribute("inert");
+      sidebar.classList.toggle("open", open);
+      scrim.classList.toggle("open", open);
+      toggle.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Close dashboard navigation" : "Open dashboard navigation");
+      document.body.classList.toggle("dashboard-nav-open", open);
+      if (open && closeButton) closeButton.focus();
+    }
+
+    if (toggle) toggle.addEventListener("click", function () {
+      setDashboardNavigation(!sidebar.classList.contains("open"));
+    });
+    if (closeButton) closeButton.addEventListener("click", function () {
+      setDashboardNavigation(false);
+      toggle.focus();
+    });
+    if (scrim) scrim.addEventListener("click", function () {
+      setDashboardNavigation(false);
+      toggle.focus();
+    });
+    if (sidebar) sidebar.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (window.matchMedia("(max-width: 980px)").matches) setDashboardNavigation(false);
+      });
+    });
+    window.addEventListener("resize", function () {
+      setDashboardNavigation(false);
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && sidebar && sidebar.classList.contains("open")) {
+        setDashboardNavigation(false);
+        toggle.focus();
+      }
+    });
+    setDashboardNavigation(false);
+
+    document.querySelectorAll(".dash-main table").forEach(function (table) {
+      var wrap = table.parentElement && table.parentElement.classList.contains("table-wrap")
+        ? table.parentElement
+        : document.createElement("div");
+      if (!wrap.classList.contains("table-wrap")) {
+        wrap.className = "table-wrap";
+        table.parentNode.insertBefore(wrap, table);
+        wrap.appendChild(table);
+      }
+      wrap.setAttribute("role", "region");
+      wrap.setAttribute("aria-label", "Scrollable data table");
+      wrap.setAttribute("tabindex", "0");
+    });
+
     function activateTabFromHash() {
       var panelId = window.location.hash ? window.location.hash.slice(1) : "";
       if (!panelId || panelId.indexOf("-tab-") === -1) return;

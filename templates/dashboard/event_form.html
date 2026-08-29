@@ -8,10 +8,17 @@
 {% endblock %}
 {% block dash_content %}
 <div class="form-card wide dash-form-card event-editor-card">
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+  <form method="post" enctype="multipart/form-data" id="eventWizardForm" novalidate>{% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
-    <div class="event-editor-section">
-      <span>Core</span>
+    <div class="event-editor-progress" role="tablist" aria-label="Event setup steps">
+      <button class="active" id="event-step-trigger-basics" type="button" role="tab" aria-selected="true" aria-controls="event-step-basics" tabindex="0" data-event-step-trigger="basics"><span>01</span><b>Basics</b><small>Identity &amp; story</small></button>
+      <button id="event-step-trigger-logistics" type="button" role="tab" aria-selected="false" aria-controls="event-step-logistics" tabindex="-1" data-event-step-trigger="logistics"><span>02</span><b>Logistics</b><small>Date &amp; venue</small></button>
+      <button id="event-step-trigger-details" type="button" role="tab" aria-selected="false" aria-controls="event-step-details" tabindex="-1" data-event-step-trigger="details"><span>03</span><b>Public details</b><small>Participant guide</small></button>
+      <button id="event-step-trigger-publish" type="button" role="tab" aria-selected="false" aria-controls="event-step-publish" tabindex="-1" data-event-step-trigger="publish"><span>04</span><b>Publish</b><small>Review &amp; save</small></button>
+    </div>
+
+    <div class="event-editor-section event-editor-step active" id="event-step-basics" role="tabpanel" aria-labelledby="event-step-trigger-basics" data-event-step="basics">
+      <div class="event-editor-step-heading"><span>Step 01</span><h2>Event basics</h2><p>Give the event a clear identity and compelling public introduction.</p></div>
       <div class="form-row"><label>Title</label>{{ form.title }}{{ form.title.errors }}</div>
       <div class="form-grid-2">
         <div class="form-row"><label>Type</label>{{ form.kind }}{{ form.kind.errors }}</div>
@@ -23,8 +30,8 @@
       <div class="form-row"><label>Event flyer</label>{{ form.flyer }}{{ form.flyer.errors }}</div>
     </div>
 
-    <div class="event-editor-section">
-      <span>Logistics</span>
+    <div class="event-editor-section event-editor-step" id="event-step-logistics" role="tabpanel" aria-labelledby="event-step-trigger-logistics" data-event-step="logistics" hidden>
+      <div class="event-editor-step-heading"><span>Step 02</span><h2>Logistics</h2><p>Set the date, access mode, location, capacity, and contact details.</p></div>
       <div class="form-grid-2">
         <div class="form-row"><label>Starts at</label>{{ form.starts_at }}{{ form.starts_at.errors }}</div>
         <div class="form-row"><label>Location</label>{{ form.location }}{{ form.location.errors }}</div>
@@ -39,16 +46,17 @@
       </div>
     </div>
 
-    <div class="event-editor-section">
-      <span>Public detail page</span>
+    <div class="event-editor-section event-editor-step" id="event-step-details" role="tabpanel" aria-labelledby="event-step-trigger-details" data-event-step="details" hidden>
+      <div class="event-editor-step-heading"><span>Step 03</span><h2>Public detail page</h2><p>Prepare everything participants should understand before registering.</p></div>
       <div class="form-grid-2">
         <div class="form-row"><label>Audience</label>{{ form.audience }}{{ form.audience.errors }}</div>
         <div class="form-row"><label>Outcomes</label>{{ form.outcomes }}{{ form.outcomes.errors }}</div>
       </div>
       <div class="form-row"><label>Agenda</label>{{ form.agenda }}{{ form.agenda.errors }}</div>
-      <div class="form-grid-2">
-        <div class="form-row"><label>Speakers & facilitators</label>{{ form.speakers }}{{ form.speakers.errors }}</div>
-        <div class="form-row"><label>Preparation</label>{{ form.preparation }}{{ form.preparation.errors }}</div>
+      <div class="form-row"><label>Preparation</label>{{ form.preparation }}{{ form.preparation.errors }}</div>
+      <div class="event-contributor-editor-note">
+        <div><strong>Speakers &amp; facilitators</strong><span>Add individual profiles, roles, biographies, topics, and pictures from the event roster.</span></div>
+        {% if event %}<a class="btn-sm ghost" href="{% url 'dashboard:event_detail' event.pk %}#detail-tab-contributors">Manage roster</a>{% else %}<small>Save the event first, then add its roster.</small>{% endif %}
       </div>
       <div class="form-grid-2">
         <div class="form-row"><label>Accessibility notes</label>{{ form.accessibility }}{{ form.accessibility.errors }}</div>
@@ -56,15 +64,135 @@
       </div>
     </div>
 
-    <div class="check-grid">
-      <label class="check-card">{{ form.is_virtual }}<span>Virtual event</span></label>
-      <label class="check-card">{{ form.registration_open }}<span>Registration open</span></label>
-      <label class="check-card">{{ form.is_published }}<span>Published</span></label>
+    <div class="event-editor-section event-editor-step" id="event-step-publish" role="tabpanel" aria-labelledby="event-step-trigger-publish" data-event-step="publish" hidden>
+      <div class="event-editor-step-heading"><span>Step 04</span><h2>Review &amp; publish</h2><p>Choose how the event should appear and whether registrations can begin.</p></div>
+      <div class="event-publish-review">
+        <strong>Ready to save?</strong>
+        <p>You can return to any step before saving. After the event exists, add its speakers and facilitators from the event roster.</p>
+      </div>
+      <div class="check-grid">
+        <label class="check-card">{{ form.is_virtual }}<span>Virtual event</span></label>
+        <label class="check-card">{{ form.registration_open }}<span>Registration open</span></label>
+        <label class="check-card">{{ form.is_published }}<span>Published</span></label>
+      </div>
     </div>
-    <div class="form-actions">
-      <button class="btn-sm" type="submit">Save event</button>
-      <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">Cancel</a>
+
+    <div class="form-actions event-wizard-actions">
+      <button class="btn-sm ghost" type="button" id="eventStepBack" hidden>← Back</button>
+      <a class="btn-sm ghost" href="{% if event %}{% url 'dashboard:event_detail' event.pk %}{% else %}{% url 'dashboard:events' %}{% endif %}">Cancel</a>
+      <button class="btn-sm" type="button" id="eventStepNext">Continue →</button>
+      <button class="btn-sm" type="submit" id="eventStepSubmit" hidden>{% if event %}Save event{% else %}Create event{% endif %}</button>
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  (function () {
+    var form = document.getElementById('eventWizardForm');
+    if (!form) return;
+    var steps = Array.prototype.slice.call(form.querySelectorAll('[data-event-step]'));
+    var triggers = Array.prototype.slice.call(form.querySelectorAll('[data-event-step-trigger]'));
+    var back = document.getElementById('eventStepBack');
+    var next = document.getElementById('eventStepNext');
+    var submit = document.getElementById('eventStepSubmit');
+    var current = 0;
+    var furthest = 0;
+
+    function firstInvalid(step) {
+      return Array.prototype.slice.call(
+        step.querySelectorAll('input, select, textarea')
+      ).find(function (field) {
+        return !field.disabled && field.type !== 'hidden' && !field.checkValidity();
+      });
+    }
+
+    function showStep(index, updateHash) {
+      index = Math.max(0, Math.min(index, steps.length - 1));
+      current = index;
+      furthest = Math.max(furthest, index);
+      steps.forEach(function (step, position) {
+        var active = position === index;
+        step.classList.toggle('active', active);
+        step.hidden = !active;
+      });
+      triggers.forEach(function (trigger, position) {
+        var active = position === index;
+        trigger.classList.toggle('active', active);
+        trigger.classList.toggle('complete', position < index);
+        trigger.setAttribute('aria-selected', active ? 'true' : 'false');
+        trigger.setAttribute('tabindex', active ? '0' : '-1');
+        trigger.disabled = position > furthest;
+      });
+      back.hidden = index === 0;
+      next.hidden = index === steps.length - 1;
+      submit.hidden = index !== steps.length - 1;
+      if (updateHash) {
+        history.replaceState(
+          null,
+          '',
+          window.location.pathname + window.location.search + '#event-step-' + steps[index].dataset.eventStep
+        );
+      }
+      if (updateHash) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function advance() {
+      var invalid = firstInvalid(steps[current]);
+      if (invalid) {
+        invalid.reportValidity();
+        invalid.focus();
+        return;
+      }
+      showStep(current + 1, true);
+    }
+
+    next.addEventListener('click', advance);
+    back.addEventListener('click', function () { showStep(current - 1, true); });
+    triggers.forEach(function (trigger, index) {
+      trigger.addEventListener('click', function () {
+        if (index <= furthest) showStep(index, true);
+      });
+    });
+
+    form.addEventListener('submit', function (event) {
+      var invalidField = null;
+      var invalidStep = -1;
+      steps.some(function (step, index) {
+        invalidField = firstInvalid(step);
+        if (!invalidField) return false;
+        invalidStep = index;
+        return true;
+      });
+      if (invalidField) {
+        event.preventDefault();
+        showStep(invalidStep, true);
+        window.setTimeout(function () {
+          invalidField.reportValidity();
+          invalidField.focus();
+        }, 0);
+      }
+    });
+
+    var errorStep = steps.findIndex(function (step) {
+      return step.querySelector('.errorlist, .form-errors');
+    });
+    var hashName = window.location.hash.indexOf('#event-step-') === 0
+      ? window.location.hash.replace('#event-step-', '')
+      : '';
+    var hashStep = steps.findIndex(function (step) {
+      return step.dataset.eventStep === hashName;
+    });
+    if (errorStep >= 0) {
+      furthest = errorStep;
+      showStep(errorStep, false);
+    } else if (hashStep >= 0) {
+      furthest = hashStep;
+      showStep(hashStep, false);
+    } else {
+      showStep(0, false);
+    }
+  }());
+</script>
 {% endblock %}

@@ -48,12 +48,27 @@ rules in this handbook always apply.
 | Item | Value |
 |---|---|
 | Document | OIF Platform Administrator Manual |
-| Edition | 1.2 |
-| Effective date | 21 August 2026 |
+| Edition | 1.3 |
+| Effective date | 29 August 2026 |
 | System | Onesimus Impact Foundation Django Platform |
 | Classification | Internal operating documentation |
 | Review trigger | Role, workflow, integration, security, or deployment change |
 | Recommended review | At least every six months |
+
+### Changes in edition 1.3
+
+- The public Programs mega-navigation and dashboard now follow the same three
+  pillars. Dashboard content is separated into Virtual Conferences, Mentorship
+  Program, Events, and Legacy Program Wings tabs.
+- Operational Event creation/editing now uses a four-step wizard: Basics,
+  Logistics, Public Details, and Review & Publish.
+- Each operational Event now has a structured Speakers & Facilitators roster
+  with manual profile creation, picture upload, contribution type, role,
+  organization, session topic, biography, profile link, ordering, and public
+  visibility controls.
+- PythonAnywhere deployment checks now include migration-drift detection and
+  consistent virtual-environment selection. Media guidance explicitly covers
+  event-contributor pictures.
 
 ### Changes in edition 1.2
 
@@ -178,6 +193,8 @@ organizational authorization. For example:
 | Robots file | `/robots.txt` | Crawler instructions |
 | Programs & Initiatives | `/programs/` | Public three-pillar programme overview |
 | Programs manager | `/dashboard/programs/` | Initiative pages, structured content, and legacy programme records |
+| Event manager | `/dashboard/events/` | Operational events, attendance, analytics, and communications |
+| New event wizard | `/dashboard/events/new/` | Four-step operational event creation |
 
 Dashboard navigation adapts to capabilities. Overview, Events, Donations,
 Applications, Mentorship, and Profile contain personal information for every
@@ -454,9 +471,12 @@ page image and writeup (MODULES_MANUAL.md section 5.8).
 ## Programs & Initiatives publishing
 
 Open **Programs** in the dashboard to manage the public three-pillar programme
-experience. The top section contains the six dedicated pages; the lower
-**Legacy content** section retains programme records used by registrations,
-resources, galleries, and mentorship enrollments.
+experience. The screen has four tabs: **Virtual Conferences**, **Mentorship
+Program**, **Events**, and **Legacy Program Wings**. The first three contain the
+six dedicated pages; the legacy tab retains programme records used by
+registrations, resources, galleries, and mentorship enrollments. Tab URLs use
+hash fragments, so filtered legacy results and direct links return to the
+correct section.
 
 The six dedicated pages are:
 
@@ -560,18 +580,36 @@ the Programs CMS runbook above.
 
 ## Creating an event
 
-1. Select the event type and related programme.
-2. enter an accurate title, theme, summary, and description;
-3. specify audience, outcomes, agenda, speakers, and preparation;
-4. provide accessibility information;
-5. upload a flyer;
-6. enter start date/time and location;
-7. include venue address and/or online URL;
-8. set capacity, using zero only for unlimited;
-9. add registration and contact notes;
-10. decide whether the event is published and registration is open;
-11. save and verify the public page;
-12. test registration and calendar download.
+Open **Events → New event** and complete the guided steps:
+
+1. **Basics** — select the event type and related programme; enter the title,
+   theme, summary, full description, and flyer.
+2. **Logistics** — enter the start date/time, location, venue address and/or
+   online URL, capacity, and contact email. Use zero capacity only for an
+   intentionally unlimited event.
+3. **Public details** — specify audience, outcomes, agenda, preparation,
+   accessibility information, and the registration note.
+4. **Review & Publish** — confirm virtual/in-person mode, registration-open
+   state, and publication state; then create the event.
+
+The wizard validates required fields before advancing, retains access to
+completed steps, and reopens the step containing a server-side validation
+error. After saving:
+
+5. open the event's **Speakers & Facilitators** tab;
+6. manually add each speaker, facilitator, keynote, panelist, moderator, host,
+   mentor, or guest;
+7. upload the approved portrait and provide role/title, organization, session
+   topic, concise biography, useful image alt text, optional public profile
+   URL, display order, and publication state;
+8. preview the public event page and check the roster on desktop and mobile;
+9. test registration and calendar download.
+
+Use the roster's **Hidden** state when a person is not ready for public release.
+Once an event has structured roster records, the old free-text speaker field is
+not used as a public fallback; this prevents hidden profiles from leaking
+through legacy copy. The legacy field remains in the data model for older
+events that have not yet adopted structured profiles.
 
 The system assumes a two-hour duration in generated calendar entries because
 only the start time is stored.
@@ -1000,6 +1038,8 @@ Smoke-test:
 - dashboard role access;
 - one non-destructive CMS view;
 - event detail and registration;
+- event creation wizard and one non-destructive Speakers & Facilitators view;
+- uploaded event-contributor portrait through the `/media/` mapping;
 - email delivery;
 - Paystack configuration/status without creating an unintended live charge;
 - reports and accounting;
@@ -1049,6 +1089,9 @@ authorization.
 - [ ] Capacity
 - [ ] Accessibility and contact information
 - [ ] Flyer and content rights
+- [ ] Speaker/facilitator names, roles, organizations, and session topics approved
+- [ ] Portrait permission confirmed and useful alt text supplied
+- [ ] Profile publication state and display order checked
 - [ ] Public page verified
 - [ ] Registration tested
 - [ ] Calendar file tested

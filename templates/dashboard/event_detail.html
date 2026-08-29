@@ -7,9 +7,10 @@
 {% block dash_actions %}
 <div class="action-row">
 	  <a class="btn-sm ghost" href="{% url 'dashboard:events' %}">All events</a>
-	  <a class="btn-sm ghost" href="{% url 'pages:event_detail' event.slug %}">Public page</a>
-	  {% if can_message %}<a class="btn-sm olive" href="{% url 'dashboard:campaign_create' %}?event={{ event.pk }}">Message registrants</a>{% endif %}
-	  <a class="btn-sm" href="{% url 'dashboard:event_edit' event.pk %}">Edit event</a>
+		  <a class="btn-sm ghost" href="{% url 'pages:event_detail' event.slug %}">Public page</a>
+		  {% if can_message %}<a class="btn-sm olive" href="{% url 'dashboard:campaign_create' %}?event={{ event.pk }}">Message registrants</a>{% endif %}
+		  <a class="btn-sm ghost" href="{% url 'dashboard:event_contributor_create' event.pk %}">Add speaker / facilitator</a>
+		  <a class="btn-sm" href="{% url 'dashboard:event_edit' event.pk %}">Edit event</a>
 </div>
 {% endblock %}
 {% block dash_content %}
@@ -37,6 +38,7 @@
 
 <div class="event-tabs" data-tabs>
   <button class="prog-tab active" type="button" data-detail-tab="overview">Overview</button>
+  <button class="prog-tab" type="button" data-detail-tab="contributors">Speakers &amp; Facilitators ({{ event_contributors|length }})</button>
   <button class="prog-tab" type="button" data-detail-tab="analytics">Analytics</button>
   <button class="prog-tab" type="button" data-detail-tab="registrations">Registrations</button>
   <button class="prog-tab" type="button" data-detail-tab="timeline">Timeline</button>
@@ -88,7 +90,7 @@
 	  <section class="detail-panel">
 	    <h2>Participant guidance</h2>
 	    <div class="event-admin-copy">
-	      <span>Speakers</span>{{ event.speakers|default:"Not set"|linebreaks }}
+		      <span>Speakers &amp; facilitators</span>{% if event_contributors %}<p>{{ event_contributors|length }} structured profile{{ event_contributors|length|pluralize }} configured.</p>{% else %}{{ event.speakers|default:"Not set"|linebreaks }}{% endif %}
 	      <span>Preparation</span>{{ event.preparation|default:"Not set"|linebreaks }}
 	      <span>Accessibility</span>{{ event.accessibility|default:"Not set"|linebreaks }}
 	      <span>Registration note</span>{{ event.registration_note|default:"Not set"|linebreaks }}
@@ -96,6 +98,36 @@
 	  </section>
 	</div>
 	</div>
+</div>
+
+<div class="tab-panel" id="detail-tab-contributors">
+  <div class="dash-section tabbed-section">
+    <div class="cms-section-head">
+      <div><h2>Speakers &amp; facilitators</h2><p>Build the public event roster with individual pictures, roles, session topics, biographies, and display order.</p></div>
+      <a class="btn-sm" href="{% url 'dashboard:event_contributor_create' event.pk %}">Add person</a>
+    </div>
+    <div class="profile-management-grid event-contributor-management-grid">
+      {% for contributor in event_contributors %}
+      <article class="profile-management-card">
+        <div class="profile-management-photo">
+          {% if contributor.photo %}<img src="{{ contributor.photo.url }}" alt="{{ contributor.photo_alt_text|default:contributor.name }}">{% else %}<span>{{ contributor.name|slice:":1" }}</span>{% endif %}
+        </div>
+        <div class="profile-management-body">
+          <div class="management-card-topline"><span>{{ contributor.get_contribution_type_display }}</span>{% if contributor.is_published %}<b class="badge green">Published</b>{% else %}<b class="badge grey">Hidden</b>{% endif %}</div>
+          <h2>{{ contributor.name }}</h2>
+          <p>{% if contributor.role_title %}{{ contributor.role_title }}{% endif %}{% if contributor.role_title and contributor.organisation %} · {% endif %}{{ contributor.organisation }}</p>
+          {% if contributor.topic %}<p><strong>{{ contributor.topic }}</strong></p>{% endif %}
+          {% if contributor.bio %}<div class="profile-management-bio">{{ contributor.bio|truncatechars:180 }}</div>{% endif %}
+          <div class="table-actions">
+            {% if contributor.is_published %}<a class="btn-sm ghost" href="{% url 'pages:event_detail' event.slug %}#event-contributors">Preview</a>{% endif %}
+            <a class="btn-sm" href="{% url 'dashboard:event_contributor_edit' event.pk contributor.pk %}">Edit</a>
+            <form class="inline-action-form" method="post" action="{% url 'dashboard:event_contributor_delete' event.pk contributor.pk %}" onsubmit="return confirm('Remove {{ contributor.name|escapejs }} from this event?');">{% csrf_token %}<button class="btn-sm red" type="submit">Delete</button></form>
+          </div>
+        </div>
+      </article>
+      {% empty %}<div class="empty">No structured speaker or facilitator profiles have been added. Use “Add person” to build the roster.</div>{% endfor %}
+    </div>
+  </div>
 </div>
 
 <div class="tab-panel" id="detail-tab-analytics">

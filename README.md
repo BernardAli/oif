@@ -25,6 +25,10 @@ first-class, and analytics are rendered with ECharts.
 - Comprehensive engagement app with event detail pages, registrations,
   applications, mentorship, partner enquiries, newsletter signup, event sharing,
   Google Calendar links, and Apple Calendar `.ics` export.
+- Four-step event editor for Basics, Logistics, Public Details, and Publish,
+  followed by an event-specific Speakers & Facilitators roster with profile
+  pictures, roles, organizations, session topics, biographies, ordering, and
+  public visibility controls.
 - Dashboard tabs, pagination, role-based navigation, ECharts analytics, audit
   trail, donation management, member management, member avatars, and profile
   image upload.
@@ -91,7 +95,8 @@ a brochure. It includes:
 - Reusable conference, mentorship, SDG, outreach, and event-archive content
   structures that the OIF content team can expand without a redesign.
 - Event detail pages with rich sections, registration, share links, Google
-  Calendar, Apple Calendar, and `.ics` download.
+  Calendar, Apple Calendar, `.ics` download, and image-led speaker/facilitator
+  profiles managed independently for each event.
 - Impact page with metrics, testimonials, cohorts, gallery highlights, and
   speaker context.
 - Gallery page with CMS-uploaded images and full-screen lightbox expansion.
@@ -104,7 +109,8 @@ The dashboard is role-aware and organized for repeated administrative work.
 Core dashboard areas:
 
 - Overview with tabs and role-specific analytics.
-- Events and registrations.
+- Events and registrations, including a guided four-step event editor and a
+  structured Speakers & Facilitators management tab on every event.
 - Donations and Paystack-linked giving.
 - Applications.
 - Mentorship.
@@ -142,7 +148,9 @@ It manages:
   Lady, Forge Mentorship, Bloom 360, OCOI, and in-person gatherings. The
   Programs dashboard manages conference editions and up to four speaker
   flyers, eight-session mentorship curricula, Phase 2 tracks, SDG focus cards,
-  Google Form registration links, and expandable past-activity archives.
+  Google Form registration links, and expandable past-activity archives. Its
+  primary view is separated into Virtual Conferences, Mentorship Program,
+  Events, and Legacy Program Wings tabs.
 - Speakers.
 - Leadership team.
 - Site stats.
@@ -290,6 +298,7 @@ Supported upload areas:
 - Project logos, logo marks, and favicon.
 - Member avatars.
 - Event flyers.
+- Event-specific speaker and facilitator profile pictures.
 - Program images.
 - Speaker photos.
 - Leadership photos.
@@ -307,8 +316,8 @@ When `DEBUG=True`, media is served by Django via `oif_site.urls`.
 - MySQL in production, configured with `MYSQL_*` environment variables
 - SQLite fallback for zero-configuration local development
 - Pillow for media uploads
-- Vanilla JavaScript for tabs, navigation, password toggles, sharing, countdowns,
-  and gallery lightbox
+- Vanilla JavaScript for tabs, the event setup wizard, navigation, password
+  toggles, sharing, countdowns, and gallery lightbox
 - ECharts for dashboard analytics
 - Paystack for payments
 - Custom responsive CSS
@@ -372,6 +381,9 @@ Detailed operator documentation is available in:
 - [`docs/OIF_PLATFORM_ADMINISTRATOR_MANUAL.pdf`](docs/OIF_PLATFORM_ADMINISTRATOR_MANUAL.pdf)
   — complete printable administrator handbook with runbooks, checklists, module
   reference, and role/access reference.
+- [`docs/ADMINISTRATOR_MANUAL.md`](docs/ADMINISTRATOR_MANUAL.md) — source
+  administrator handbook covering setup, daily operations, publishing,
+  deployment, and recovery.
 - [`docs/MODULES_MANUAL.md`](docs/MODULES_MANUAL.md) — modules, workflows,
   statuses, integrations, finance, operations, deployment, and troubleshooting.
 - [`docs/ROLES_MANUAL.md`](docs/ROLES_MANUAL.md) — capabilities, every platform
@@ -401,8 +413,9 @@ python manage.py test
 ```
 
 Coverage includes public page rendering, role capabilities, dashboard access,
-events, applications, donations, member management, CMS profile/branding,
-gallery lightbox markup, gallery delete behavior, password reset, avatar upload,
+events, event wizard markup, event-specific contributor image/visibility CRUD,
+applications, donations, member management, CMS profile/branding, gallery
+lightbox markup, gallery delete behavior, password reset, avatar upload,
 contact/partner/newsletter flows, email notifications, and audit logging.
 
 ## Deployment Notes
@@ -418,7 +431,9 @@ script, and a detailed setup guide. The short deployment path is:
 3. Create a MySQL database in the Databases tab.
 4. Copy `.env.example` to `.env` and add the PythonAnywhere hostname, MySQL,
    SMTP, and Paystack credentials.
-5. Run `bash deploy/pythonanywhere_update.sh` and create a superuser.
+5. Run `bash deploy/pythonanywhere_update.sh` and create a superuser. The helper
+   selects the configured virtual environment, checks migration drift, applies
+   migrations, and collects static files.
 6. Create a manually configured web app, adapt
    `deploy/pythonanywhere_wsgi.py.example`, and configure the static and media
    mappings.
@@ -429,8 +444,10 @@ paths, environment example, and production checklist. The deployment helpers
 are:
 
 - `deploy/pythonanywhere_wsgi.py.example`: WSGI configuration that loads `.env`.
-- `deploy/pythonanywhere_update.sh`: checks, migrates, collects static assets,
-  and runs Django's deployment checks.
+- `deploy/pythonanywhere_update.sh`: selects the PythonAnywhere virtualenv,
+  checks the project and migration state, migrates, collects static assets,
+  and runs Django's deployment checks. Set `RUN_TESTS=1` for an optional
+  pre-deployment test run when the database account may create a test database.
 
 PythonAnywhere database names typically use the `username$database` format.
 Confirm that the selected account plan includes MySQL before deployment.

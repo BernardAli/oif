@@ -296,14 +296,18 @@ class SitePageCopy(models.Model):
     programs_hero_eyebrow = models.CharField(max_length=120, blank=True)
     programs_hero_headline = models.CharField(max_length=300, blank=True)
     programs_hero_body = models.TextField(blank=True)
-    programs_wings_eyebrow = models.CharField(max_length=120, blank=True)
-    programs_wings_headline = models.CharField(max_length=200, blank=True)
-    programs_wings_body = models.TextField(blank=True)
+    programs_overview_eyebrow = models.CharField(max_length=120, blank=True)
+    programs_overview_headline = models.CharField(max_length=200, blank=True)
+    programs_overview_body = models.TextField(blank=True)
+    programs_conferences_eyebrow = models.CharField(max_length=120, blank=True)
+    programs_conferences_headline = models.CharField(max_length=200, blank=True)
+    programs_conferences_body = models.TextField(blank=True)
     programs_mentorship_eyebrow = models.CharField(max_length=120, blank=True)
     programs_mentorship_headline = models.CharField(max_length=200, blank=True)
     programs_mentorship_body = models.TextField(blank=True)
     programs_events_eyebrow = models.CharField(max_length=120, blank=True)
     programs_events_headline = models.CharField(max_length=200, blank=True)
+    programs_events_body = models.TextField(blank=True)
 
     # --- Impact ----------------------------------------------------------
     impact_hero_headline = models.CharField(max_length=300, blank=True)
@@ -409,10 +413,13 @@ PAGE_COPY_GROUPS = [
     ]),
     ("Programs", [
         "programs_hero_eyebrow", "programs_hero_headline", "programs_hero_body",
-        "programs_wings_eyebrow", "programs_wings_headline", "programs_wings_body",
+        "programs_overview_eyebrow", "programs_overview_headline",
+        "programs_overview_body", "programs_conferences_eyebrow",
+        "programs_conferences_headline", "programs_conferences_body",
         "programs_mentorship_eyebrow", "programs_mentorship_headline",
         "programs_mentorship_body",
         "programs_events_eyebrow", "programs_events_headline",
+        "programs_events_body",
     ]),
     ("Impact", [
         "impact_hero_headline", "impact_hero_body",
@@ -636,6 +643,14 @@ class MentorshipTrack(models.Model):
     label = models.CharField(max_length=80, blank=True)
     title = models.CharField(max_length=180)
     sessions_count = models.PositiveSmallIntegerField(default=4)
+    sessions_label = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text=(
+            "Public session summary, e.g. '4 live sessions' or "
+            "'4 sessions across weeks 9–12'."
+        ),
+    )
     description = models.TextField()
     order = models.PositiveIntegerField(default=0)
 
@@ -644,6 +659,12 @@ class MentorshipTrack(models.Model):
 
     def __str__(self):
         return f"{self.initiative} · {self.title}"
+
+    @property
+    def display_sessions_label(self):
+        if self.sessions_label:
+            return self.sessions_label
+        return f"{self.sessions_count} session{'s' if self.sessions_count != 1 else ''}"
 
 
 class SDGFocus(models.Model):
@@ -910,3 +931,66 @@ class Event(models.Model):
     @property
     def is_full(self):
         return self.capacity and self.active_registration_count >= self.capacity
+
+
+class EventContributor(models.Model):
+    """A speaker, facilitator, or supporting voice attached to one event."""
+
+    class ContributionType(models.TextChoices):
+        KEYNOTE = "KEYNOTE", "Keynote speaker"
+        SPEAKER = "SPEAKER", "Speaker"
+        FACILITATOR = "FACILITATOR", "Facilitator"
+        PANELIST = "PANELIST", "Panelist"
+        MODERATOR = "MODERATOR", "Moderator"
+        HOST = "HOST", "Host / MC"
+        MENTOR = "MENTOR", "Mentor"
+        GUEST = "GUEST", "Special guest"
+        OTHER = "OTHER", "Other contributor"
+
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="contributors"
+    )
+    name = models.CharField(max_length=160)
+    contribution_type = models.CharField(
+        max_length=16,
+        choices=ContributionType.choices,
+        default=ContributionType.SPEAKER,
+    )
+    role_title = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Public professional title or role, such as Founder or Leadership Coach.",
+    )
+    organisation = models.CharField(max_length=200, blank=True)
+    topic = models.CharField(
+        max_length=240,
+        blank=True,
+        help_text="Optional talk, panel, workshop, or session topic.",
+    )
+    bio = models.TextField(
+        blank=True,
+        help_text="A concise public biography relevant to this event.",
+    )
+    photo = models.ImageField(
+        upload_to="event-contributors/", blank=True, null=True
+    )
+    photo_alt_text = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Describe the photo for screen-reader users; defaults to the person's name.",
+    )
+    profile_url = models.URLField(
+        blank=True,
+        help_text="Optional public profile, organisation, or LinkedIn URL.",
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(
+        default=True,
+        help_text="Published profiles appear on the public event page.",
+    )
+
+    class Meta:
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return f"{self.name} — {self.get_contribution_type_display()}"

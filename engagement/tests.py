@@ -66,6 +66,7 @@ class PublicContentPagesTest(TestCase):
         self.assertContains(response, "Public Leadership Forum")
         self.assertContains(response, "Everything participants need to know")
         self.assertContains(response, "Students")
+        self.assertContains(response, "OIF Faculty")
         self.assertContains(response, "Google Calendar")
         self.assertContains(response, reverse("pages:event_calendar", args=[event.slug]))
         self.assertContains(response, "Share event")

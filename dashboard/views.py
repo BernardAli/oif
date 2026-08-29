@@ -21,6 +21,7 @@ from engagement.models import (EventRegistration, Application,
                                MentorshipEnrollment, ContactMessage,
                                PartnerEnquiry, NewsletterSubscriber)
 from pages.models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                          EventContributor,
                           InitiativeArchiveEntry, MentorshipSession,
                           MentorshipTrack, Program, ProgramInitiative,
                           ProgramResource, SDGFocus, SiteBranding,
@@ -47,7 +48,8 @@ from .accounting import (ensure_accounting_defaults, financial_statements,
                          post_expense, post_journal, reverse_journal)
 from .messaging import send_campaign
 from .forms import (
-    CashAccountForm, CashMovementForm, EventForm, ExpenseForm, MemberAdminForm,
+    CashAccountForm, CashMovementForm, EventContributorForm, EventForm,
+    ExpenseForm, MemberAdminForm,
     ConferenceEditionForm, ConferenceSpeakerFlyerForm,
     InitiativeArchiveEntryForm, MentorshipEnrollmentForm,
     MentorshipSessionForm, MentorshipTrackForm, ProgramForm,
@@ -919,6 +921,7 @@ def _event_detail_context(request, event):
         "chart_data": chart_data,
         "can_message": can_message,
         "event_campaigns": event_campaigns,
+        "event_contributors": list(event.contributors.all()),
     }
 
 
@@ -970,7 +973,10 @@ def events(request):
 
 @capability_required("manage_events")
 def event_detail(request, pk):
-    event = get_object_or_404(Event.objects.select_related("program"), pk=pk)
+    event = get_object_or_404(
+        Event.objects.select_related("program").prefetch_related("contributors"),
+        pk=pk,
+    )
     return render(request, "dashboard/event_detail.html", _event_detail_context(request, event))
 
 
@@ -1008,6 +1014,74 @@ def event_edit(request, pk):
         "event": event,
         "mode": "Edit",
     })
+
+
+def _event_contributor_form(request, event, instance=None):
+    if request.method == "POST":
+        form = EventContributorForm(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            contributor = form.save(commit=False)
+            contributor.event = event
+            contributor.save()
+            action = "update" if instance else "create"
+            log_action(
+                request.user,
+                f"event.contributor.{action}",
+                f"{event.title}: {contributor.name}",
+            )
+            messages.success(
+                request,
+                f"{contributor.name} has been saved to the event roster.",
+            )
+            return redirect(
+                reverse("dashboard:event_detail", args=[event.pk])
+                + "#detail-tab-contributors"
+            )
+    else:
+        form = EventContributorForm(instance=instance)
+    return render(request, "dashboard/management_form.html", {
+        "form": form,
+        "object": instance,
+        "mode": "Edit" if instance else "Add",
+        "config": {
+            "label": "Speaker / facilitator",
+            "description": (
+                f"Manage a public speaker, facilitator, host, or contributor "
+                f"profile for {event.title}."
+            ),
+        },
+        "section": "Events",
+        "back_url": "dashboard:event_detail",
+        "back_url_pk": event.pk,
+    })
+
+
+@capability_required("manage_events")
+def event_contributor_create(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk)
+    return _event_contributor_form(request, event)
+
+
+@capability_required("manage_events")
+def event_contributor_edit(request, event_pk, pk):
+    event = get_object_or_404(Event, pk=event_pk)
+    contributor = get_object_or_404(EventContributor, event=event, pk=pk)
+    return _event_contributor_form(request, event, instance=contributor)
+
+
+@capability_required("manage_events")
+@require_POST
+def event_contributor_delete(request, event_pk, pk):
+    event = get_object_or_404(Event, pk=event_pk)
+    contributor = get_object_or_404(EventContributor, event=event, pk=pk)
+    name = contributor.name
+    contributor.delete()
+    log_action(request.user, "event.contributor.delete", f"{event.title}: {name}")
+    messages.success(request, f"{name} has been removed from the event roster.")
+    return redirect(
+        reverse("dashboard:event_detail", args=[event.pk])
+        + "#detail-tab-contributors"
+    )
 
 
 @capability_required("manage_events")
@@ -2207,22 +2281,69 @@ def programs_manage(request):
         programs = programs.filter(is_active=True)
     elif status == "hidden":
         programs = programs.filter(is_active=False)
-    return render(request, "dashboard/programs_manage.html", {
-        "programs": _paginate(request, programs, "programs_page", 12),
-        "initiative_pages": ProgramInitiative.objects.annotate(
+    initiative_pages = list(
+        ProgramInitiative.objects.annotate(
             edition_count=Count("conference_editions", distinct=True),
             session_count=Count("mentorship_sessions", distinct=True),
             track_count=Count("mentorship_tracks", distinct=True),
             sdg_count=Count("sdg_focuses", distinct=True),
             archive_count=Count("archive_entries", distinct=True),
-        ).order_by("pillar", "order", "title"),
+        ).order_by("pillar", "order", "title")
+    )
+    initiative_tabs = [
+        {
+            "key": "conferences",
+            "label": "Virtual Conferences",
+            "eyebrow": "Pillar 01",
+            "heading": "Virtual conference pages",
+            "description": (
+                "Manage The Emerging Leader and The Emerging Lady conference "
+                "editions, speaker flyers, and registration details."
+            ),
+            "items": [
+                item for item in initiative_pages
+                if item.pillar == ProgramInitiative.Pillar.CONFERENCES
+            ],
+        },
+        {
+            "key": "mentorship",
+            "label": "Mentorship Program",
+            "eyebrow": "Pillar 02",
+            "heading": "Mentorship program pages",
+            "description": (
+                "Manage Forge and Bloom 360 sessions, tracks, resources, "
+                "and program details."
+            ),
+            "items": [
+                item for item in initiative_pages
+                if item.pillar == ProgramInitiative.Pillar.MENTORSHIP
+            ],
+        },
+        {
+            "key": "events",
+            "label": "Events",
+            "eyebrow": "Pillar 03",
+            "heading": "Events and outreach pages",
+            "description": (
+                "Manage OCOI impact areas and the archive of in-person "
+                "events, gatherings, and community activities."
+            ),
+            "items": [
+                item for item in initiative_pages
+                if item.pillar == ProgramInitiative.Pillar.EVENTS
+            ],
+        },
+    ]
+    return render(request, "dashboard/programs_manage.html", {
+        "programs": _paginate(request, programs, "programs_page", 12),
+        "initiative_tabs": initiative_tabs,
         "q": q,
         "status": status,
         "wing_choices": Program.Wing.choices,
         "totals": {
-            "initiatives": ProgramInitiative.objects.count(),
+            "initiatives": len(initiative_pages),
             "programs": Program.objects.count(),
-            "active": Program.objects.filter(is_active=True).count(),
+            "active": sum(item.is_active for item in initiative_pages),
             "resources": ProgramResource.objects.count(),
             "events": Event.objects.filter(program__isnull=False).count(),
         },

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                     EventContributor,
                      GalleryImage, InitiativeArchiveEntry, MentorshipSession,
                      MentorshipTrack, Policy, Program, ProgramInitiative,
                      ProgramResource, SDGFocus, Speaker, TeamMember, SiteStat,
@@ -54,6 +55,15 @@ class SiteStatAdmin(admin.ModelAdmin):
     list_editable = ("order",)
 
 
+class EventContributorInline(admin.StackedInline):
+    model = EventContributor
+    extra = 0
+    fields = (
+        "name", "contribution_type", "role_title", "organisation", "topic",
+        "bio", "photo", "photo_alt_text", "profile_url", "order", "is_published",
+    )
+
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ("title", "kind", "program", "starts_at",
@@ -62,6 +72,7 @@ class EventAdmin(admin.ModelAdmin):
     search_fields = ("title", "theme")
     prepopulated_fields = {"slug": ("title",)}
     date_hierarchy = "starts_at"
+    inlines = (EventContributorInline,)
     fieldsets = (
         ("Core", {
             "fields": ("title", "slug", "kind", "program", "theme", "summary",

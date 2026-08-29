@@ -74,7 +74,7 @@
     <div class="container">
       <div class="initiative-section-heading"><div><span class="eyebrow">Phase 2</span><h2>{{ initiative.phase_two_title|default:"Mentor pairing" }}</h2></div><div>{{ initiative.phase_two_intro|linebreaks }}</div></div>
       <div class="mentorship-track-grid">
-        {% for track in tracks %}<article><span>{{ track.label|default:"Mentor pathway" }}</span><h3>{{ track.title }}</h3><b>{{ track.sessions_count }} live session{{ track.sessions_count|pluralize }}</b><p>{{ track.description }}</p></article>{% empty %}<div class="initiative-empty compact"><strong>Mentor grouping details coming soon.</strong></div>{% endfor %}
+        {% for track in tracks %}<article><span>{{ track.label|default:"Mentor pathway" }}</span><h3>{{ track.title }}</h3><b>{{ track.display_sessions_label }}</b><p>{{ track.description }}</p></article>{% empty %}<div class="initiative-empty compact"><strong>Mentor grouping details coming soon.</strong></div>{% endfor %}
       </div>
       <p class="mentorship-scheduling-note">Scheduling details are communicated directly by the program coordinator.</p>
     </div>
@@ -89,10 +89,10 @@
       </div>
     </div>
   </section>
-  {% include "pages/_initiative_archive.html" with archive_heading="Past Outreach Activities" archive_intro="Community initiatives, places served, and people impacted." %}
+  {% include "pages/_initiative_archive.html" with archive_heading="Past Outreach Activities" archive_intro="Community initiatives, places served, and people impacted." archive_empty_title="The outreach archive is ready for OIF content." archive_empty_body="Add an activity number or label, event name, flyer or photo, location, work completed, and the number of people impacted from the Programs dashboard." %}
 
   {% else %}
-  {% include "pages/_initiative_archive.html" with archive_heading="Past In-Person Events & Gatherings" archive_intro="Workshops, networking events, and community gatherings hosted across Ghana and beyond." %}
+  {% include "pages/_initiative_archive.html" with archive_heading="Past In-Person Events & Gatherings" archive_intro="Workshops, networking events, and community gatherings hosted across Ghana and beyond." archive_empty_title="The in-person events archive is ready for OIF content." archive_empty_body="Add an event number or label, name, flyer or photo, venue, date, activity summary, and attendee count from the Programs dashboard." %}
   {% endif %}
 </article>
 {% endblock %}

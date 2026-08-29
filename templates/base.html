@@ -70,20 +70,30 @@
         <button type="button" class="nav-link mega-trigger {% block nav_programs %}{% endblock %}" aria-expanded="false">
           Programs <span aria-hidden="true"></span>
         </button>
-        <div class="mega-panel mega-panel-wide">
+        <div class="mega-panel mega-panel-wide programs-mega-panel">
           <div class="mega-feature program-feature">
-            <span>Program Ecosystem</span>
-            <strong>Current pathways for leadership formation and community impact.</strong>
-            <a href="{% url 'pages:programs' %}">Explore programs</a>
+            <span>Programs &amp; Initiatives</span>
+            <strong>Three distinct pillars. One mission: to raise, refine, and release purpose-driven leaders.</strong>
+            <a href="{% url 'pages:programs' %}">View all programs</a>
           </div>
-          <div class="mega-link-grid program-mega-grid">
-            {% for item in nav_programs %}
-            <a href="{% url 'pages:program_detail' item.wing|lower %}">
-              <span>{{ item.get_wing_display }}</span>
-              <small>{{ item.tagline|default:item.headline }}</small>
-            </a>
-            {% empty %}
-            <div class="mega-program-empty">No programs are currently published.</div>
+          <div class="program-nav-pillars">
+            {% for pillar in nav_program_pillars %}
+            <section class="program-nav-pillar">
+              <a class="program-nav-pillar-heading" href="{% url 'pages:programs' %}#pillar-{{ pillar.key }}">
+                <small>0{{ forloop.counter }} · Pillar</small>
+                <strong>{{ pillar.label }}</strong>
+              </a>
+              <div class="program-nav-initiative-list">
+                {% for item in pillar.initiatives %}
+                <a href="{% url 'pages:initiative_detail' item.slug %}">
+                  <span>{{ item.title }}</span>
+                  <small>{{ item.eyebrow }}</small>
+                </a>
+                {% empty %}
+                <span class="mega-program-empty">Initiatives coming soon.</span>
+                {% endfor %}
+              </div>
+            </section>
             {% endfor %}
           </div>
         </div>
@@ -184,10 +194,10 @@
 
       <nav class="footer-col" aria-label="Programs">
         <h4>Programs</h4>
-        {% for item in nav_programs %}
-        <a href="{% url 'pages:program_detail' item.wing|lower %}">{{ item.get_wing_display }}</a>
+        {% for pillar in nav_program_pillars %}
+        <a href="{% url 'pages:programs' %}#pillar-{{ pillar.key }}">{{ pillar.label }}</a>
         {% endfor %}
-        <a href="{% url 'pages:programs' %}">{% if nav_programs %}All programs →{% else %}View all programs{% endif %}</a>
+        <a href="{% url 'pages:programs' %}">All programs →</a>
       </nav>
 
       <div class="footer-col">
@@ -228,12 +238,19 @@
 {% endblock %}
 
 <script>
-  function toggleMenu() {
+  function setMobileMenu(open) {
     var nav = document.getElementById('navLinks');
     var toggle = document.getElementById('mobileToggle');
-    var isOpen = nav.classList.toggle('open');
-    toggle.classList.toggle('open', isOpen);
-    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (!nav || !toggle) return;
+    nav.classList.toggle('open', open);
+    toggle.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    document.body.classList.toggle('site-nav-open', open);
+  }
+  function toggleMenu() {
+    var nav = document.getElementById('navLinks');
+    setMobileMenu(!nav.classList.contains('open'));
   }
   (function initMegaNavigation() {
     var triggers = document.querySelectorAll('.mega-trigger');
@@ -260,10 +277,19 @@
     });
     document.addEventListener('keydown', function(event) {
       if (event.key !== 'Escape') return;
+      setMobileMenu(false);
       document.querySelectorAll('.mega-item.open').forEach(function(item) {
         item.classList.remove('open');
         item.querySelector('.mega-trigger').setAttribute('aria-expanded', 'false');
       });
+    });
+    document.querySelectorAll('#navLinks a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (window.matchMedia('(max-width: 968px)').matches) setMobileMenu(false);
+      });
+    });
+    window.addEventListener('resize', function() {
+      if (!window.matchMedia('(max-width: 968px)').matches) setMobileMenu(false);
     });
   })();
   (function initPasswordToggles() {

@@ -4,6 +4,7 @@ from django.forms import inlineformset_factory
 from accounts.models import User
 from engagement.models import MentorshipEnrollment
 from pages.models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                          EventContributor,
                           InitiativeArchiveEntry, MentorshipSession,
                           MentorshipTrack, Program, ProgramInitiative,
                           ProgramResource, SDGFocus, SiteBranding,
@@ -264,7 +265,7 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = (
             "title", "kind", "program", "theme", "summary", "description",
-            "audience", "outcomes", "agenda", "speakers", "preparation",
+            "audience", "outcomes", "agenda", "preparation",
             "accessibility", "flyer", "starts_at", "location", "venue_address",
             "online_url", "is_virtual", "capacity", "registration_note",
             "contact_email",
@@ -280,7 +281,6 @@ class EventForm(forms.ModelForm):
             "audience": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
             "outcomes": forms.Textarea(attrs={"class": "form-input", "rows": 5}),
             "agenda": forms.Textarea(attrs={"class": "form-input", "rows": 6}),
-            "speakers": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
             "preparation": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
             "accessibility": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
             "flyer": forms.ClearableFileInput(attrs={"class": "form-input"}),
@@ -301,6 +301,29 @@ class EventForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field_name in ("is_virtual", "registration_open", "is_published"):
             self.fields[field_name].widget.attrs["class"] = "check-input"
+
+
+class EventContributorForm(forms.ModelForm):
+    class Meta:
+        model = EventContributor
+        exclude = ("event",)
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-input"}),
+            "contribution_type": forms.Select(attrs={"class": "form-input"}),
+            "role_title": forms.TextInput(attrs={"class": "form-input"}),
+            "organisation": forms.TextInput(attrs={"class": "form-input"}),
+            "topic": forms.TextInput(attrs={"class": "form-input"}),
+            "bio": forms.Textarea(attrs={"class": "form-input", "rows": 6}),
+            "photo": forms.ClearableFileInput(
+                attrs={"class": "form-input", "accept": "image/*"}
+            ),
+            "photo_alt_text": forms.TextInput(attrs={"class": "form-input"}),
+            "profile_url": forms.URLInput(attrs={"class": "form-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
+        }
+        help_texts = {
+            "order": "Lower numbers appear first on the public event page.",
+        }
 
 
 class MemberAdminForm(forms.ModelForm):
@@ -567,6 +590,7 @@ class MentorshipTrackForm(forms.ModelForm):
             "label": forms.TextInput(attrs={"class": "form-input"}),
             "title": forms.TextInput(attrs={"class": "form-input"}),
             "sessions_count": forms.NumberInput(attrs={"class": "form-input", "min": 1}),
+            "sessions_label": forms.TextInput(attrs={"class": "form-input"}),
             "description": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
             "order": forms.NumberInput(attrs={"class": "form-input", "min": 0}),
         }
