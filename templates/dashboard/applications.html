@@ -38,7 +38,7 @@
 {% if can_manage %}
 <div class="tab-panel" id="app-tab-queue">
 <div class="dash-section tabbed-section">
-  <h2>Review queue <span style="font-size:13px;color:var(--ink-soft);">· staff view</span></h2>
+  <h2>Review queue <span class="dashboard-section-note">· staff view</span></h2>
   {% if queue.object_list %}
   <table class="dtable">
     <thead><tr><th>Applicant</th><th>Type</th><th>Area / motivation</th><th>Status</th><th>Submitted</th><th>Decision</th></tr></thead>
@@ -54,7 +54,7 @@
         <td>{{ a.created_at|date:"M j, Y" }}</td>
         <td>
           {% if a.status == 'PENDING' %}
-          <div style="display:flex;gap:8px;">
+          <div class="table-actions table-actions-start">
             <form method="post" action="{% url 'dashboard:review_application' a.pk 'approve' %}">{% csrf_token %}
               <button class="btn-sm olive" type="submit">Approve</button></form>
             <form method="post" action="{% url 'dashboard:review_application' a.pk 'reject' %}">{% csrf_token %}
