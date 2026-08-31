@@ -2,6 +2,13 @@
 {% block nav_programs %}active{% endblock %}
 {% block title %}{{ program.get_wing_display }} · Programs · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}{{ program.tagline }}{% endblock %}
+{% block og_title %}{{ program.get_wing_display }} · Programs · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}{{ program.tagline }}{% endblock %}
+{% block og_image %}{% if program.image %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ program.image.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ program.image.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block head_extra %}<script type="application/ld+json">{{ breadcrumbs_jsonld|safe }}</script>{% endblock %}
 {% block content %}
 <section class="page active program-showcase">
   <header class="program-showcase-hero">

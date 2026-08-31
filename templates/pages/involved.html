@@ -2,6 +2,12 @@
 {% block nav_involved %}active{% endblock %}
 {% block title %}Get Involved · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Get involved with the Onesimus Impact Foundation as a mentor, volunteer, mentee, speaker, donor, sponsor, or partner supporting youth leadership in Ghana and beyond.{% endblock %}
+{% block og_title %}Get Involved · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Get involved with the Onesimus Impact Foundation as a mentor, volunteer, mentee, speaker, donor, sponsor, or partner supporting youth leadership in Ghana and beyond.{% endblock %}
+{% block og_image %}{% if page_images.involved_mentor %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.involved_mentor.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.involved_mentor.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active involved-premium">
   <div class="involved-hero">

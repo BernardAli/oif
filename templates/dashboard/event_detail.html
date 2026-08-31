@@ -50,7 +50,7 @@
 	  <div class="dash-section detail-panel">
 	    <h2>Event details</h2>
 	    <dl class="meta-list">
-	      <div><dt>Wing</dt><dd>{% if event.program %}{{ event.program.get_wing_display }}{% else %}General{% endif %}</dd></div>
+	      <div><dt>Program</dt><dd>{% if event.initiative %}{{ event.initiative.title }}{% else %}General{% endif %}</dd></div>
 	      <div><dt>Format</dt><dd>{% if event.is_virtual %}Virtual{% else %}In person{% endif %}</dd></div>
 	      <div><dt>Location</dt><dd>{{ event.location }}</dd></div>
 	      {% if event.venue_address %}<div><dt>Address</dt><dd>{{ event.venue_address }}</dd></div>{% endif %}

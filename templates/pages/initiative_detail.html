@@ -2,6 +2,13 @@
 {% block nav_programs %}active{% endblock %}
 {% block title %}{{ initiative.title }} · Programs · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}{{ initiative.description|truncatechars:155 }}{% endblock %}
+{% block og_title %}{{ initiative.title }} · Programs · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}{{ initiative.description|truncatechars:155 }}{% endblock %}
+{% block og_image %}{% if initiative.hero_image %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ initiative.hero_image.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ initiative.hero_image.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block head_extra %}<script type="application/ld+json">{{ breadcrumbs_jsonld|safe }}</script>{% endblock %}
 {% block content %}
 <article class="initiative-detail initiative-type-{{ initiative.page_type|lower }}">
   <header class="initiative-detail-hero">

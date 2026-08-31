@@ -9,7 +9,8 @@ from django.views.decorators.http import require_POST
 from datetime import UTC, timedelta
 from urllib.parse import urlencode
 
-from pages.models import Event, GalleryImage
+from pages import seo
+from pages.models import Event, GalleryImage, SiteBranding
 from oif_site import notify
 from .forms import (ApplicationForm, ContactForm, EventRegistrationForm,
                     PartnerEnquiryForm, NewsletterForm)
@@ -92,7 +93,7 @@ def _ics_escape(value):
 
 def event_detail(request, slug):
     event = get_object_or_404(
-        Event.objects.select_related("program"),
+        Event.objects.select_related("program", "initiative"),
         slug=slug,
         is_published=True,
     )
@@ -121,6 +122,7 @@ def event_detail(request, slug):
         if contributor.is_published
     ]
     event_url = request.build_absolute_uri(reverse("pages:event_detail", args=[event.slug]))
+    branding = SiteBranding.load()
     return render(request, "engagement/event_detail.html", {
         "event": event,
         "registration": registration,
@@ -136,6 +138,20 @@ def event_detail(request, slug):
             "apple": reverse("pages:event_calendar", args=[event.slug]),
         },
         "share_links": _share_links(event, event_url),
+        "event_url": event_url,
+        "event_structured_data": seo.event_jsonld(
+            event,
+            event_url=event_url,
+            event_end=_event_end(event),
+            image_url=request.build_absolute_uri(event.flyer.url) if event.flyer else None,
+            organizer_name=branding.display_name,
+            organizer_url=request.build_absolute_uri("/"),
+        ),
+        "breadcrumbs_jsonld": seo.breadcrumb_jsonld(request, [
+            ("Home", reverse("pages:home")),
+            ("Programs", reverse("pages:programs")),
+            (event.title, event_url),
+        ]),
     })
 
 

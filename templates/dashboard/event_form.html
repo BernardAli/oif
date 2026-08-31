@@ -22,7 +22,7 @@
       <div class="form-row"><label>Title</label>{{ form.title }}{{ form.title.errors }}</div>
       <div class="form-grid-2">
         <div class="form-row"><label>Type</label>{{ form.kind }}{{ form.kind.errors }}</div>
-        <div class="form-row"><label>Program wing</label>{{ form.program }}{{ form.program.errors }}</div>
+        <div class="form-row"><label>Program / Initiative</label>{{ form.initiative }}{{ form.initiative.errors }}{% if form.initiative.help_text %}<span class="helptext">{{ form.initiative.help_text }}</span>{% endif %}</div>
       </div>
       <div class="form-row"><label>Theme</label>{{ form.theme }}{{ form.theme.errors }}</div>
       <div class="form-row"><label>Public summary</label>{{ form.summary }}{{ form.summary.errors }}</div>

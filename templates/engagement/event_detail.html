@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{ event.title }} · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}{{ event.summary|default:event.description|default:"View event details, agenda, registration information, and participation notes for this Onesimus Impact Foundation event."|truncatechars:155 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ event.title }} · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}{{ event.summary|default:event.description|default:"View event details, agenda, registration information, and participation notes for this Onesimus Impact Foundation event."|truncatechars:155 }}{% endblock %}
+{% block og_image %}{% if event.flyer %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ event.flyer.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ event.flyer.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block head_extra %}
+<script type="application/ld+json">{{ event_structured_data|safe }}</script>
+<script type="application/ld+json">{{ breadcrumbs_jsonld|safe }}</script>
+{% endblock %}
 {% block content %}
 <section class="page active event-detail-page">
   <div class="event-detail-hero">
@@ -8,7 +19,7 @@
       <div class="event-detail-hero-grid">
         <div class="event-detail-copy">
           <div class="event-hero-tags">
-            <div class="eyebrow">{{ event.get_kind_display }}{% if event.program %} · {{ event.program.get_wing_display }}{% endif %}</div>
+            <div class="eyebrow">{{ event.get_kind_display }}{% if event.initiative %} · <a href="{% url 'pages:initiative_detail' event.initiative.slug %}">{{ event.initiative.title }}</a>{% endif %}</div>
             <span class="event-status-badge {% if not event.registration_open %}is-muted{% elif event.is_full %}is-full{% elif event.seats_left is not None and event.seats_left <= 10 %}is-filling{% else %}is-open{% endif %}">
               {% if not event.registration_open %}Registration closed
               {% elif event.is_full %}Event full

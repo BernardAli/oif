@@ -264,7 +264,7 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = (
-            "title", "kind", "program", "theme", "summary", "description",
+            "title", "kind", "initiative", "theme", "summary", "description",
             "audience", "outcomes", "agenda", "preparation",
             "accessibility", "flyer", "starts_at", "location", "venue_address",
             "online_url", "is_virtual", "capacity", "registration_note",
@@ -274,7 +274,7 @@ class EventForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-input"}),
             "kind": forms.Select(attrs={"class": "form-input"}),
-            "program": forms.Select(attrs={"class": "form-input"}),
+            "initiative": forms.Select(attrs={"class": "form-input"}),
             "theme": forms.TextInput(attrs={"class": "form-input"}),
             "summary": forms.TextInput(attrs={"class": "form-input"}),
             "description": forms.Textarea(attrs={"class": "form-input", "rows": 5}),
@@ -295,12 +295,22 @@ class EventForm(forms.ModelForm):
             "capacity": "Use 0 for unlimited seats.",
             "is_published": "Published events can appear on the public site.",
             "registration_open": "Controls whether members can register.",
+            "initiative": "The Programs & Initiatives page this event should "
+                          "appear under. Leave blank for a general event.",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name in ("is_virtual", "registration_open", "is_published"):
             self.fields[field_name].widget.attrs["class"] = "check-input"
+        initiative_field = self.fields["initiative"]
+        initiative_field.queryset = ProgramInitiative.objects.filter(
+            is_active=True
+        ).order_by("pillar", "order", "title")
+        initiative_field.label_from_instance = (
+            lambda obj: f"{obj.get_pillar_display()} · {obj.title}"
+        )
+        initiative_field.empty_label = "General (no specific program)"
 
 
 class EventContributorForm(forms.ModelForm):

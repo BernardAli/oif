@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ policy.title }} · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}{{ policy.title }} for the Onesimus Impact Foundation.{% endblock %}
+{% block og_title %}{{ policy.title }} · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}{{ policy.title }} for the Onesimus Impact Foundation.{% endblock %}
+{% block head_extra %}<script type="application/ld+json">{{ breadcrumbs_jsonld|safe }}</script>{% endblock %}
 {% block content %}
 <section class="page active premium-page policy-premium">
   <div class="premium-hero policy-hero">

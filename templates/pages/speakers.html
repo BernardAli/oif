@@ -2,6 +2,12 @@
 {% block nav_impact %}active{% endblock %}
 {% block title %}Speakers · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Explore the speakers, facilitators, and voices who have served Onesimus Impact Foundation conferences, mentorship, and leadership gatherings.{% endblock %}
+{% block og_title %}Speakers · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Explore the speakers, facilitators, and voices who have served Onesimus Impact Foundation conferences, mentorship, and leadership gatherings.{% endblock %}
+{% block og_image %}{% if page_images.speakers_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.speakers_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.speakers_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active premium-page people-page speakers-page">
   <div class="premium-hero people-hero speakers-hero">

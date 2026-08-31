@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Donate · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Support Onesimus Impact Foundation programs, mentorship, virtual conferences, and humanitarian outreach through secure giving.{% endblock %}
+{% block og_title %}Donate · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Support Onesimus Impact Foundation programs, mentorship, virtual conferences, and humanitarian outreach through secure giving.{% endblock %}
+{% block og_image %}{% if page_images.donate_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.donate_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.donate_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active premium-page donate-premium">
   <div class="premium-hero donate-hero">

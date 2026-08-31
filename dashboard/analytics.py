@@ -65,15 +65,12 @@ def donations_by_channel():
 def registrations_by_program():
     rows = (EventRegistration.objects
             .exclude(status=EventRegistration.Status.CANCELLED)
-            .values("event__program__wing")
+            .values("event__initiative__title")
             .annotate(c=Count("id"))
             .order_by("-c"))
-    from pages.models import Program
-    wing_label = dict(Program.Wing.choices)
     labels, values = [], []
     for r in rows:
-        wing = r["event__program__wing"]
-        labels.append(wing_label.get(wing, "Other / General"))
+        labels.append(r["event__initiative__title"] or "Other / General")
         values.append(r["c"])
     return {"labels": labels, "values": values}
 

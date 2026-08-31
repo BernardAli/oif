@@ -1,10 +1,12 @@
 from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
 from engagement.forms import PartnerEnquiryForm
 from engagement.models import EventRegistration, MentorshipEnrollment
+from . import seo
 from .models import (ConferenceEdition, Event, GalleryImage,
                      InitiativeArchiveEntry, MentorshipSession,
                      MentorshipTrack, Policy, Program, ProgramInitiative,
@@ -103,7 +105,14 @@ def initiative_detail(request, slug):
     initiative = get_object_or_404(
         ProgramInitiative.objects.filter(is_active=True), slug=slug
     )
-    ctx = {"initiative": initiative}
+    ctx = {
+        "initiative": initiative,
+        "breadcrumbs_jsonld": seo.breadcrumb_jsonld(request, [
+            ("Home", reverse("pages:home")),
+            ("Programs", reverse("pages:programs")),
+            (initiative.title, reverse("pages:initiative_detail", args=[initiative.slug])),
+        ]),
+    }
     if initiative.page_type == ProgramInitiative.PageType.CONFERENCE:
         editions = ConferenceEdition.objects.filter(
             initiative=initiative, is_published=True
@@ -151,6 +160,11 @@ def program_detail(request, wing):
         "past_events": related_events.filter(starts_at__lt=now).order_by("-starts_at")[:6],
         "program_gallery": program_gallery,
         "program_event_count": related_events.count(),
+        "breadcrumbs_jsonld": seo.breadcrumb_jsonld(request, [
+            ("Home", reverse("pages:home")),
+            ("Programs", reverse("pages:programs")),
+            (program.get_wing_display(), reverse("pages:program_detail", args=[program.wing])),
+        ]),
     }
     return render(request, "pages/program_detail.html", ctx)
 
@@ -203,7 +217,13 @@ def gallery(request):
 
 def policy(request, kind):
     obj = get_object_or_404(Policy, kind=kind)
-    return render(request, "pages/policy.html", {"policy": obj})
+    return render(request, "pages/policy.html", {
+        "policy": obj,
+        "breadcrumbs_jsonld": seo.breadcrumb_jsonld(request, [
+            ("Home", reverse("pages:home")),
+            (obj.title, reverse("pages:policy", args=[obj.kind])),
+        ]),
+    })
 
 
 def robots_txt(request):
@@ -213,6 +233,14 @@ def robots_txt(request):
         "Disallow: /dashboard/",
         "Disallow: /admin/",
         "Disallow: /accounts/",
+        # Transactional/private paths: donation checkout, callback, webhook,
+        # per-reference status pages, and form-submission-only endpoints.
+        # None of this is content worth ranking, and status/reference pages
+        # are effectively per-donor. Kept crawlable-but-noindex on the pages
+        # themselves too (see each template's robots_meta block) so this is
+        # defense in depth, not the only safeguard.
+        "Disallow: /donations/",
+        "Disallow: /engagement/",
         f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")

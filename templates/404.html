@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Page not found · {{ ORG_NAME }}{% endblock %}
+{% block robots_meta %}noindex, nofollow{% endblock %}
 {% block content %}
 <main class="error-page">
   <div class="container error-page-inner">

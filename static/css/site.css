@@ -4617,6 +4617,14 @@
   font-size: 16px;
   max-width: 680px;
 }
+.dashboard-hero-copy small {
+  display: block;
+  margin-top: 10px;
+  color: rgba(250,246,238,0.72);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
 .dashboard-hero-grid,
 .finance-hero-grid {
   display:grid;
@@ -7373,14 +7381,6 @@ h4,
 .sdg-grid h3 { font-size: 24px; }
 .sdg-grid p { color: rgba(255,255,255,.72); margin-top: 14px; }
 
-/* Initiative content management */
-.initiative-admin-summary { padding: 26px 30px; border-radius: 14px; background: var(--dark); color: white; margin-bottom: 24px; }
-.initiative-admin-summary span { display: block; color: var(--tan); font-size: 12px; font-weight: 800; text-transform: uppercase; }
-.initiative-admin-summary strong { display: block; font-size: 22px; margin: 5px 0; }
-.initiative-admin-summary p { color: rgba(255,255,255,.7); }
-.initiative-admin-section { margin-top: 22px; padding: 25px; }
-.initiative-admin-section .section-head { margin-bottom: 18px; }
-
 @media (max-width: 980px) {
   .initiative-index-hero-grid { grid-template-columns: 1fr; }
   .initiative-index-collage { grid-template-rows: repeat(2, 155px); }
@@ -7814,7 +7814,6 @@ th {
 
   .form-fieldset,
   .detail-panel,
-  .dash-card,
   .home-panel,
   .channel-readiness,
   .message-workspace,

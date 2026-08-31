@@ -165,7 +165,7 @@
   </div>
   <section class="home-panel">
     <div class="home-panel-head"><div><h2>Event performance</h2><p>Recent events in the selected period.</p></div></div>
-    <table class="dtable cms-table"><thead><tr><th>Event</th><th>Programme</th><th>Date</th><th>Registrations</th><th>Attended</th><th>Status</th></tr></thead><tbody>{% for event in events_report.event_rows %}<tr><td><strong>{{ event.title }}</strong><small>{{ event.location }}</small></td><td>{% if event.program %}{{ event.program.get_wing_display }}{% else %}General{% endif %}</td><td>{{ event.starts_at|date:"M j, Y" }}</td><td>{{ event.registrations_count|intcomma }}</td><td>{{ event.attended_count|intcomma }}</td><td>{% if event.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="6"><div class="empty compact">No events in this period.</div></td></tr>{% endfor %}</tbody></table>
+    <table class="dtable cms-table"><thead><tr><th>Event</th><th>Programme</th><th>Date</th><th>Registrations</th><th>Attended</th><th>Status</th></tr></thead><tbody>{% for event in events_report.event_rows %}<tr><td><strong>{{ event.title }}</strong><small>{{ event.location }}</small></td><td>{% if event.initiative %}{{ event.initiative.title }}{% else %}General{% endif %}</td><td>{{ event.starts_at|date:"M j, Y" }}</td><td>{{ event.registrations_count|intcomma }}</td><td>{{ event.attended_count|intcomma }}</td><td>{% if event.is_published %}<span class="badge green">Published</span>{% else %}<span class="badge grey">Draft</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="6"><div class="empty compact">No events in this period.</div></td></tr>{% endfor %}</tbody></table>
   </section>
 </div>
 {% endif %}

@@ -2,6 +2,12 @@
 {% block nav_impact %}active{% endblock %}
 {% block title %}Impact · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Since {{ ORG_FOUNDED }}, the Onesimus Impact Foundation has reached thousands through conferences, mentorship cohorts, and humanitarian outreach across Ghana.{% endblock %}
+{% block og_title %}Impact · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Since {{ ORG_FOUNDED }}, the Onesimus Impact Foundation has reached thousands through conferences, mentorship cohorts, and humanitarian outreach across Ghana.{% endblock %}
+{% block og_image %}{% if page_images.impact_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.impact_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.impact_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active premium-page impact-premium">
   <div class="premium-hero impact-hero">

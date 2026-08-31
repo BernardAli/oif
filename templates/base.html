@@ -5,7 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{% block title %}{{ ORG_NAME }} — {{ ORG_TAGLINE }}{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}Onesimus Impact Foundation is a youth-led NGO in Accra, Ghana equipping the next generation of leaders through conferences, mentorship, and humanitarian action.{% endblock %}" />
-<meta name="robots" content="index, follow" />
+<meta name="robots" content="{% block robots_meta %}index, follow{% endblock %}" />
+<link rel="canonical" href="{{ request.build_absolute_uri }}" />
+
+<!-- Open Graph / Facebook. og_title/og_description default to the same
+     copy as <title>/meta description; pages that want different social
+     copy override these two blocks directly. -->
+<meta property="og:site_name" content="{{ ORG_NAME }}" />
+<meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+<meta property="og:title" content="{% block og_title %}{{ ORG_NAME }} — {{ ORG_TAGLINE }}{% endblock %}" />
+<meta property="og:description" content="{% block og_description %}Onesimus Impact Foundation is a youth-led NGO in Accra, Ghana equipping the next generation of leaders through conferences, mentorship, and humanitarian action.{% endblock %}" />
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:locale" content="en_US" />
+{% block og_image %}{% if DEFAULT_SHARE_IMAGE %}
+<meta property="og:image" content="{{ DEFAULT_SHARE_IMAGE }}" />
+<meta name="twitter:image" content="{{ DEFAULT_SHARE_IMAGE }}" />
+{% endif %}{% endblock %}
+
+<!-- Twitter Card: title/description intentionally omitted so clients fall
+     back to the Open Graph tags above per the Twitter Card spec. -->
+<meta name="twitter:card" content="summary_large_image" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{{ google_fonts_url }}" rel="stylesheet">
@@ -17,6 +37,7 @@
   }
 </style>
 <link rel="stylesheet" href="{% static 'css/site.css' %}">
+<script type="application/ld+json">{{ ORGANIZATION_JSONLD|safe }}</script>
 {% block head_extra %}{% endblock %}
 </head>
 <body>

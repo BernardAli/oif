@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Gallery · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Photo gallery from Onesimus Impact Foundation conferences, mentorship cohorts, and humanitarian outreach.{% endblock %}
+{% block og_title %}Gallery · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Photo gallery from Onesimus Impact Foundation conferences, mentorship cohorts, and humanitarian outreach.{% endblock %}
+{% block og_image %}{% if page_images.gallery_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.gallery_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.gallery_hero.url }}" />
+{% elif images.0.image %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ images.0.image.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ images.0.image.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active premium-page gallery-premium">
   <div class="premium-hero gallery-hero">

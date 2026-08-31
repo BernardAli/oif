@@ -473,6 +473,7 @@ class Program(models.Model):
                               help_text="coffee | tan | olive | gold")
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["order"]
@@ -532,6 +533,7 @@ class ProgramInitiative(models.Model):
     phase_two_intro = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["pillar", "order", "title"]
@@ -841,8 +843,17 @@ class Event(models.Model):
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     kind = models.CharField(max_length=20, choices=Kind.choices,
                             default=Kind.CONFERENCE)
+    # Legacy link to a Program "wing" page. Retained for backward
+    # compatibility with existing records, but the event editor now links
+    # events to the active Programs & Initiatives structure via
+    # `initiative` below instead.
     program = models.ForeignKey(Program, null=True, blank=True,
                                 on_delete=models.SET_NULL, related_name="events")
+    initiative = models.ForeignKey(
+        ProgramInitiative, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="events",
+        help_text="The Programs & Initiatives page this event belongs to.",
+    )
     theme = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     summary = models.CharField(
@@ -890,6 +901,7 @@ class Event(models.Model):
     registration_open = models.BooleanField(default=True)
     is_published = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-starts_at"]

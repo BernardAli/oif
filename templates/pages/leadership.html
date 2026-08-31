@@ -2,6 +2,12 @@
 {% block nav_about %}active{% endblock %}
 {% block title %}Leadership · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Meet the governance and operations leadership carrying the work of Onesimus Impact Foundation in Ghana and beyond.{% endblock %}
+{% block og_title %}Leadership · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Meet the governance and operations leadership carrying the work of Onesimus Impact Foundation in Ghana and beyond.{% endblock %}
+{% block og_image %}{% if page_images.leadership_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.leadership_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.leadership_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active premium-page people-page leadership-page">
   <div class="premium-hero people-hero leadership-hero">

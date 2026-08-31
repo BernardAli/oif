@@ -2,6 +2,12 @@
 {% block nav_programs %}active{% endblock %}
 {% block title %}Programs &amp; Initiatives · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Explore OIF virtual conferences, mentorship programs, in-person events, and humanitarian initiatives.{% endblock %}
+{% block og_title %}Programs &amp; Initiatives · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Explore OIF virtual conferences, mentorship programs, in-person events, and humanitarian initiatives.{% endblock %}
+{% block og_image %}{% if page_images.programs_hero_main %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.programs_hero_main.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.programs_hero_main.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active initiative-index">
   <header class="initiative-index-hero">

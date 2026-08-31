@@ -2,6 +2,12 @@
 {% block nav_about %}active{% endblock %}
 {% block title %}About · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Meet the Onesimus Impact Foundation: a youth-led Ghanaian NGO building leaders through conferences, mentorship, humanitarian outreach, partnerships, and digital systems.{% endblock %}
+{% block og_title %}About · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Meet the Onesimus Impact Foundation: a youth-led Ghanaian NGO building leaders through conferences, mentorship, humanitarian outreach, partnerships, and digital systems.{% endblock %}
+{% block og_image %}{% if page_images.about_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.about_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.about_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active about-premium">
   <div class="about-hero-premium">

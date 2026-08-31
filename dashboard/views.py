@@ -498,22 +498,21 @@ def _reports_context(request):
                     distinct=True,
                 ),
             )
-            .select_related("program")
+            .select_related("program", "initiative")
             .order_by("-starts_at")[:12]
         )
-        program_labels = dict(Program.Wing.choices)
-        program_rows = []
-        for row in (
-            registration_qs.exclude(status=EventRegistration.Status.CANCELLED)
-            .values("event__program__wing")
-            .annotate(count=Count("id"))
-            .order_by("-count")
-        ):
-            wing = row["event__program__wing"]
-            program_rows.append({
-                "label": program_labels.get(wing, "General / Unassigned"),
+        program_rows = [
+            {
+                "label": row["event__initiative__title"] or "General / Unassigned",
                 "count": row["count"],
-            })
+            }
+            for row in (
+                registration_qs.exclude(status=EventRegistration.Status.CANCELLED)
+                .values("event__initiative__title")
+                .annotate(count=Count("id"))
+                .order_by("-count")
+            )
+        ]
         event_kind_labels = dict(Event.Kind.choices)
         kind_rows = [
             {
@@ -974,7 +973,7 @@ def events(request):
 @capability_required("manage_events")
 def event_detail(request, pk):
     event = get_object_or_404(
-        Event.objects.select_related("program").prefetch_related("contributors"),
+        Event.objects.select_related("program", "initiative").prefetch_related("contributors"),
         pk=pk,
     )
     return render(request, "dashboard/event_detail.html", _event_detail_context(request, event))
@@ -2345,7 +2344,7 @@ def programs_manage(request):
             "programs": Program.objects.count(),
             "active": sum(item.is_active for item in initiative_pages),
             "resources": ProgramResource.objects.count(),
-            "events": Event.objects.filter(program__isnull=False).count(),
+            "events": Event.objects.filter(initiative__isnull=False).count(),
         },
     })
 
@@ -2451,32 +2450,38 @@ INITIATIVE_CONTENT = {
     "conference": {
         "model": ConferenceEdition, "form": ConferenceEditionForm,
         "label": "Conference edition", "plural": "Conference editions",
-        "relation": "initiative",
+        "relation": "initiative", "status_field": "is_published",
+        "hint": "Upcoming and past editions of this virtual conference, including registration links and flyers.",
     },
     "speaker-flyer": {
         "model": ConferenceSpeakerFlyer, "form": ConferenceSpeakerFlyerForm,
         "label": "Speaker flyer", "plural": "Speaker flyers",
         "relation": "edition__initiative", "form_uses_initiative": True,
+        "hint": "Up to four speaker or personality flyers attached to a conference edition.",
     },
     "session": {
         "model": MentorshipSession, "form": MentorshipSessionForm,
         "label": "Mentorship session", "plural": "Phase 1 sessions",
-        "relation": "initiative",
+        "relation": "initiative", "status_field": "is_published",
+        "hint": "Phase 1 recorded curriculum, numbered one through eight.",
     },
     "track": {
         "model": MentorshipTrack, "form": MentorshipTrackForm,
         "label": "Mentorship track", "plural": "Phase 2 tracks / pairing",
         "relation": "initiative",
+        "hint": "Phase 2 live-session tracks and pairing groups shown on the mentorship page.",
     },
     "sdg": {
         "model": SDGFocus, "form": SDGFocusForm,
         "label": "SDG focus", "plural": "SDG focus areas",
-        "relation": "initiative",
+        "relation": "initiative", "status_field": "is_active",
+        "hint": "United Nations Sustainable Development Goals this program contributes to.",
     },
     "archive": {
         "model": InitiativeArchiveEntry, "form": InitiativeArchiveEntryForm,
         "label": "Archive entry", "plural": "Past activities",
-        "relation": "initiative",
+        "relation": "initiative", "status_field": "is_published",
+        "hint": "Past activities and events shown in this page's archive section.",
     },
 }
 
@@ -2500,15 +2505,23 @@ def _initiative_config(initiative, kind):
 def initiative_manage(request, pk):
     initiative = get_object_or_404(ProgramInitiative, pk=pk)
     sections = []
+    total_items = 0
+    hidden_items = 0
     for kind in _initiative_kinds(initiative):
         config = INITIATIVE_CONTENT[kind]
-        items = config["model"].objects.filter(
+        items = list(config["model"].objects.filter(
             **{config["relation"]: initiative}
-        )
+        ))
+        status_field = config.get("status_field")
+        total_items += len(items)
+        if status_field:
+            hidden_items += sum(1 for item in items if not getattr(item, status_field))
         sections.append({"kind": kind, "config": config, "items": items})
     return render(request, "dashboard/initiative_manage.html", {
         "initiative": initiative,
         "sections": sections,
+        "total_items": total_items,
+        "hidden_items": hidden_items,
     })
 
 

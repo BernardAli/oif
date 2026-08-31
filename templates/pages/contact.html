@@ -2,6 +2,12 @@
 {% block nav_contact %}active{% endblock %}
 {% block title %}Contact · {{ ORG_NAME }}{% endblock %}
 {% block meta_description %}Get in touch with the Onesimus Impact Foundation in Accra, Ghana — send us a message, or reach us by email and phone.{% endblock %}
+{% block og_title %}Contact · {{ ORG_NAME }}{% endblock %}
+{% block og_description %}Get in touch with the Onesimus Impact Foundation in Accra, Ghana — send us a message, or reach us by email and phone.{% endblock %}
+{% block og_image %}{% if page_images.contact_hero %}
+<meta property="og:image" content="{{ SITE_ORIGIN }}{{ page_images.contact_hero.url }}" />
+<meta name="twitter:image" content="{{ SITE_ORIGIN }}{{ page_images.contact_hero.url }}" />
+{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
 <section class="page active contact-profile">
   <header class="contact-profile-hero">

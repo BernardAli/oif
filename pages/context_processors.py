@@ -1,5 +1,6 @@
 from django.db.utils import OperationalError, ProgrammingError
 
+from . import seo
 from .models import (
     ProgramInitiative,
     SiteBranding,
@@ -79,6 +80,20 @@ def site_globals(request):
         site_stats = list(SiteStat.objects.all())
     except (OperationalError, ProgrammingError):
         site_stats = []
+
+    page_images = _page_images()
+    origin = request.build_absolute_uri("/").rstrip("/")
+
+    # Preferred default social-share image: a real homepage photo first
+    # (better previews than a small logo), falling back to the logo, then
+    # nothing at all — pages never advertise a broken image URL.
+    if page_images.home_hero:
+        default_share_image = origin + page_images.home_hero.url
+    elif branding.logo:
+        default_share_image = origin + branding.logo.url
+    else:
+        default_share_image = ""
+
     return {
         "ORG_NAME": branding.display_name,
         "ORG_SHORT": branding.display_short_name,
@@ -91,6 +106,9 @@ def site_globals(request):
         "site_branding": branding,
         "nav_program_pillars": nav_program_pillars,
         "google_fonts_url": branding.google_fonts_url,
-        "page_images": _page_images(),
+        "page_images": page_images,
         "page_copy": _page_copy(),
+        "SITE_ORIGIN": origin,
+        "DEFAULT_SHARE_IMAGE": default_share_image,
+        "ORGANIZATION_JSONLD": seo.organization_jsonld(branding, origin),
     }
