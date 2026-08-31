@@ -28,21 +28,13 @@
       <fieldset class="form-fieldset">
         <legend>{{ group_label }}</legend>
         {% for field in group_fields %}
-          {% if field.field.widget.input_type == "checkbox" %}
-            <div class="form-row check">{{ field }}<label style="margin:0;">{{ field.label }}</label>{{ field.errors }}</div>
-          {% else %}
-            <div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
-          {% endif %}
+          {% include "dashboard/_content_form_field.html" %}
         {% endfor %}
       </fieldset>
       {% endfor %}
     {% else %}
       {% for field in form %}
-        {% if field.field.widget.input_type == "checkbox" %}
-          <div class="form-row check">{{ field }}<label style="margin:0;">{{ field.label }}</label>{{ field.errors }}</div>
-        {% else %}
-          <div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
-        {% endif %}
+        {% include "dashboard/_content_form_field.html" %}
       {% endfor %}
     {% endif %}
     <div class="form-actions">
@@ -52,4 +44,34 @@
   </form>
   </div>
 </div>
+{% endblock %}
+
+{% block dash_scripts %}
+<script>
+  (function () {
+    var paletteInputs = document.querySelectorAll('[data-palette-choice] input');
+    if (!paletteInputs.length) return;
+
+    var variableNames = [
+      'ink', 'ink-soft', 'paper', 'paper-2', 'cream', 'coffee',
+      'coffee-deep', 'coffee-soft', 'tan', 'dark', 'line', 'line-strong'
+    ];
+
+    function previewPalette(input) {
+      variableNames.forEach(function (name) {
+        document.documentElement.style.setProperty(
+          '--' + name,
+          input.getAttribute('data-' + name)
+        );
+      });
+      document.querySelectorAll('[data-palette-choice]').forEach(function (choice) {
+        choice.classList.toggle('selected', choice.contains(input));
+      });
+    }
+
+    paletteInputs.forEach(function (input) {
+      input.addEventListener('change', function () { previewPalette(input); });
+    });
+  }());
+</script>
 {% endblock %}

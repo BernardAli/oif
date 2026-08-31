@@ -104,6 +104,7 @@ def site_globals(request):
         "ORG_LOCATION": branding.display_location,
         "site_stats": site_stats,
         "site_branding": branding,
+        "brand_palette": branding.color_palette_values,
         "nav_program_pillars": nav_program_pillars,
         "google_fonts_url": branding.google_fonts_url,
         "page_images": page_images,

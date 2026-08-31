@@ -1193,10 +1193,24 @@ class FullDashboardControlTest(TestCase):
         self.assertContains(resp, "Project profile")
         self.assertContains(resp, "Identity")
         self.assertContains(resp, "Logos")
-        self.assertContains(resp, "Title font")
-        self.assertContains(resp, "Body font")
+        self.assertContains(resp, "Brand appearance")
+        self.assertContains(resp, "Heritage Coffee")
 
-        resp = self.client.post(reverse("dashboard:content_edit", args=["branding", branding.pk]), data={
+        edit_url = reverse(
+            "dashboard:content_edit", args=["branding", branding.pk]
+        )
+        resp = self.client.get(edit_url)
+        self.assertContains(resp, "Website color palette")
+        self.assertContains(resp, "Heritage Coffee")
+        self.assertContains(resp, "Forest &amp; Gold")
+        self.assertContains(resp, "Navy &amp; Gold")
+        self.assertContains(resp, "Royal Purple &amp; Gold")
+        self.assertContains(resp, "Azure &amp; Lime")
+        self.assertContains(resp, "OIF Deliverables")
+        self.assertContains(resp, "Onesimus Navy &amp; Gold")
+        self.assertContains(resp, '<label class="palette-choice', count=17)
+
+        resp = self.client.post(edit_url, data={
             "org_name": "Onesimus Impact Foundation Ghana",
             "short_name": "OIF Ghana",
             "tagline": "Raising leaders for lasting impact",
@@ -1213,9 +1227,10 @@ class FullDashboardControlTest(TestCase):
             "facebook_url": "https://facebook.com/oif",
             "title_font": "Playfair Display",
             "body_font": "Lato",
+            "color_palette": "navy",
         })
         self.assertRedirects(
-            resp, reverse("dashboard:content_edit", args=["branding", branding.pk])
+            resp, edit_url
         )
         branding.refresh_from_db()
         self.assertEqual(branding.org_name, "Onesimus Impact Foundation Ghana")
@@ -1223,6 +1238,7 @@ class FullDashboardControlTest(TestCase):
         self.assertEqual(branding.contact_email, "hello@oif.test")
         self.assertEqual(branding.title_font, "Playfair Display")
         self.assertEqual(branding.body_font, "Lato")
+        self.assertEqual(branding.color_palette, "navy")
 
         public = self.client.get(reverse("pages:home"))
         self.assertContains(public, "Onesimus Impact Foundation Ghana")
@@ -1230,11 +1246,15 @@ class FullDashboardControlTest(TestCase):
         self.assertContains(public, "A project profile managed from the CMS.")
         self.assertContains(public, '--font-title: "Playfair Display"')
         self.assertContains(public, '--font-body: "Lato"')
+        self.assertContains(public, "--coffee: #26547C")
+        self.assertContains(public, "--dark: #101B2C")
 
         dashboard = self.client.get(reverse("dashboard:home"))
         self.assertContains(dashboard, "OIF Ghana")
         self.assertContains(dashboard, '--font-title: "Playfair Display"')
         self.assertContains(dashboard, '--font-body: "Lato"')
+        self.assertContains(dashboard, "--coffee: #26547C")
+        self.assertContains(dashboard, "--dark: #101B2C")
 
     def test_admin_can_manage_page_imagery_from_dashboard(self):
         self.client.login(username="control_admin", password=PWD)

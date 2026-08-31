@@ -19,7 +19,8 @@ first-class, and analytics are rendered with ECharts.
   resources, speakers, leadership, impact stats, testimonials, gallery images,
   and policies.
 - CMS branding controls for organization name, short name, tagline, location,
-  contact details, social links, footer summary, title font, and body font.
+  contact details, social links, footer summary, title/body fonts, and five
+  coordinated color palettes with live preview.
 - Gallery with uploaded images, dashboard delete action, sample media, and a
   professional click-to-expand lightbox with keyboard navigation.
 - Comprehensive engagement app with event detail pages, registrations,
@@ -141,7 +142,10 @@ It manages:
 - Project profile: organization name, short name, tagline, founded year,
   location, email, phone, website URL, footer summary, social links.
 - Logos: full logo, compact logo mark, favicon.
-- Typography: selectable Google fonts for title and body text.
+- Brand appearance: selectable Google fonts for title and body text plus 17
+  curated color palettes spanning heritage, botanical, jewel, ocean, sunrise,
+  and modern institutional themes. Palette changes apply throughout the public site and
+  dashboard, including navigation, forms, overlays, cards, charts, and reports.
 - Programs and downloadable resources.
 - Programs & Initiatives hierarchy: Virtual Conferences, Mentorship Program,
   and Events, with dedicated pages for The Emerging Leader, The Emerging

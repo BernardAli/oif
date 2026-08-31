@@ -14,6 +14,26 @@
   }
 </style>
 <link rel="stylesheet" href="{% static 'css/site.css' %}">
+<style id="brand-palette">
+  :root {
+    --ink: {{ brand_palette.ink }};
+    --ink-soft: {{ brand_palette.ink_soft }};
+    --paper: {{ brand_palette.paper }};
+    --paper-2: {{ brand_palette.paper_2 }};
+    --cream: {{ brand_palette.cream }};
+    --coffee: {{ brand_palette.coffee }};
+    --coffee-deep: {{ brand_palette.coffee_deep }};
+    --coffee-soft: {{ brand_palette.coffee_soft }};
+    --tan: {{ brand_palette.tan }};
+    --dark: {{ brand_palette.dark }};
+    --terracotta: var(--coffee);
+    --terracotta-deep: var(--coffee-deep);
+    --terracotta-soft: var(--coffee-soft);
+    --gold: var(--tan);
+    --line: {{ brand_palette.line }};
+    --line-strong: {{ brand_palette.line_strong }};
+  }
+</style>
 {% block dash_head %}{% endblock %}
 </head>
 <body>

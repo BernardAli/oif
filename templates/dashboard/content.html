@@ -68,8 +68,9 @@
     <strong>{% if branding.logo or branding.logo_mark or branding.favicon %}Uploaded{% else %}Pending{% endif %}</strong>
   </div>
   <div class="cms-overview-item">
-    <span>Title / body fonts</span>
-    <strong>{{ branding.title_font }} / {{ branding.body_font }}</strong>
+    <span>Brand appearance</span>
+    <strong>{{ branding.get_color_palette_display }}</strong>
+    <small>{{ branding.title_font }} / {{ branding.body_font }}</small>
   </div>
 </div>
 
@@ -86,7 +87,7 @@
 <div class="tab-panel active" id="content-tab-branding">
   <div class="dash-section tabbed-section">
     <div class="cms-section-head">
-      <div><h2>Project profile</h2><p>Identity, logos, contact details, social channels, and global typography.</p></div>
+      <div><h2>Project profile</h2><p>Identity, logos, contact details, social channels, typography, and the site-wide color palette.</p></div>
       <a class="btn-sm" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit project profile</a>
     </div>
     <div class="project-profile-summary">
@@ -133,10 +134,10 @@
         <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
       </tr>
       <tr>
-        <td><strong>Typography</strong><small>Google fonts for headings and body text</small></td>
-        <td>Title font: {{ branding.title_font }}<small>Body font: {{ branding.body_font }}</small></td>
+        <td><strong>Brand appearance</strong><small>Google fonts and coordinated site-wide colors</small></td>
+        <td>{{ branding.get_color_palette_display }}<small>{{ branding.title_font }} / {{ branding.body_font }}</small></td>
         <td>Public website and dashboard</td>
-        <td><span class="badge green">Google Font</span></td>
+        <td><span class="badge green">Palette active</span></td>
         <td><a class="btn-sm ghost" href="{% url 'dashboard:content_edit' 'branding' branding.pk %}">Edit</a></td>
       </tr>
     </tbody></table>

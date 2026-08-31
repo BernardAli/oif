@@ -2816,9 +2816,26 @@ def leadership_delete(request, pk):
 CONTENT_REGISTRY = {
     "branding": {
         "model": SiteBranding, "form": SiteBrandingForm, "label": "Project profile",
-        "description": "Control identity, logos, contact details, social links, and typography.",
+        "description": "Control identity, logos, contact details, social links, typography, and the site-wide color palette.",
         "add_label": "Project profile",
         "singleton": True,
+        "field_groups": (
+            ("Identity", (
+                "org_name", "short_name", "tagline", "founded_year",
+                "location", "footer_blurb",
+            )),
+            ("Brand appearance", (
+                "color_palette", "title_font", "body_font",
+            )),
+            ("Logos and browser icon", ("logo", "logo_mark", "favicon")),
+            ("Contact details", (
+                "contact_email", "contact_phone", "website_url",
+            )),
+            ("Social links", (
+                "instagram_url", "linkedin_url", "twitter_url",
+                "youtube_url", "facebook_url",
+            )),
+        ),
     },
     "page_images": {
         "model": SitePageImages, "form": SitePageImagesForm, "label": "Page imagery",

@@ -1,14 +1,101 @@
 from datetime import timedelta
+from pathlib import Path
 
+from django.conf import settings
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from .checks import production_configuration_check
-from .models import (ConferenceEdition, Event, MentorshipSession,
+from .models import (BRAND_COLOR_PALETTES, ConferenceEdition, Event, MentorshipSession,
                      MentorshipTrack, Policy, Program, ProgramInitiative,
                      SiteBranding, SitePageCopy)
 from .views import error_500
+
+
+class BrandPaletteCoverageTest(SimpleTestCase):
+    @staticmethod
+    def _luminance(hex_color):
+        channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+        linear = [
+            channel / 12.92 if channel <= 0.04045
+            else ((channel + 0.055) / 1.055) ** 2.4
+            for channel in channels
+        ]
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+    def _contrast(self, first, second):
+        first_luminance = self._luminance(first)
+        second_luminance = self._luminance(second)
+        return (max(first_luminance, second_luminance) + 0.05) / (
+            min(first_luminance, second_luminance) + 0.05
+        )
+
+    def test_all_seventeen_palettes_have_unique_names_and_aa_contrast(self):
+        self.assertEqual(len(BRAND_COLOR_PALETTES), 17)
+        self.assertEqual(
+            len({palette["value"] for palette in BRAND_COLOR_PALETTES}), 17
+        )
+        for palette in BRAND_COLOR_PALETTES:
+            colors = palette["colors"]
+            with self.subTest(palette=palette["value"]):
+                self.assertGreaterEqual(
+                    self._contrast(colors["coffee"], colors["cream"]), 4.5
+                )
+                self.assertGreaterEqual(
+                    self._contrast(colors["dark"], colors["cream"]), 4.5
+                )
+                self.assertGreaterEqual(
+                    self._contrast(colors["tan"], colors["dark"]), 4.5
+                )
+
+    def test_oif_deliverables_palette_uses_approved_colors(self):
+        palette = next(
+            item for item in BRAND_COLOR_PALETTES
+            if item["value"] == "oif_deliverables"
+        )
+        self.assertEqual(palette["colors"], {
+            "ink": "#141413",
+            "ink_soft": "#6B5B4E",
+            "paper": "#FFFFFF",
+            "paper_2": "#F1E8DE",
+            "cream": "#FAF5EF",
+            "coffee": "#8A5A34",
+            "coffee_deep": "#6E4527",
+            "coffee_soft": "#C49A6C",
+            "tan": "#C49A6C",
+            "dark": "#141413",
+            "line": "rgba(20, 20, 19, 0.12)",
+            "line_strong": "rgba(20, 20, 19, 0.26)",
+        })
+
+    def test_onesimus_logo_palette_uses_sampled_brand_colors(self):
+        palette = next(
+            item for item in BRAND_COLOR_PALETTES
+            if item["value"] == "onesimus_logo"
+        )
+        self.assertEqual(palette["colors"]["coffee"], "#0A0F4D")
+        self.assertEqual(palette["colors"]["coffee_deep"], "#040743")
+        self.assertEqual(palette["colors"]["tan"], "#D6A529")
+        self.assertEqual(palette["colors"]["paper"], "#FFFFFF")
+
+    def test_brand_rules_and_charts_do_not_bypass_dynamic_palette(self):
+        css = (Path(settings.BASE_DIR) / "static/css/site.css").read_text(
+            encoding="utf-8"
+        )
+        # The first :root block is a safe no-JavaScript/default fallback. All
+        # actual component rules after it must use the runtime variables.
+        component_rules = css.split("* {", 1)[1]
+        chart_template = (
+            Path(settings.BASE_DIR) / "templates/dashboard/_echarts_theme.html"
+        ).read_text(encoding="utf-8")
+        forbidden = (
+            "#1a1512", "#6f6151", "#6f4a2f", "#52341f", "#9a6b48",
+            "#cda983", "#211a14", "rgba(26,21,18", "rgba(111,74,47",
+        )
+        for literal in forbidden:
+            self.assertNotIn(literal, component_rules.lower())
+            self.assertNotIn(literal, chart_template.lower())
 
 
 class PublicPageBehaviourTest(TestCase):

@@ -1,0 +1,49 @@
+{% if field.name == "color_palette" %}
+<div class="form-row palette-form-row">
+  <label id="id_color_palette-label">{{ field.label }}</label>
+  {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+  <div class="palette-picker" role="radiogroup" aria-labelledby="id_color_palette-label">
+    {% for palette in form.palette_options %}
+    <label class="palette-choice{% if field.value == palette.value %} selected{% endif %}" data-palette-choice>
+      <input
+        type="radio"
+        name="{{ field.html_name }}"
+        value="{{ palette.value }}"
+        id="id_color_palette_{{ forloop.counter0 }}"
+        {% if field.value == palette.value %}checked{% endif %}
+        {% if field.field.required %}required{% endif %}
+        data-ink="{{ palette.colors.ink }}"
+        data-ink-soft="{{ palette.colors.ink_soft }}"
+        data-paper="{{ palette.colors.paper }}"
+        data-paper-2="{{ palette.colors.paper_2 }}"
+        data-cream="{{ palette.colors.cream }}"
+        data-coffee="{{ palette.colors.coffee }}"
+        data-coffee-deep="{{ palette.colors.coffee_deep }}"
+        data-coffee-soft="{{ palette.colors.coffee_soft }}"
+        data-tan="{{ palette.colors.tan }}"
+        data-dark="{{ palette.colors.dark }}"
+        data-line="{{ palette.colors.line }}"
+        data-line-strong="{{ palette.colors.line_strong }}"
+      >
+      <span class="palette-swatches" aria-hidden="true">
+        <i style="background:{{ palette.colors.dark }}"></i>
+        <i style="background:{{ palette.colors.coffee }}"></i>
+        <i style="background:{{ palette.colors.coffee_soft }}"></i>
+        <i style="background:{{ palette.colors.tan }}"></i>
+        <i style="background:{{ palette.colors.cream }}"></i>
+      </span>
+      <span class="palette-choice-copy">
+        <strong>{{ palette.label }}</strong>
+        <small>{{ palette.description }}</small>
+      </span>
+      <span class="palette-choice-check" aria-hidden="true">✓</span>
+    </label>
+    {% endfor %}
+  </div>
+  {{ field.errors }}
+</div>
+{% elif field.field.widget.input_type == "checkbox" %}
+<div class="form-row check">{{ field }}<label style="margin:0;">{{ field.label }}</label>{{ field.errors }}</div>
+{% else %}
+<div class="form-row"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}</div>
+{% endif %}

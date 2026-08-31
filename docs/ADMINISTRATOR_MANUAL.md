@@ -252,9 +252,13 @@ Open **Site CMS** and configure:
 - footer description;
 - social URLs;
 - full logo, compact mark, and favicon;
-- heading and body fonts.
+- heading and body fonts;
+- one coordinated color palette for the public site and dashboard.
 
-Confirm the result on the public header/footer, browser tab, and dashboard.
+The branding form provides 17 palette presets and previews a selection
+immediately. Save the form to publish it, then confirm the result on the public
+header/footer, browser tab, and dashboard. Check text and controls over both
+light and dark sections before considering the palette approved.
 
 ## First staff accounts
 

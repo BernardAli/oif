@@ -387,7 +387,7 @@
   function incomeExpenseOption(rows) {
     rows = rows || { labels: [], income: [], expenses: [], net: [] };
     return {
-      color: ['#cda983', '#c0392b', '#6f4a2f'],
+      color: [OIFCharts.palette[1], '#c0392b', OIFCharts.palette[0]],
       tooltip: { trigger: 'axis' },
       legend: { bottom: 0, data: ['Income', 'Expenditure', 'Net'] },
       grid: { left: 48, right: 22, top: 34, bottom: 56, containLabel: true },

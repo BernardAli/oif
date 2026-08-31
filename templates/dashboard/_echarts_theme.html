@@ -1,8 +1,29 @@
 <script>
 window.OIFCharts = (function () {
   var bodyFont = '{{ site_branding.body_font|escapejs }}', titleFont = '{{ site_branding.title_font|escapejs }}';
-  var palette = ['#6f4a2f', '#cda983', '#cda983', '#1a1512', '#9a6b48', '#9a6b48', '#d8b892'];
-  var axis = '#8a7b6b', line = 'rgba(26,21,18,0.12)', ink = '#1a1512';
+  var brand = {
+    ink: '{{ brand_palette.ink|escapejs }}',
+    inkSoft: '{{ brand_palette.ink_soft|escapejs }}',
+    paper: '{{ brand_palette.paper|escapejs }}',
+    cream: '{{ brand_palette.cream|escapejs }}',
+    coffee: '{{ brand_palette.coffee|escapejs }}',
+    coffeeDeep: '{{ brand_palette.coffee_deep|escapejs }}',
+    coffeeSoft: '{{ brand_palette.coffee_soft|escapejs }}',
+    tan: '{{ brand_palette.tan|escapejs }}',
+    dark: '{{ brand_palette.dark|escapejs }}',
+    line: '{{ brand_palette.line|escapejs }}'
+  };
+  var palette = [brand.coffee, brand.tan, brand.coffeeSoft, brand.ink,
+                 brand.coffeeDeep, brand.inkSoft, brand.cream];
+  var axis = brand.inkSoft, line = brand.line, ink = brand.ink;
+
+  function alpha(hex, opacity) {
+    var value = hex.replace('#', '');
+    if (value.length === 3) value = value.split('').map(function (c) { return c + c; }).join('');
+    var number = parseInt(value, 16);
+    return 'rgba(' + ((number >> 16) & 255) + ',' + ((number >> 8) & 255) + ',' +
+      (number & 255) + ',' + opacity + ')';
+  }
 
   function gradient(from, to) {
     return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -14,12 +35,12 @@ window.OIFCharts = (function () {
   function tooltip(trigger) {
     return {
       trigger: trigger || 'axis',
-      backgroundColor: 'rgba(26,21,18,0.94)',
-      borderColor: 'rgba(255,255,255,0.12)',
+      backgroundColor: alpha(brand.ink, 0.94),
+      borderColor: alpha(brand.paper, 0.12),
       borderWidth: 1,
       padding: [10, 12],
-      textStyle: { color: '#faf6f0', fontFamily: bodyFont, fontSize: 12 },
-      extraCssText: 'box-shadow:0 16px 40px rgba(26,21,18,0.18);border-radius:6px;'
+      textStyle: { color: brand.cream, fontFamily: bodyFont, fontSize: 12 },
+      extraCssText: 'box-shadow:0 16px 40px ' + alpha(brand.ink, 0.18) + ';border-radius:6px;'
     };
   }
 
@@ -74,9 +95,9 @@ window.OIFCharts = (function () {
         data: rows.values || [],
         symbol: 'circle',
         symbolSize: 8,
-        lineStyle: { width: 4, color: '#6f4a2f', shadowBlur: 8, shadowColor: 'rgba(111,74,47,0.18)' },
-        itemStyle: { color: '#6f4a2f', borderColor: '#faf6f0', borderWidth: 2 },
-        areaStyle: { color: gradient('rgba(111,74,47,0.24)', 'rgba(111,74,47,0.02)') },
+        lineStyle: { width: 4, color: brand.coffee, shadowBlur: 8, shadowColor: alpha(brand.coffee, 0.18) },
+        itemStyle: { color: brand.coffee, borderColor: brand.cream, borderWidth: 2 },
+        areaStyle: { color: gradient(alpha(brand.coffee, 0.24), alpha(brand.coffee, 0.02)) },
         emphasis: { focus: 'series' }
       }]
     });
@@ -95,9 +116,9 @@ window.OIFCharts = (function () {
         barMaxWidth: 42,
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
-          color: gradient('#9a6b48', '#6f4a2f')
+          color: gradient(brand.coffeeSoft, brand.coffee)
         },
-        emphasis: { itemStyle: { color: '#cda983' } }
+        emphasis: { itemStyle: { color: brand.tan } }
       }]
     });
   }
@@ -119,7 +140,7 @@ window.OIFCharts = (function () {
         center: ['50%', '43%'],
         data: rows || [],
         avoidLabelOverlap: true,
-        itemStyle: { borderColor: '#faf6f0', borderWidth: 3 },
+        itemStyle: { borderColor: brand.cream, borderWidth: 3 },
         label: { color: ink, fontFamily: bodyFont, fontSize: 11, formatter: '{b}\n{d}%' },
         labelLine: { length: 12, length2: 8, lineStyle: { color: line } },
         emphasis: { scale: true, scaleSize: 6 }

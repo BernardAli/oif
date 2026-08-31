@@ -31,6 +31,240 @@ GOOGLE_FONT_CHOICES = (
 )
 
 
+# Curated presets keep the CMS simple while ensuring every selected color is
+# applied as a coherent, contrast-conscious system rather than as isolated
+# values. The CSS variable names intentionally match static/css/site.css.
+BRAND_COLOR_PALETTES = (
+    {
+        "value": "heritage",
+        "label": "Heritage Coffee",
+        "description": "Warm coffee, cream, and tan — the original OIF palette.",
+        "colors": {
+            "ink": "#1A1512", "ink_soft": "#6F6151", "paper": "#FFFFFF",
+            "paper_2": "#F6F1EA", "cream": "#FAF6F0", "coffee": "#6F4A2F",
+            "coffee_deep": "#52341F", "coffee_soft": "#9A6B48",
+            "tan": "#CDA983", "dark": "#211A14",
+            "line": "rgba(26, 21, 18, 0.12)",
+            "line_strong": "rgba(26, 21, 18, 0.26)",
+        },
+    },
+    {
+        "value": "forest",
+        "label": "Forest & Gold",
+        "description": "Grounded greens with a dignified gold highlight.",
+        "colors": {
+            "ink": "#13211A", "ink_soft": "#526358", "paper": "#FFFFFF",
+            "paper_2": "#F1F5F0", "cream": "#F6F8F3", "coffee": "#2F6849",
+            "coffee_deep": "#1F4D35", "coffee_soft": "#5E8F72",
+            "tan": "#D4AF60", "dark": "#102219",
+            "line": "rgba(19, 33, 26, 0.12)",
+            "line_strong": "rgba(19, 33, 26, 0.26)",
+        },
+    },
+    {
+        "value": "navy",
+        "label": "Navy & Gold",
+        "description": "Confident blue, pale slate, and a warm gold accent.",
+        "colors": {
+            "ink": "#141C2B", "ink_soft": "#5D6675", "paper": "#FFFFFF",
+            "paper_2": "#F2F5F8", "cream": "#F7F8FA", "coffee": "#26547C",
+            "coffee_deep": "#173A5A", "coffee_soft": "#5F83A3",
+            "tan": "#D7B46A", "dark": "#101B2C",
+            "line": "rgba(20, 28, 43, 0.12)",
+            "line_strong": "rgba(20, 28, 43, 0.26)",
+        },
+    },
+    {
+        "value": "burgundy",
+        "label": "Burgundy & Sand",
+        "description": "A rich editorial burgundy balanced by soft sand tones.",
+        "colors": {
+            "ink": "#251719", "ink_soft": "#705C60", "paper": "#FFFFFF",
+            "paper_2": "#F7F1F2", "cream": "#FBF7F5", "coffee": "#7A3045",
+            "coffee_deep": "#572033", "coffee_soft": "#A45D70",
+            "tan": "#D5AE77", "dark": "#2B141B",
+            "line": "rgba(37, 23, 25, 0.12)",
+            "line_strong": "rgba(37, 23, 25, 0.26)",
+        },
+    },
+    {
+        "value": "teal",
+        "label": "Teal & Copper",
+        "description": "Fresh teal with a warm copper accent for energetic campaigns.",
+        "colors": {
+            "ink": "#102423", "ink_soft": "#526A68", "paper": "#FFFFFF",
+            "paper_2": "#EDF6F4", "cream": "#F5FAF8", "coffee": "#167267",
+            "coffee_deep": "#0E5149", "coffee_soft": "#4E998F",
+            "tan": "#D39A5C", "dark": "#0D2926",
+            "line": "rgba(16, 36, 35, 0.12)",
+            "line_strong": "rgba(16, 36, 35, 0.26)",
+        },
+    },
+    {
+        "value": "royal",
+        "label": "Royal Purple & Gold",
+        "description": "Regal purple with a luminous ceremonial gold.",
+        "colors": {
+            "ink": "#1E1830", "ink_soft": "#685E78", "paper": "#FFFFFF",
+            "paper_2": "#F4F1F8", "cream": "#FAF8FC", "coffee": "#5B3A8E",
+            "coffee_deep": "#402568", "coffee_soft": "#8264AE",
+            "tan": "#D6B35A", "dark": "#1E1630",
+            "line": "rgba(30, 24, 48, 0.12)",
+            "line_strong": "rgba(30, 24, 48, 0.26)",
+        },
+    },
+    {
+        "value": "sunrise",
+        "label": "Sunrise & Charcoal",
+        "description": "Optimistic orange grounded by warm charcoal neutrals.",
+        "colors": {
+            "ink": "#251A16", "ink_soft": "#716058", "paper": "#FFFFFF",
+            "paper_2": "#FAF2EC", "cream": "#FFF8F3", "coffee": "#B84A1B",
+            "coffee_deep": "#84320F", "coffee_soft": "#D2774D",
+            "tan": "#F0B44D", "dark": "#241A16",
+            "line": "rgba(37, 26, 22, 0.12)",
+            "line_strong": "rgba(37, 26, 22, 0.26)",
+        },
+    },
+    {
+        "value": "ocean",
+        "label": "Ocean & Coral",
+        "description": "Clear ocean blue paired with a welcoming coral accent.",
+        "colors": {
+            "ink": "#102932", "ink_soft": "#58717A", "paper": "#FFFFFF",
+            "paper_2": "#EEF6F8", "cream": "#F7FBFC", "coffee": "#176B87",
+            "coffee_deep": "#0E4A60", "coffee_soft": "#4A8FA5",
+            "tan": "#E89B78", "dark": "#0C2730",
+            "line": "rgba(16, 41, 50, 0.12)",
+            "line_strong": "rgba(16, 41, 50, 0.26)",
+        },
+    },
+    {
+        "value": "sage",
+        "label": "Sage & Terracotta",
+        "description": "Calm botanical sage with an earthy terracotta highlight.",
+        "colors": {
+            "ink": "#1D2A1D", "ink_soft": "#5F6D5B", "paper": "#FFFFFF",
+            "paper_2": "#F1F5EF", "cream": "#F8FAF5", "coffee": "#5D6F52",
+            "coffee_deep": "#3F4F37", "coffee_soft": "#83917B",
+            "tan": "#C77B5B", "dark": "#1C271B",
+            "line": "rgba(29, 42, 29, 0.12)",
+            "line_strong": "rgba(29, 42, 29, 0.26)",
+        },
+    },
+    {
+        "value": "midnight",
+        "label": "Midnight & Cyan",
+        "description": "Deep midnight blue energized by a crisp cyan accent.",
+        "colors": {
+            "ink": "#101F32", "ink_soft": "#596A7D", "paper": "#FFFFFF",
+            "paper_2": "#EFF4F8", "cream": "#F7FAFC", "coffee": "#166A8F",
+            "coffee_deep": "#0D4665", "coffee_soft": "#4F8FAA",
+            "tan": "#65C6D4", "dark": "#0A1B2D",
+            "line": "rgba(16, 31, 50, 0.12)",
+            "line_strong": "rgba(16, 31, 50, 0.26)",
+        },
+    },
+    {
+        "value": "plum",
+        "label": "Plum & Rose",
+        "description": "Expressive plum softened with an elegant dusty rose.",
+        "colors": {
+            "ink": "#291725", "ink_soft": "#735F6E", "paper": "#FFFFFF",
+            "paper_2": "#F7F0F5", "cream": "#FCF7FA", "coffee": "#72345F",
+            "coffee_deep": "#502040", "coffee_soft": "#9A6789",
+            "tan": "#D79AAF", "dark": "#2A1525",
+            "line": "rgba(41, 23, 37, 0.12)",
+            "line_strong": "rgba(41, 23, 37, 0.26)",
+        },
+    },
+    {
+        "value": "emerald",
+        "label": "Emerald & Ivory",
+        "description": "Vibrant emerald balanced by soft ivory and muted gold.",
+        "colors": {
+            "ink": "#102A20", "ink_soft": "#587065", "paper": "#FFFFFF",
+            "paper_2": "#EEF6F1", "cream": "#FAFBF6", "coffee": "#167050",
+            "coffee_deep": "#0E5038", "coffee_soft": "#4A967A",
+            "tan": "#D8BD75", "dark": "#0C281E",
+            "line": "rgba(16, 42, 32, 0.12)",
+            "line_strong": "rgba(16, 42, 32, 0.26)",
+        },
+    },
+    {
+        "value": "slate",
+        "label": "Slate & Amber",
+        "description": "Professional slate blue with a focused amber highlight.",
+        "colors": {
+            "ink": "#17212A", "ink_soft": "#63707C", "paper": "#FFFFFF",
+            "paper_2": "#F1F4F6", "cream": "#F8FAFB", "coffee": "#4B6073",
+            "coffee_deep": "#314154", "coffee_soft": "#758493",
+            "tan": "#E0A744", "dark": "#17212A",
+            "line": "rgba(23, 33, 42, 0.12)",
+            "line_strong": "rgba(23, 33, 42, 0.26)",
+        },
+    },
+    {
+        "value": "cocoa",
+        "label": "Cocoa & Blush",
+        "description": "Soft cocoa neutrals with a warm, human blush accent.",
+        "colors": {
+            "ink": "#2A1C19", "ink_soft": "#75625D", "paper": "#FFFFFF",
+            "paper_2": "#F8F0EF", "cream": "#FDF8F6", "coffee": "#795046",
+            "coffee_deep": "#54352F", "coffee_soft": "#A0786D",
+            "tan": "#DDA99F", "dark": "#281B18",
+            "line": "rgba(42, 28, 25, 0.12)",
+            "line_strong": "rgba(42, 28, 25, 0.26)",
+        },
+    },
+    {
+        "value": "azure",
+        "label": "Azure & Lime",
+        "description": "Modern azure blue lifted by a fresh lime-gold accent.",
+        "colors": {
+            "ink": "#111F32", "ink_soft": "#5D6C7E", "paper": "#FFFFFF",
+            "paper_2": "#EFF4F9", "cream": "#F8FAFC", "coffee": "#215FA6",
+            "coffee_deep": "#174477", "coffee_soft": "#5F88B8",
+            "tan": "#A8C85B", "dark": "#101F32",
+            "line": "rgba(17, 31, 50, 0.12)",
+            "line_strong": "rgba(17, 31, 50, 0.26)",
+        },
+    },
+    {
+        "value": "oif_deliverables",
+        "label": "OIF Deliverables",
+        "description": "The official warm-neutral palette from the OIF website deliverables.",
+        "colors": {
+            "ink": "#141413", "ink_soft": "#6B5B4E", "paper": "#FFFFFF",
+            "paper_2": "#F1E8DE", "cream": "#FAF5EF", "coffee": "#8A5A34",
+            "coffee_deep": "#6E4527", "coffee_soft": "#C49A6C",
+            "tan": "#C49A6C", "dark": "#141413",
+            "line": "rgba(20, 20, 19, 0.12)",
+            "line_strong": "rgba(20, 20, 19, 0.26)",
+        },
+    },
+    {
+        "value": "onesimus_logo",
+        "label": "Onesimus Navy & Gold",
+        "description": "Deep navy and crown gold sampled from the Onesimus logo.",
+        "colors": {
+            "ink": "#0A0F4D", "ink_soft": "#5F6382", "paper": "#FFFFFF",
+            "paper_2": "#F4F4F8", "cream": "#FCFAF2", "coffee": "#0A0F4D",
+            "coffee_deep": "#040743", "coffee_soft": "#141F60",
+            "tan": "#D6A529", "dark": "#040743",
+            "line": "rgba(10, 15, 77, 0.12)",
+            "line_strong": "rgba(10, 15, 77, 0.26)",
+        },
+    },
+)
+BRAND_COLOR_PALETTE_CHOICES = tuple(
+    (palette["value"], palette["label"]) for palette in BRAND_COLOR_PALETTES
+)
+BRAND_COLOR_PALETTE_MAP = {
+    palette["value"]: palette for palette in BRAND_COLOR_PALETTES
+}
+
+
 class SiteBranding(models.Model):
     """Singleton project profile, brand media, and shared typography."""
     org_name = models.CharField(
@@ -87,6 +321,12 @@ class SiteBranding(models.Model):
         default="Inter",
         help_text="Google Font used for paragraphs, tables, forms, and controls.",
     )
+    color_palette = models.CharField(
+        max_length=24,
+        choices=BRAND_COLOR_PALETTE_CHOICES,
+        default="heritage",
+        help_text="Coordinated colors used across the public website and dashboard.",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -141,6 +381,13 @@ class SiteBranding(models.Model):
                 families.append(font)
         query = "&".join(f"family={quote_plus(font)}" for font in families)
         return f"https://fonts.googleapis.com/css2?{query}&display=swap"
+
+    @property
+    def color_palette_values(self):
+        palette = BRAND_COLOR_PALETTE_MAP.get(
+            self.color_palette, BRAND_COLOR_PALETTE_MAP["heritage"]
+        )
+        return palette["colors"]
 
 
 class SitePageImages(models.Model):

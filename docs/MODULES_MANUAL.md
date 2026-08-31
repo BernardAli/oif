@@ -215,11 +215,18 @@ templates. It controls:
 - footer summary;
 - full logo, compact logo, and favicon;
 - Instagram, LinkedIn, X, YouTube, and Facebook links;
-- heading and body Google fonts.
+- heading and body Google fonts;
+- one of 17 coordinated site-wide color palettes spanning warm heritage,
+  botanical, jewel, ocean, sunrise, and modern institutional themes.
 
 Because branding is global, verify changes on both the public site and
 dashboard. Uploaded logo variants should be optimized for the web and remain
-legible on light and dark backgrounds.
+legible on light and dark backgrounds. The branding editor previews a palette
+as soon as it is selected; the choice becomes permanent only after **Save
+changes** is pressed. The selected palette drives navigation, forms, cards,
+overlays, dashboard workspaces, charts, and reports. Semantic colors remain
+fixed where changing them would obscure meaning, including destructive/error
+states, warnings, and recognizable provider/channel indicators.
 
 ### 5.3 Programs & Initiatives
 

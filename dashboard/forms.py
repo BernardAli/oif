@@ -4,6 +4,7 @@ from django.forms import inlineformset_factory
 from accounts.models import User
 from engagement.models import MentorshipEnrollment
 from pages.models import (ConferenceEdition, ConferenceSpeakerFlyer, Event,
+                          BRAND_COLOR_PALETTES,
                           EventContributor,
                           InitiativeArchiveEntry, MentorshipSession,
                           MentorshipTrack, Program, ProgramInitiative,
@@ -652,6 +653,10 @@ class ProgramResourceForm(forms.ModelForm):
 
 
 class SiteBrandingForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.palette_options = BRAND_COLOR_PALETTES
+
     class Meta:
         model = SiteBranding
         fields = (
@@ -659,7 +664,7 @@ class SiteBrandingForm(forms.ModelForm):
             "contact_email", "contact_phone", "website_url", "footer_blurb",
             "logo", "logo_mark", "favicon", "instagram_url", "linkedin_url",
             "twitter_url", "youtube_url", "facebook_url", "title_font",
-            "body_font",
+            "body_font", "color_palette",
         )
         widgets = {
             "org_name": forms.TextInput(attrs={"class": "form-input"}),
@@ -681,6 +686,7 @@ class SiteBrandingForm(forms.ModelForm):
             "facebook_url": forms.URLInput(attrs={"class": "form-input"}),
             "title_font": forms.Select(attrs={"class": "form-input"}),
             "body_font": forms.Select(attrs={"class": "form-input"}),
+            "color_palette": forms.RadioSelect,
         }
         labels = {
             "org_name": "Project / organization name",
@@ -694,6 +700,7 @@ class SiteBrandingForm(forms.ModelForm):
             "twitter_url": "X / Twitter URL",
             "title_font": "Title font",
             "body_font": "Body font",
+            "color_palette": "Website color palette",
         }
 
 
